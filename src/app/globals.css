@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  --font-heebo: var(--font-heebo);
+  --font-inter: var(--font-inter);
+  --font-sans: var(--font-heebo);
+}
+
+:root {
+  --zc-surface: #fafaf7;
+  --zc-surface-foreground: #0a2540;
+  --zc-card: #ffffff;
+  --zc-card-foreground: #0a2540;
+  --zc-muted: #e7e5e0;
+  --zc-muted-foreground: #525252;
+  --zc-primary: #0a2540;
+  --zc-primary-foreground: #fafaf7;
+  --zc-accent: #f59e0b;
+  --zc-accent-foreground: #0a2540;
+  --zc-border: #d6d3d1;
+  --zc-ring: #f59e0b;
+  --zc-destructive: #dc2626;
+  --zc-destructive-foreground: #fafaf7;
+}
+
+@utility font-heebo {
+  font-family: var(--font-heebo), system-ui, sans-serif;
+}
+
+@utility font-inter {
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+/*
+ * Logical-property utility extensions for Tailwind v4.3.
+ *
+ * Tailwind v4.3 ships block-axis and inline-axis utilities natively.
+ * These additional shorthand names (bs, is, mi, pi, inset-i, min-bs, max-is)
+ * are project conventions matching the UI-SPEC and Plan 01-01.
+ * They produce the canonical CSS logical-property longhands so the FND-03
+ * lint (which rejects physical-direction Tailwind utilities) passes.
+ */
+
+@utility bs-* {
+  block-size: calc(var(--spacing) * --value(integer));
+}
+@utility bs-full {
+  block-size: 100%;
+}
+@utility bs-dvh {
+  block-size: 100dvh;
+}
+@utility bs-auto {
+  block-size: auto;
+}
+
+@utility min-bs-* {
+  min-block-size: calc(var(--spacing) * --value(integer));
+}
+@utility min-bs-dvh {
+  min-block-size: 100dvh;
+}
+@utility min-bs-full {
+  min-block-size: 100%;
+}
+
+@utility is-* {
+  inline-size: calc(var(--spacing) * --value(integer));
+}
+@utility is-full {
+  inline-size: 100%;
+}
+@utility is-auto {
+  inline-size: auto;
+}
+
+@utility max-is-* {
+  max-inline-size: calc(var(--spacing) * --value(integer));
+}
+@utility max-is-md {
+  max-inline-size: 28rem;
+}
+@utility max-is-lg {
+  max-inline-size: 32rem;
+}
+
+@utility mi-* {
+  margin-inline: calc(var(--spacing) * --value(integer));
+}
+@utility mi-auto {
+  margin-inline: auto;
+}
+
+@utility pi-* {
+  padding-inline: calc(var(--spacing) * --value(integer));
+}
+
+@utility inset-i-* {
+  inset-inline: calc(var(--spacing) * --value(integer));
+}
+@utility inset-i-0 {
+  inset-inline: 0;
+}
+
+@utility bb-1 {
+  border-block-end-width: 1px;
+}
+@utility bt-1 {
+  border-block-start-width: 1px;
+}
+@utility border-b-1 {
+  border-block-end-width: 1px;
+}
+@utility border-t-1 {
+  border-block-start-width: 1px;
+}
