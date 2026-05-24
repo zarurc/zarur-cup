@@ -798,29 +798,29 @@ curl -s -X GET "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/predictions?select=*" \
 - **`new Date(kickoff_at).getTime() < Date.now()` for lock decisions:** client clock cannot be trusted. Server is the only clock; RLS is the lock.
 - **Hand-rolled invite-code "session" cookies:** use `signInAnonymously()`. Supabase's anonymous-auth primitive is the designed solution.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 ### Question 1: Bracket slot graph — one table or two?
 
 - **What we know:** Decisions D-19/D-22 mandate "bracket slot graph (R32 → R16 → QF → SF → F + Champion) fully populated." The architecture research §"Schema Sketch" uses one `bracket_slots` table with `slot_code`, `stage`, `fixture_id` (nullable). The "Claude's Discretion" section of CONTEXT.md explicitly defers this.
 - **What's unclear:** Whether to also include an adjacency table (`bracket_slot_edges(from_slot_id, to_slot_id)`) to model the winner-feeds-into relationship explicitly.
-- **Recommendation:** **One table** for Phase 1. Add `parent_slot_id uuid references bracket_slots(id)` column to `bracket_slots` for the winner-feeds-into relationship (NULL for Champion). Adjacency edges as a separate table is overkill for 31 slots with a tree (not graph) structure. Phase 3's bracket-scoring planner can add a denormalized table if perf needs it.
+- **RESOLVED:** **One table** for Phase 1. Add `parent_slot_id uuid references bracket_slots(id)` column to `bracket_slots` for the winner-feeds-into relationship (NULL for Champion). Adjacency edges as a separate table is overkill for 31 slots with a tree (not graph) structure. Phase 3's bracket-scoring planner can add a denormalized table if perf needs it.
 
 ### Question 2: Cron heartbeat response — JSON body or 204?
 
 - **What we know:** D-18 explicitly defers this to planner discretion.
-- **Recommendation:** **Return `{ ok: true, pinged_at: <ISO> }` JSON.** Reasons: (a) easier debugging — Vercel's cron logs show the response body; (b) future-proof if someone curls `/api/heartbeat` to check liveness; (c) cost is negligible (~50 bytes). The body is also a small defense-in-depth signal that the route ran the DB query (the `pinged_at` proves the function executed and the lack of an `error` field proves the DB query succeeded).
+- **RESOLVED:** **Return `{ ok: true, pinged_at: <ISO> }` JSON.** Reasons: (a) easier debugging — Vercel's cron logs show the response body; (b) future-proof if someone curls `/api/heartbeat` to check liveness; (c) cost is negligible (~50 bytes). The body is also a small defense-in-depth signal that the route ran the DB query (the `pinged_at` proves the function executed and the lack of an `error` field proves the DB query succeeded).
 
 ### Question 3: Hebrew team-name reviewer — who and when?
 
 - **What we know:** DATA-04 mandates native-speaker review inside Phase 1; STATE.md flags this as an open question; no reviewer identified in CONTEXT.md.
-- **Recommendation:** **The Phase 1 planner should explicitly call out this dependency in its plan.** The native-speaker can be a family member; the review is a 30-minute pass over a CSV of 48 team names. Block the Phase 1 ship-gate on this signoff. The DB seed should be authored such that re-running migration 0003 with corrected names is idempotent (which it is — INSERTs into `teams` will conflict on `(tournament_id, code)` unique index, planner should make the seed use ON CONFLICT DO UPDATE).
+- **RESOLVED:** Reviewer = zekez (per user decision 2026-05-23). The review is a 30-minute pass over the 48 team names in `data/wc2026/teams.csv`. Block the Phase 1 ship-gate on this signoff. The DB seed is authored such that re-running migration 0003 with corrected names is idempotent — INSERTs into `teams` conflict on `(tournament_id, code)` and `ON CONFLICT DO UPDATE` re-applies cleanly.
 
 ### Question 4: 8 best third-placed teams algorithm — Phase 1 or Phase 2?
 
 - **What we know:** WC 2026's expanded format means 32 teams reach R32: 12 group winners + 12 runners-up + **8 best third-placed teams** (computed from twelve groups' third-place finishers). The R32 fixtures need symbolic placeholders for the 8 "best 3rd-place" slots (`THIRD_PLACE_1`..`THIRD_PLACE_8`).
 - **What's unclear:** Whether Phase 1 seeds the 8 placeholder fixtures with symbolic refs, leaving the resolution algorithm for Phase 2 admin tooling (ADM-03).
-- **Recommendation:** **Seed the 8 placeholder slots in Phase 1.** The resolution algorithm (computing tiebreakers across twelve groups) lives in Phase 2 admin code. Phase 1's job is to make sure the schema and fixtures don't lie — the 32 R32 fixtures exist with their kickoff times and symbolic placeholders. Phase 2's `ADM-03` resolves them.
+- **RESOLVED:** **Seed the 8 placeholder slots in Phase 1.** The resolution algorithm (computing tiebreakers across twelve groups) lives in Phase 2 admin code. Phase 1's job is to make sure the schema and fixtures don't lie — the 32 R32 fixtures exist with their kickoff times and symbolic placeholders. Phase 2's `ADM-03` resolves them.
 
 ## Sources
 
