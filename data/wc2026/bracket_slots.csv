@@ -2,32 +2,51 @@ slot_code,stage,parent_slot_code,fixture_external_match_no
 # WC 2026 — Bracket slot graph (R32 -> R16 -> QF -> SF -> F -> CHAMPION). 32 slots total.
 # parent_slot_code is empty only for CHAMPION (terminal node).
 # fixture_external_match_no is empty for CHAMPION (no match decides the champion — it's the winner of F).
-# Wiring (matches that feed into the next slot): see comments below.
+#
+# Wiring is FIFA-published (Dec 6, 2025 schedule reveal). The R32->R16 and R16->QF pairings are
+# NOT naive sequential — FIFA's bracket interleaves winners across the two semifinal pathways to
+# keep the top 4 seeds (Spain, Argentina, France, England) apart until the SFs/Final.
+# Derived from en.wikipedia.org/wiki/2026_FIFA_World_Cup_knockout_stage match-numbers:
+#   M89 (R16_M1) = R32_M2_W vs R32_M5_W      => R32_M2 + R32_M5 parent to R16_M1
+#   M90 (R16_M2) = R32_M1_W vs R32_M3_W      => R32_M1 + R32_M3 parent to R16_M2
+#   M91 (R16_M3) = R32_M4_W vs R32_M6_W      => R32_M4 + R32_M6 parent to R16_M3
+#   M92 (R16_M4) = R32_M7_W vs R32_M8_W      => R32_M7 + R32_M8 parent to R16_M4
+#   M93 (R16_M5) = R32_M11_W vs R32_M12_W    => R32_M11 + R32_M12 parent to R16_M5
+#   M94 (R16_M6) = R32_M9_W vs R32_M10_W     => R32_M9 + R32_M10 parent to R16_M6
+#   M95 (R16_M7) = R32_M14_W vs R32_M16_W    => R32_M14 + R32_M16 parent to R16_M7
+#   M96 (R16_M8) = R32_M13_W vs R32_M15_W    => R32_M13 + R32_M15 parent to R16_M8
+#   M97 (QF_M1)  = R16_M1_W vs R16_M2_W
+#   M98 (QF_M2)  = R16_M5_W vs R16_M6_W
+#   M99 (QF_M3)  = R16_M3_W vs R16_M4_W
+#   M100 (QF_M4) = R16_M7_W vs R16_M8_W
+#   M101 (SF_M1) = QF_M1_W vs QF_M2_W
+#   M102 (SF_M2) = QF_M3_W vs QF_M4_W
+#   M104 (F)     = SF_M1_W vs SF_M2_W -> CHAMPION
 #
 # === ROUND OF 32 (16 slots, fixtures 73-88) — each feeds into an R16 slot ===
-R32_M1,round_of_32,R16_M1,73
+R32_M1,round_of_32,R16_M2,73
 R32_M2,round_of_32,R16_M1,74
 R32_M3,round_of_32,R16_M2,75
-R32_M4,round_of_32,R16_M2,76
-R32_M5,round_of_32,R16_M3,77
+R32_M4,round_of_32,R16_M3,76
+R32_M5,round_of_32,R16_M1,77
 R32_M6,round_of_32,R16_M3,78
 R32_M7,round_of_32,R16_M4,79
 R32_M8,round_of_32,R16_M4,80
-R32_M9,round_of_32,R16_M5,81
-R32_M10,round_of_32,R16_M5,82
-R32_M11,round_of_32,R16_M6,83
-R32_M12,round_of_32,R16_M6,84
-R32_M13,round_of_32,R16_M7,85
+R32_M9,round_of_32,R16_M6,81
+R32_M10,round_of_32,R16_M6,82
+R32_M11,round_of_32,R16_M5,83
+R32_M12,round_of_32,R16_M5,84
+R32_M13,round_of_32,R16_M8,85
 R32_M14,round_of_32,R16_M7,86
 R32_M15,round_of_32,R16_M8,87
-R32_M16,round_of_32,R16_M8,88
+R32_M16,round_of_32,R16_M7,88
 # === ROUND OF 16 (8 slots, fixtures 89-96) — each feeds into a QF slot ===
 R16_M1,round_of_16,QF_M1,89
 R16_M2,round_of_16,QF_M1,90
-R16_M3,round_of_16,QF_M2,91
-R16_M4,round_of_16,QF_M2,92
-R16_M5,round_of_16,QF_M3,93
-R16_M6,round_of_16,QF_M3,94
+R16_M3,round_of_16,QF_M3,91
+R16_M4,round_of_16,QF_M3,92
+R16_M5,round_of_16,QF_M2,93
+R16_M6,round_of_16,QF_M2,94
 R16_M7,round_of_16,QF_M4,95
 R16_M8,round_of_16,QF_M4,96
 # === QUARTER-FINALS (4 slots, fixtures 97-100) — each feeds into a SF slot ===
