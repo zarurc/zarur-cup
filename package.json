@@ -13,6 +13,7 @@
     "db:push": "supabase db push --linked",
     "db:link": "supabase link --project-ref \"$SUPABASE_PROJECT_REF\"",
     "verify:rls": "bash scripts/verify-rls-no-leak.sh",
+    "verify:heartbeat": "bash scripts/verify-heartbeat.sh",
     "seed:build": "tsx scripts/build-seed-sql.ts"
   },
   "dependencies": {
