@@ -3,6 +3,8 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Heebo, Inter } from 'next/font/google';
 import { routing } from '@/lib/i18n/routing';
+import { Header } from '@/components/layout/Header';
+import { BottomTabBar } from '@/components/layout/BottomTabBar';
 import '../globals.css';
 
 const heebo = Heebo({
@@ -28,6 +30,16 @@ type Props = {
   params: Promise<{ locale: string }>;
 };
 
+/**
+ * Canonical root layout. <html lang|dir> is server-rendered from the URL
+ * locale param (no useEffect, no FOUC).
+ *
+ * The chrome is always present: Header (56px, fixed top) + main (padded top
+ * and bottom to clear the fixed chrome) + BottomTabBar (~56px + safe-area).
+ *
+ * UI-SPEC §1 specifies pbs-14 (= 56px = header height) and a bottom block-end
+ * padding of calc(56px + env(safe-area-inset-bottom)).
+ */
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) {
@@ -49,7 +61,16 @@ export default async function LocaleLayout({ children, params }: Props) {
         className={`${bodyFont} min-bs-dvh bg-[--zc-surface] text-[--zc-surface-foreground]`}
       >
         <NextIntlClientProvider messages={messages} locale={locale}>
-          {children}
+          <Header />
+          <main
+            className="pbs-14"
+            style={{
+              paddingBlockEnd: 'calc(56px + env(safe-area-inset-bottom))',
+            }}
+          >
+            {children}
+          </main>
+          <BottomTabBar />
         </NextIntlClientProvider>
       </body>
     </html>

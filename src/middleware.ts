@@ -6,7 +6,16 @@ import { refreshSupabaseSession } from '@/lib/supabase/middleware';
 const intlMiddleware = createIntlMiddleware(routing);
 
 export async function middleware(request: NextRequest) {
+  // Surface the request pathname to RSCs via a request header (mutating the
+  // request headers before middleware chains makes Next forward the header to
+  // downstream server components). The bottom tab bar reads this via
+  // headers() to highlight the active tab without becoming a client component.
+  request.headers.set('x-pathname', request.nextUrl.pathname);
   const response = intlMiddleware(request);
+  // Mirror it onto the response so it's also readable from the response side
+  // (defense in depth - some intl-middleware redirect paths reconstruct the
+  // request).
+  response.headers.set('x-pathname', request.nextUrl.pathname);
   return refreshSupabaseSession(request, response);
 }
 

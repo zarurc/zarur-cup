@@ -1,23 +1,19 @@
 import { setRequestLocale } from 'next-intl/server';
-import { useTranslations } from 'next-intl';
+import { redirect } from 'next/navigation';
+import type { Route } from 'next';
+import { getCurrentMember } from '@/lib/auth/session';
 
-type Props = {
-  params: Promise<{ locale: string }>;
-};
+type Props = { params: Promise<{ locale: string }> };
 
+/**
+ * /[locale] home: server-side fork.
+ *   - Signed-out -> /[locale]/join
+ *   - Signed-in -> /[locale]/matches (Phase 1 tab default)
+ */
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
-  return <HomePageContent />;
-}
-
-function HomePageContent() {
-  const t = useTranslations('home');
-  return (
-    <main className="pbs-12 pbe-12 ps-4 pe-4">
-      <h1 className="text-3xl font-bold text-[--zc-primary]">
-        {t('placeholder')}
-      </h1>
-    </main>
-  );
+  const member = await getCurrentMember();
+  if (!member) redirect(`/${locale}/join` as Route);
+  redirect(`/${locale}/matches` as Route);
 }
