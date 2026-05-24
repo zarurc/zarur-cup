@@ -1,48 +1,52 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useTransition } from 'react';
 import { useTranslations } from 'next-intl';
-import { Link, usePathname } from '@/lib/i18n/routing';
-import { updateLocaleForCurrentUser } from '@/app/actions/locale';
+import { usePathname, getPathname } from '@/lib/i18n/routing';
+import { switchLocale } from '@/app/actions/locale';
 
 /**
  * Locale toggle pill per UI-SPEC §4 + D-17.
  *
- * The pill is a next-intl <Link> with the OPPOSITE locale - it shows the code
- * of the locale you'd switch INTO (EN on /he/, HE on /en/). The Link itself
- * does the URL change + cookie set via next-intl's middleware.
+ * Fix-up plan 01-04 / Bug 4: the previous implementation used next-intl's
+ * <Link locale={other}> + a parallel `startTransition(updateLocaleForCurrentUser)`
+ * call. The navigation tore down the React tree before the server action's
+ * DB UPDATE could finish, so `profiles.locale` never persisted on the live DB.
  *
- * In parallel we fire updateLocaleForCurrentUser() so signed-in users get
- * profiles.locale updated for cross-device continuity. Fire-and-forget under
- * startTransition so it doesn't block navigation.
+ * The new shape: a <form action={switchLocale}> with a single button. The
+ * action runs server-side (cookie set + profiles.locale UPDATE awaited),
+ * then issues `redirect(/<otherLocale>/<sameRelativePath>)`. No client-side
+ * navigation runs in parallel, so there is no race. The form submission
+ * itself is a POST + 303 redirect, which the browser handles transparently.
+ *
+ * The pill still SHOWS the OTHER locale's short code (EN on /he/, HE on /en/)
+ * exactly as before.
  */
 export function LocaleTogglePill() {
   const t = useTranslations('localePill');
-  const pathname = usePathname();
+  const currentPathname = usePathname(); // locale-stripped, e.g. '/me'
   const { locale } = useParams<{ locale: 'he' | 'en' }>();
   const otherLocale: 'he' | 'en' = locale === 'he' ? 'en' : 'he';
-  const [, startTransition] = useTransition();
 
-  function handleClick() {
-    startTransition(() => {
-      updateLocaleForCurrentUser(otherLocale).catch(() => {
-        // Fire-and-forget; the cookie is set by next-intl middleware on the
-        // resulting GET so the user sees the locale flip regardless of this
-        // server-action outcome.
-      });
-    });
-  }
+  // Compute the prefixed pathname under the OTHER locale so the redirect
+  // lands the user on the equivalent page. getPathname() yields
+  // `/en/me` when called with { href: '/me', locale: 'en' }.
+  const redirectPath = getPathname({
+    href: currentPathname as Parameters<typeof getPathname>[0]['href'],
+    locale: otherLocale,
+  });
 
   return (
-    <Link
-      href={pathname}
-      locale={otherLocale}
-      onClick={handleClick}
-      aria-label={t('ariaLabel')}
-      className="bs-8 inline-flex items-center justify-center rounded-full border border-[--zc-border] bg-transparent ps-3 pe-3 text-sm font-bold text-[--zc-primary] hover:bg-[--zc-muted] hover:border-[--zc-accent] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--zc-ring] focus-visible:ring-offset-2 focus-visible:ring-offset-[--zc-card]"
-    >
-      {t('switchTo')}
-    </Link>
+    <form action={switchLocale} className="inline-flex">
+      <input type="hidden" name="locale" value={otherLocale} />
+      <input type="hidden" name="redirectPath" value={redirectPath} />
+      <button
+        type="submit"
+        aria-label={t('ariaLabel')}
+        className="bs-8 inline-flex items-center justify-center rounded-full border border-[--zc-border] bg-transparent ps-3 pe-3 text-sm font-bold text-[--zc-primary] hover:bg-[--zc-muted] hover:border-[--zc-accent] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--zc-ring] focus-visible:ring-offset-2 focus-visible:ring-offset-[--zc-card]"
+      >
+        {t('switchTo')}
+      </button>
+    </form>
   );
 }
