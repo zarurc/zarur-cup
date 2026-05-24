@@ -42,7 +42,7 @@ Requirements for initial release. Each maps to a roadmap phase below.
 
 - [ ] **DATA-01**: All 48 WC 2026 teams seeded into `teams` table with `name_en`, `name_he`, ISO country code, and group letter (where assigned)
 - [ ] **DATA-02**: All 104 WC 2026 fixtures seeded into `fixtures` table with UTC kickoff times (`timestamptz`), stage label, group code, and symbolic `home_placeholder` / `away_placeholder` references where the team is TBD (e.g. `WINNER_GROUP_A`, `R32_M1_W`)
-- [ ] **DATA-03**: Bracket slot graph seeded (R32 → R16 → QF → SF → F + Winner) so bracket picks can attach by `slot_id` independent of which teams advance
+- [x] **DATA-03**: Bracket slot graph seeded (R32 → R16 → QF → SF → F + Winner) so bracket picks can attach by `slot_id` independent of which teams advance (schema landed in Plan 01-02 migration 0001_init.sql; seed rows arrive in Plan 01-03)
 - [ ] **DATA-04**: Hebrew team names reviewed by a Hebrew-native speaker before family invite code is distributed
 - [ ] **DATA-05**: Tournament-level prop questions (~5–10) authored by admin in both languages, with structured answer types (single-team, single-player, text)
 
@@ -76,7 +76,7 @@ Requirements for initial release. Each maps to a roadmap phase below.
 - [ ] **VIS-03**: User cannot see another player's bracket picks until the agreed-upon bracket reveal moment
 - [ ] **VIS-04**: User cannot see another player's prop answers until the tournament's first kickoff
 - [ ] **VIS-05**: Once a match/round is locked, all players can see all picks for that match/round
-- [ ] **VIS-06**: RLS policies use `(select auth.uid())` (not bare `auth.uid()`) for performance, and visibility is verified via a Supabase REST request from an unauthenticated curl call (must return zero rows for unlocked predictions)
+- [x] **VIS-06**: RLS policies use `(select auth.uid())` (not bare `auth.uid()`) for performance, and visibility is verified via a Supabase REST request from an unauthenticated curl call (must return zero rows for unlocked predictions) (verified live in Plan 01-02 via `scripts/verify-rls-no-leak.sh` -- ALL RLS CHECKS PASSED; all 19 `auth.uid()` references in 0002_rls.sql are wrapped `(select auth.uid())`)
 
 ### Admin Dashboard
 
@@ -187,10 +187,10 @@ Populated by `gsd-roadmapper` on 2026-05-23. 100% v1 coverage (66 / 66 mapped).
 | AUTH-07 | Phase 1 | Pending |
 | DATA-01 | Phase 1 | Pending |
 | DATA-02 | Phase 1 | Pending |
-| DATA-03 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Pending |
 | DATA-05 | Phase 1 | Pending |
-| VIS-06 | Phase 1 | Pending |
+| VIS-06 | Phase 1 | Complete |
 | LGE-01 | Phase 2 | Pending |
 | LGE-02 | Phase 2 | Pending |
 | LGE-03 | Phase 2 | Pending |

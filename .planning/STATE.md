@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-last_updated: "2026-05-23T21:02:44.659Z"
+last_updated: "2026-05-23T21:14:19Z"
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
-  percent: 20
+  completed_plans: 2
+  percent: 40
 ---
 
 # STATE: Zarur-Cup / משחקי זערור
 
-**Last updated:** 2026-05-23 (Phase 1 planned — 5 plans across 4 waves)
+**Last updated:** 2026-05-23 (Plan 01-02 shipped — schema + RLS + GRANTs live on tjivukpxuhbrbshidbfv)
 
 ## Project Reference
 
@@ -27,14 +27,14 @@ progress:
 ## Current Position
 
 Phase: 01 (foundation-schema-auth-rls) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 | Field | Value |
 |-------|-------|
 | Phase | 1 (Foundation, Schema, Auth & RLS) — planned |
 | Plan | 5 plans (01-01 → 01-05) across 4 waves |
-| Status | Executing — Plan 01-01 complete, Wave 2 next |
-| Progress | `[██░░░░░░░░] 20%` (1 / 5 Phase 1 plans complete; 0 / 3 phases complete) |
-| Last action | Plan 01-01 (bootstrap) shipped — Next 15.5.18 + next-intl v4 + Supabase clients + Tailwind v4.3 design tokens. RTL/LTR visually verified. 6 deviations captured (see Phase 1 Execution Decisions below). |
+| Status | Executing — Plans 01-01 + 01-02 complete, Wave 3 next (01-03 seed + 01-04 auth/UI in parallel) |
+| Progress | `[████░░░░░░] 40%` (2 / 5 Phase 1 plans complete; 0 / 3 phases complete) |
+| Last action | Plan 01-02 (schema + RLS) shipped — 4 migrations on live project tjivukpxuhbrbshidbfv (9 tables, RLS lock-and-reveal, B1 column grant, anon SELECT for RLS-as-visible-lock). 2 deviations: 0003_grants.sql (Rule 2: missing table-level GRANTs under `expose new tables: OFF`); 0004_anon_select.sql (Rule 1: anon SELECT needed so RLS is the lock, not GRANTs). Live curl verifies anon=[] on all 9 tables. |
 
 ## Roadmap Snapshot
 
@@ -50,7 +50,7 @@ Plan: 2 of 5
 | Days to soft deadline | 35 (May 23 → June 27) | Phase 3 has the buffer |
 | Coverage | 66 / 66 v1 requirements (100%) | No orphans |
 | Phases planned | 1 / 3 | Phase 2 next |
-| Plans complete | 1 / 5 in Phase 1 | 01-01 (bootstrap) shipped 2026-05-23 |
+| Plans complete | 2 / 5 in Phase 1 | 01-01 (bootstrap) + 01-02 (schema+RLS) shipped 2026-05-23 |
 
 ## Accumulated Context
 
@@ -105,6 +105,16 @@ Plan: 2 of 5
 | ESLint flat config via `@eslint/eslintrc` FlatCompat | Rule 3 (blocking) | eslint-config-next@15.5 ships as legacy extends-style | Added `@eslint/eslintrc` devDep |
 | Explicit `CookieOptions` types in `src/lib/supabase/{server,middleware}.ts` | Rule 1 (bug) | Strict tsconfig flagged implicit-any | Imported from `@supabase/ssr` |
 
+### Phase 1 Execution Decisions (2026-05-23, Plan 01-02 deviations)
+
+| Decision | Rule | Source | Notes |
+|----------|------|--------|-------|
+| Added 0003_grants.sql -- table-level GRANTs for service_role + authenticated | Rule 2 (missing critical) | Project provisioned with `Automatically expose new tables: OFF`; default-grants event trigger did NOT fire | Without GRANTs, RLS is unreachable. Migrations are append-only -- never edit a pushed migration. |
+| Added 0004_anon_select.sql -- GRANT SELECT to anon on every Phase-1 table | Rule 1 (bug) | After 0003, anon got `42501 permission denied`; plan's must_haves require anon to see `[]` not an error | Plan contract = `RLS is the only enforcer for lock-on-kickoff`; requires permissive anon SELECT so RLS is the visible lock. Inverts the 0003 anon-zero-DML smoke. |
+| Pattern: Supabase migrations are append-only -- never edit a pushed migration, always add a new sequential one | Pattern (new) | Deviation handling for 0003 and 0004 | Future plans MUST follow this. Editing committed migrations diverges local from remote silently. |
+| Pattern: When project security settings deviate from Supabase defaults, migrations MUST encode the GRANTs explicitly | Pattern (new) | `Automatically expose new tables: OFF` bit our migration set | Never assume default event triggers fired. |
+| Pattern: Every security-relevant invariant gets a migration-time DO-block smoke (RLS enabled, B1 column grant, anon-no-writes, anon-SELECT-on-all-tables) | Pattern (new) | Defense in depth for Phase 1 schema lock | Loud failure at `db push` time, never silent regression. |
+
 ### Todos (deferred to phase planning)
 
 (None yet — all surfaced during roadmapping have been folded into phase Success Criteria or Open Questions above.)
@@ -119,8 +129,9 @@ Plan: 2 of 5
 
 - Phase 1 plans are final and verified: 5 plans, 4 waves, all 26 phase REQ-IDs covered, all 22 CONTEXT decisions referenced.
 - **Plan 01-01 shipped 2026-05-23** — Next.js 15.5.18 shell, next-intl he/en routing, Supabase clients, Tailwind v4.3 design tokens. RTL/LTR visually verified.
-- **Next: Wave 2 — Plan 01-02 (schema + RLS + [BLOCKING] db push)**. Consumes the linked Supabase project + server client from Plan 01-01.
-- Wave structure: W1 (Plan 01 bootstrap ✓) → W2 (Plan 02 schema+RLS+`[BLOCKING] db push`) → W3 (Plans 03+04 in parallel — seed+Hebrew review by zekez, auth+UI shell) → W4 (Plan 05 heartbeat+deploy+CI).
+- **Plan 01-02 shipped 2026-05-23** — 4 migrations on live project tjivukpxuhbrbshidbfv: 9 tables (all RLS-enabled), lock-and-reveal policies for predictions/prop_answers, B1 column grant on profiles (UPDATE = display_name + locale only), anon SELECT on all 9 tables so RLS is the visible lock. `bash scripts/verify-rls-no-leak.sh` confirms ALL 9 TABLES PASS (anon=[]). 2 deviations captured.
+- **Next: Wave 3 — Plans 01-03 (seed) + 01-04 (auth/UI) in parallel**. 01-03 writes via service_role to all 9 tables; 01-04 uses RLS-gated INSERT into profiles.
+- Wave structure: W1 (Plan 01 bootstrap ✓) → W2 (Plan 02 schema+RLS+db push ✓) → W3 (Plans 03+04 in parallel — seed+Hebrew review by zekez, auth+UI shell) → W4 (Plan 05 heartbeat+deploy+CI).
 - Human checkpoints in Phase 1 (autonomous:false tasks): (a) Supabase project provisioning, (b) schema db push, (c) seed db push + Hebrew team-name review (zekez), (d) join/session/admin UX verify, (e) Vercel deploy + Cron verification.
 - After Phase 1 lands, Phase 2 has 10 working days to June 11. Plan-phase for Phase 2 should prioritize the critical path (League predictions → admin result → scoring view → leaderboard) over polish.
 - Bracket Mode deferral to Phase 3 stays in ROADMAP.md; do not silently merge it into Phase 2 during planning.
