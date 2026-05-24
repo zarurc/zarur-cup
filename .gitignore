@@ -35,8 +35,8 @@ yarn-error.log*
 .env
 !.env.example
 
-# generated supabase types (regenerated via npm run db:types)
-src/types/supabase.ts
+# generated supabase types — committed so Vercel can build without DB access.
+# Regenerate locally via `npm run db:types` after schema changes.
 
 # vercel
 .vercel
