@@ -24,7 +24,7 @@ Requirements for initial release. Each maps to a roadmap phase below.
 - [x] **I18N-02**: First visit auto-selects locale based on `Accept-Language` header; falls back to Hebrew if no match
 - [ ] **I18N-03**: User can toggle between Hebrew and English from any page; selection persists across sessions (cookie + `profiles.locale` when signed in)
 - [x] **I18N-04**: All UI strings live in `messages/{en,he}.json` via next-intl v4 with ICU plural rules
-- [ ] **I18N-05**: Team names, prop questions, and other domain content render in the active locale (`_en` / `_he` DB columns)
+- [x] **I18N-05**: Team names, prop questions, and other domain content render in the active locale (`_en` / `_he` DB columns)
 - [ ] **I18N-06**: Mixed-direction strings like scores ("2 - 1") render correctly in both locales (`<bdi>` or `<span dir="ltr">` wrapping where needed)
 - [ ] **I18N-07**: Kickoff times render in the viewer's local timezone using native `Intl.DateTimeFormat` with the correct locale-specific date/time format
 
@@ -40,11 +40,11 @@ Requirements for initial release. Each maps to a roadmap phase below.
 
 ### Tournament Data (Pre-Seeded WC 2026)
 
-- [ ] **DATA-01**: All 48 WC 2026 teams seeded into `teams` table with `name_en`, `name_he`, ISO country code, and group letter (where assigned)
-- [ ] **DATA-02**: All 104 WC 2026 fixtures seeded into `fixtures` table with UTC kickoff times (`timestamptz`), stage label, group code, and symbolic `home_placeholder` / `away_placeholder` references where the team is TBD (e.g. `WINNER_GROUP_A`, `R32_M1_W`)
+- [x] **DATA-01**: All 48 WC 2026 teams seeded into `teams` table with `name_en`, `name_he`, ISO country code, and group letter (where assigned)
+- [x] **DATA-02**: All 104 WC 2026 fixtures seeded into `fixtures` table with UTC kickoff times (`timestamptz`), stage label, group code, and symbolic `home_placeholder` / `away_placeholder` references where the team is TBD (e.g. `WINNER_GROUP_A`, `R32_M1_W`)
 - [x] **DATA-03**: Bracket slot graph seeded (R32 → R16 → QF → SF → F + Winner) so bracket picks can attach by `slot_id` independent of which teams advance (schema landed in Plan 01-02 migration 0001_init.sql; seed rows arrive in Plan 01-03)
-- [ ] **DATA-04**: Hebrew team names reviewed by a Hebrew-native speaker before family invite code is distributed
-- [ ] **DATA-05**: Tournament-level prop questions (~5–10) authored by admin in both languages, with structured answer types (single-team, single-player, text)
+- [x] **DATA-04**: Hebrew team names reviewed by a Hebrew-native speaker before family invite code is distributed
+- [x] **DATA-05**: Tournament-level prop questions (~5–10) authored by admin in both languages, with structured answer types (single-team, single-player, text)
 
 ### League Mode (Per-Match Predictions)
 
@@ -175,7 +175,7 @@ Populated by `gsd-roadmapper` on 2026-05-23. 100% v1 coverage (66 / 66 mapped).
 | I18N-02 | Phase 1 | Complete |
 | I18N-03 | Phase 1 | Pending |
 | I18N-04 | Phase 1 | Complete |
-| I18N-05 | Phase 1 | Pending |
+| I18N-05 | Phase 1 | Complete |
 | I18N-06 | Phase 1 | Pending |
 | I18N-07 | Phase 1 | Pending |
 | AUTH-01 | Phase 1 | Pending |
@@ -185,11 +185,11 @@ Populated by `gsd-roadmapper` on 2026-05-23. 100% v1 coverage (66 / 66 mapped).
 | AUTH-05 | Phase 1 | Pending |
 | AUTH-06 | Phase 1 | Pending |
 | AUTH-07 | Phase 1 | Pending |
-| DATA-01 | Phase 1 | Pending |
-| DATA-02 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
+| DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Complete |
-| DATA-04 | Phase 1 | Pending |
-| DATA-05 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Complete |
+| DATA-05 | Phase 1 | Complete |
 | VIS-06 | Phase 1 | Complete |
 | LGE-01 | Phase 2 | Pending |
 | LGE-02 | Phase 2 | Pending |

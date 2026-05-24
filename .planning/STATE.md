@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-last_updated: "2026-05-23T21:14:19Z"
+last_updated: "2026-05-23T22:34:54.958Z"
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
-  percent: 40
+  completed_plans: 3
+  percent: 60
 ---
 
 # STATE: Zarur-Cup / משחקי זערור
 
-**Last updated:** 2026-05-23 (Plan 01-02 shipped — schema + RLS + GRANTs live on tjivukpxuhbrbshidbfv)
+**Last updated:** 2026-05-23 (Plan 01-03 shipped — WC 2026 seed live on tjivukpxuhbrbshidbfv; DATA-04 signed off by zekez)
 
 ## Project Reference
 
@@ -27,14 +27,14 @@ progress:
 ## Current Position
 
 Phase: 01 (foundation-schema-auth-rls) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 | Field | Value |
 |-------|-------|
 | Phase | 1 (Foundation, Schema, Auth & RLS) — planned |
 | Plan | 5 plans (01-01 → 01-05) across 4 waves |
-| Status | Executing — Plans 01-01 + 01-02 complete, Wave 3 next (01-03 seed + 01-04 auth/UI in parallel) |
-| Progress | `[████░░░░░░] 40%` (2 / 5 Phase 1 plans complete; 0 / 3 phases complete) |
-| Last action | Plan 01-02 (schema + RLS) shipped — 4 migrations on live project tjivukpxuhbrbshidbfv (9 tables, RLS lock-and-reveal, B1 column grant, anon SELECT for RLS-as-visible-lock). 2 deviations: 0003_grants.sql (Rule 2: missing table-level GRANTs under `expose new tables: OFF`); 0004_anon_select.sql (Rule 1: anon SELECT needed so RLS is the lock, not GRANTs). Live curl verifies anon=[] on all 9 tables. |
+| Status | Executing — Plans 01-01 + 01-02 + 01-03 complete; Wave 3 partial (01-04 auth/UI next, then Wave 4 / 01-05 heartbeat+deploy) |
+| Progress | `[██████░░░░] 60%` (3 / 5 Phase 1 plans complete; 0 / 3 phases complete) |
+| Last action | Plan 01-03 (WC 2026 seed) shipped — 1 tournament + 48 teams (bilingual, Dec 2025 Final Draw) + 104 fixtures (UTC kickoffs, symbolic KO placeholders) + 32 bracket_slots (non-sequential FIFA R32->R16 wiring) + 7 prop_questions live on tjivukpxuhbrbshidbfv. 6 deviations: filename slot 0003->0005 (Rule 3), full reseed via 0006_reseed_wc2026.sql after pre-draw projection caught (Rule 3), bracket parent wiring sequential->FIFA non-sequential (Rule 1), tournament.starts_at 20:00->19:00 UTC (Rule 2), build-script gained --target/--reseed flags (note), reseed pattern formalized (note). DATA-04: zekez approved all 48 Hebrew team names 2026-05-23. |
 
 ## Roadmap Snapshot
 
@@ -50,7 +50,8 @@ Plan: 3 of 5
 | Days to soft deadline | 35 (May 23 → June 27) | Phase 3 has the buffer |
 | Coverage | 66 / 66 v1 requirements (100%) | No orphans |
 | Phases planned | 1 / 3 | Phase 2 next |
-| Plans complete | 2 / 5 in Phase 1 | 01-01 (bootstrap) + 01-02 (schema+RLS) shipped 2026-05-23 |
+| Plans complete | 3 / 5 in Phase 1 | 01-01 (bootstrap) + 01-02 (schema+RLS) + 01-03 (WC 2026 seed, DATA-04 signed off by zekez) shipped 2026-05-23 |
+| Phase 01 P03 | 62min, 4 tasks, 8 files | Seed migration 0005 + corrective reseed 0006; live counts 1/48/104/32/7 verified |
 
 ## Accumulated Context
 
@@ -115,6 +116,19 @@ Plan: 3 of 5
 | Pattern: When project security settings deviate from Supabase defaults, migrations MUST encode the GRANTs explicitly | Pattern (new) | `Automatically expose new tables: OFF` bit our migration set | Never assume default event triggers fired. |
 | Pattern: Every security-relevant invariant gets a migration-time DO-block smoke (RLS enabled, B1 column grant, anon-no-writes, anon-SELECT-on-all-tables) | Pattern (new) | Defense in depth for Phase 1 schema lock | Loud failure at `db push` time, never silent regression. |
 
+### Phase 1 Execution Decisions (2026-05-23, Plan 01-03 deviations)
+
+| Decision | Rule | Source | Notes |
+|----------|------|--------|-------|
+| Migration filename shifted 0003 -> 0005 | Rule 3 (blocking) | Plan 01-02 shipped 4 migrations instead of 2 (0003_grants + 0004_anon_select added) -- slot 0003 was taken | Append-only convention preserved. |
+| Full reseed via 0006_reseed_wc2026.sql (FK-safe DELETE + re-INSERT) | Rule 3 (blocking) | Initial CSV used research file's pre-draw projected groups; zekez caught error post-push | Migration history append-only. 0005 stays in repo + Supabase migration table as historical pre-draw record. 0006 is the source-of-truth state on live. |
+| Bracket parent_slot_id wiring corrected sequential -> FIFA non-sequential | Rule 1 (bug) | Original bracket_slots.csv had naive R16_M1 = R32_M1_W vs R32_M2_W; real FIFA bracket pairs non-sequentially (R16_M1 = R32_M2_W vs R32_M5_W) | Slot codes unchanged; only parent_slot_code values changed. |
+| tournament.starts_at corrected 20:00:00Z -> 19:00:00Z | Rule 2 (missing critical) | Estadio Azteca 1pm local Mexico City (UTC-6) = 19:00 UTC, not 20:00 UTC | Canonical lock anchor for prop_answers RLS reveal; 1-hour drift would have shifted reveal timing. |
+| Build script gained --target <path> and --reseed flags | Note (pattern) | Needed to emit corrective migration without disturbing canonical `npm run seed:build` ON CONFLICT path | --reseed prepends FK-safe DELETE block; default path unchanged. |
+| Pattern: Canonical reseed shape -- UPSERT tournament, DELETE children FK-safe (predictions->fixtures->bracket_slots->teams) scoped to tournament_id, ON CONFLICT INSERT from CSVs | Pattern (new) | Reusable for any future tournament correction or new tournament onboarding | Established in 0006_reseed_wc2026.sql; documented in 01-03-SUMMARY.md Pattern 11. |
+| Pattern: CSVs (data/<tournament>/*.csv) are source of truth; SQL migrations are GENERATED, never hand-edited | Pattern (new) | scripts/build-seed-sql.ts is the only writer of seed SQL | Edit CSV + rebuild + add new migration; never edit a pushed migration. |
+| DATA-04 sign-off: zekez approved all 48 name_he + 12 group assignments on 2026-05-23 | Gate cleared | CONTEXT.md D-22 designates zekez as the Hebrew reviewer | No corrections requested. |
+
 ### Todos (deferred to phase planning)
 
 (None yet — all surfaced during roadmapping have been folded into phase Success Criteria or Open Questions above.)
@@ -130,7 +144,8 @@ Plan: 3 of 5
 - Phase 1 plans are final and verified: 5 plans, 4 waves, all 26 phase REQ-IDs covered, all 22 CONTEXT decisions referenced.
 - **Plan 01-01 shipped 2026-05-23** — Next.js 15.5.18 shell, next-intl he/en routing, Supabase clients, Tailwind v4.3 design tokens. RTL/LTR visually verified.
 - **Plan 01-02 shipped 2026-05-23** — 4 migrations on live project tjivukpxuhbrbshidbfv: 9 tables (all RLS-enabled), lock-and-reveal policies for predictions/prop_answers, B1 column grant on profiles (UPDATE = display_name + locale only), anon SELECT on all 9 tables so RLS is the visible lock. `bash scripts/verify-rls-no-leak.sh` confirms ALL 9 TABLES PASS (anon=[]). 2 deviations captured.
-- **Next: Wave 3 — Plans 01-03 (seed) + 01-04 (auth/UI) in parallel**. 01-03 writes via service_role to all 9 tables; 01-04 uses RLS-gated INSERT into profiles.
+- **Plan 01-03 shipped 2026-05-23** — WC 2026 seed live on tjivukpxuhbrbshidbfv: 1 tournament + 48 teams (bilingual, Dec 2025 Final Draw) + 104 fixtures (UTC kickoffs + symbolic KO placeholders) + 32 bracket_slots (R32->CHAMPION, FIFA non-sequential R32->R16 wiring) + 7 prop_questions. Live counts verified via SELECT count(*). DATA-04 gate cleared: zekez approved all 48 Hebrew team names + group assignments 2026-05-23. 6 deviations captured (filename 0003->0005, full reseed via 0006 after pre-draw projection caught, bracket parent wiring corrected, tournament.starts_at 20:00->19:00 UTC, build-script --target/--reseed flags, canonical reseed pattern). CSVs (`data/wc2026/*.csv`) are source of truth; SQL is generated by `scripts/build-seed-sql.ts`.
+- **Next: Plan 01-04 (auth + UI shell)**. Wave 3 plan 01-03 is done; the parallel partner 01-04 (auth flow + bilingual UI shell + admin gate) can proceed -- tournament row + teams + fixtures + props are all visible to authenticated users via RLS. After 01-04: Wave 4 / Plan 01-05 (heartbeat + Vercel deploy + Cron + CI).
 - Wave structure: W1 (Plan 01 bootstrap ✓) → W2 (Plan 02 schema+RLS+db push ✓) → W3 (Plans 03+04 in parallel — seed+Hebrew review by zekez, auth+UI shell) → W4 (Plan 05 heartbeat+deploy+CI).
 - Human checkpoints in Phase 1 (autonomous:false tasks): (a) Supabase project provisioning, (b) schema db push, (c) seed db push + Hebrew team-name review (zekez), (d) join/session/admin UX verify, (e) Vercel deploy + Cron verification.
 - After Phase 1 lands, Phase 2 has 10 working days to June 11. Plan-phase for Phase 2 should prioritize the critical path (League predictions → admin result → scoring view → leaderboard) over polish.
