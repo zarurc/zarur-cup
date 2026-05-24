@@ -1,8 +1,67 @@
 {
-  "home": {
-    "placeholder": "Zarur Cup"
-  },
   "common": {
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "errorGeneric": "⚠ Something went wrong. Try again in a moment.",
+    "required": "⚠ Required.",
+    "backToApp": "← Back to app"
+  },
+  "wordmark": {
+    "primary": "Zarur Cup",
+    "secondary": "משחקי זערור"
+  },
+  "localePill": {
+    "switchTo": "HE",
+    "ariaLabel": "Switch to Hebrew"
+  },
+  "tabs": {
+    "matches": "Matches",
+    "bracket": "Bracket",
+    "leaderboard": "Leaderboard",
+    "me": "Me"
+  },
+  "home": {
+    "placeholder": "Zarur Cup",
+    "redirectToMatches": "Redirecting to matches..."
+  },
+  "join": {
+    "pageHeading": "Join Zarur Cup",
+    "subheading": "Pick the name you want on the leaderboard, then enter the family invite code.",
+    "nameLabel": "Your name",
+    "nameHelper": "2-24 characters - Hebrew, Latin letters, digits, and spaces.",
+    "namePlaceholder": "e.g. Dani",
+    "codeLabel": "Invite code",
+    "codeHelper": "The family code you received over WhatsApp.",
+    "submitIdle": "Join the Pool",
+    "submitLoading": "Joining…",
+    "errors": {
+      "invalid_code": "⚠ Wrong code. Check the family WhatsApp.",
+      "display_name_taken": "⚠ Someone already took that name — try another.",
+      "name_length": "⚠ Name must be 2-24 characters.",
+      "name_chars": "⚠ Name can only contain Hebrew/Latin letters, digits, and spaces.",
+      "auth_failed": "⚠ Something went wrong. Try again in a moment."
+    }
+  },
+  "empty": {
+    "matches": {
+      "heading": "Matches open June 11",
+      "body": "Come back on opening day to lock in your picks."
+    },
+    "bracket": {
+      "heading": "Bracket opens before knockouts",
+      "body": "You'll fill in your picks starting June 27."
+    },
+    "leaderboard": {
+      "heading": "Leaderboard goes live on opening day",
+      "body": "Standings will appear automatically after the first match."
+    }
+  },
+  "me": {
+    "joinedAt": "Joined {joined_at_local}",
+    "localeLabel": "Language"
+  },
+  "notFound": {
+    "heading": "Page not found",
+    "body": "The link may have a typo.",
+    "backLink": "Back to Matches"
   }
 }

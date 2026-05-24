@@ -1,8 +1,67 @@
 {
-  "home": {
-    "placeholder": "משחקי זערור"
-  },
   "common": {
-    "loading": "טוען..."
+    "loading": "טוען...",
+    "errorGeneric": "⚠ משהו השתבש. נסו שוב בעוד רגע.",
+    "required": "⚠ שדה חובה.",
+    "backToApp": "← חזרה לאפליקציה"
+  },
+  "wordmark": {
+    "primary": "משחקי זערור",
+    "secondary": "Zarur Cup"
+  },
+  "localePill": {
+    "switchTo": "EN",
+    "ariaLabel": "עברו לאנגלית"
+  },
+  "tabs": {
+    "matches": "משחקים",
+    "bracket": "ברקט",
+    "leaderboard": "לוח",
+    "me": "אני"
+  },
+  "home": {
+    "placeholder": "משחקי זערור",
+    "redirectToMatches": "מעבר למשחקים..."
+  },
+  "join": {
+    "pageHeading": "הצטרפו למשחקי זערור",
+    "subheading": "בחרו שם שיופיע בלוח התוצאות, והכניסו את הקוד המשפחתי.",
+    "nameLabel": "שם",
+    "nameHelper": "2 עד 24 תווים — אותיות עברית, אנגלית, ספרות ורווחים.",
+    "namePlaceholder": "למשל: דני",
+    "codeLabel": "קוד הזמנה",
+    "codeHelper": "קוד משפחתי שקיבלת בוואטסאפ.",
+    "submitIdle": "הצטרפו",
+    "submitLoading": "מצטרפים...",
+    "errors": {
+      "invalid_code": "⚠ הקוד שגוי. בדקו שוב בוואטסאפ המשפחתי.",
+      "display_name_taken": "⚠ השם הזה כבר תפוס — נסו שם אחר.",
+      "name_length": "⚠ השם חייב להיות בין 2 ל־24 תווים.",
+      "name_chars": "⚠ השם יכול להכיל רק אותיות עברית/אנגלית, ספרות ורווחים.",
+      "auth_failed": "⚠ משהו השתבש. נסו שוב בעוד רגע."
+    }
+  },
+  "empty": {
+    "matches": {
+      "heading": "המשחקים פותחים ב-11 ביוני",
+      "body": "החזרו ביום הפתיחה כדי להגיש את הניחושים שלכם."
+    },
+    "bracket": {
+      "heading": "הברקט פותח לקראת שלב הנוקאאוט",
+      "body": "תוכלו לסמן את ההמשך החל מ-27 ביוני."
+    },
+    "leaderboard": {
+      "heading": "לוח התוצאות פותח עם הפתיחה",
+      "body": "הניקוד יופיע אוטומטית אחרי המשחק הראשון."
+    }
+  },
+  "me": {
+    "joinedAt": "הצטרפת ב־{joined_at_local}",
+    "localeLabel": "שפה"
+  },
+  "notFound": {
+    "heading": "הדף לא נמצא",
+    "body": "אולי שגיאת הקלדה בקישור?",
+    "backLink": "חזרה למשחקים"
   }
 }
