@@ -50,3 +50,6 @@ supabase/.temp/
 *.tsbuildinfo
 next-env.d.ts
 .dev/
+
+# boost (per-machine T&C acceptance — not shared)
+.boost/
