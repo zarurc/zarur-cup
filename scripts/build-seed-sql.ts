@@ -32,7 +32,23 @@ const __dirname = dirname(__filename);
 const ROOT = resolve(__dirname, "..");
 
 const DATA_DIR = resolve(ROOT, "data/wc2026");
-const OUTPUT_PATH = resolve(ROOT, "supabase/migrations/0005_seed_wc2026.sql");
+
+// Default output is the original 0005 seed (idempotent re-apply via ON CONFLICT).
+// For [Rule 3 - Blocking] reseed-after-real-draw, pass `--target <path> --reseed` to:
+//   - write the SQL to a new migration file (e.g. 0006_reseed_wc2026.sql)
+//   - prepend FK-safe DELETE statements so stale rows from the prior seed are cleared
+//     before the INSERTs run (the prior INSERTs used pre-draw projected teams that no
+//     longer correspond to qualifiers).
+const argv = process.argv.slice(2);
+function argValue(name: string): string | undefined {
+  const i = argv.indexOf(name);
+  return i >= 0 ? argv[i + 1] : undefined;
+}
+const TARGET = argValue("--target");
+const RESEED_MODE = argv.includes("--reseed");
+const OUTPUT_PATH = TARGET
+  ? resolve(ROOT, TARGET)
+  : resolve(ROOT, "supabase/migrations/0005_seed_wc2026.sql");
 
 // ----------------------------------------------------------------
 // CSV parser (CSV-spec compliant: handles quoted fields, doubled
@@ -211,25 +227,108 @@ function colIndex(header: string[], col: string): number {
 const out: string[] = [];
 const generatedAt = new Date().toISOString();
 
-out.push(
-  `-- Migration 0005: WC 2026 seed data.`,
-  `-- Generated: ${generatedAt} from data/wc2026/*.csv by scripts/build-seed-sql.ts.`,
-  `-- DO NOT HAND-EDIT THIS FILE. Edit the CSV and re-run \`npm run seed:build\`.`,
-  `-- Idempotent: re-runs update existing rows via ON CONFLICT.`,
-  `-- Migration numbering note ([Rule 3 - Blocking] deviation): the plan called`,
-  `-- this 0003_seed_wc2026.sql but Plan 01-02 shipped 0001..0004. The next free`,
-  `-- sequential number is 0005. Migrations are append-only (Pattern 6, Plan 01-02).`,
-  `--`,
-  `-- This entire migration runs in a single Postgres transaction so a failed`,
-  `-- integrity check rolls back the whole seed (T-03-06 in the threat model).`,
-  ``,
-);
+// Migration filename note: extract the leading numeric prefix from the output filename
+// so the generated SQL header matches the file it lands in.
+const outputBasename = OUTPUT_PATH.split("/").pop() || "";
+const migrationNumber = outputBasename.match(/^(\d+)/)?.[1] ?? "????";
+
+if (RESEED_MODE) {
+  out.push(
+    `-- Migration ${migrationNumber}: WC 2026 RESEED (post-Final-Draw correction).`,
+    `-- Generated: ${generatedAt} from data/wc2026/*.csv by scripts/build-seed-sql.ts --reseed.`,
+    `-- DO NOT HAND-EDIT THIS FILE. Edit the CSV and re-run`,
+    `--   \`npm run seed:build -- --target supabase/migrations/${outputBasename} --reseed\`.`,
+    `--`,
+    `-- [Rule 3 - Blocking] Supersedes 0005_seed_wc2026.sql which used pre-draw projected`,
+    `-- groups. The real FIFA World Cup 2026 Final Draw took place 2025-12-05 at the`,
+    `-- Kennedy Center, Washington D.C. — after Plan 01-03 originally executed. The`,
+    `-- previously-seeded 48 teams + 104 fixtures were guesses that no longer correspond`,
+    `-- to qualifiers (e.g. Italy, Denmark, Poland, Nigeria, Cameroon, Ukraine, Costa`,
+    `-- Rica were all seeded but did not actually qualify; Bosnia-Herzegovina, Cape`,
+    `-- Verde, Curaçao, DR Congo, Panama, Scotland, Sweden were not seeded but did`,
+    `-- actually qualify). This migration corrects to the real 48 teams + 104 fixtures.`,
+    `--`,
+    `-- Prologue: DELETE in FK-safe order (predictions -> fixtures -> bracket_slots ->`,
+    `-- teams), scoped to the WC2026 tournament_id. The tournament row itself is NOT`,
+    `-- deleted — we keep its UUID stable so any future plan that references it (e.g.`,
+    `-- 01-04 auth, Phase 2 leaderboard) doesn't break. predictions / bracket_picks /`,
+    `-- prop_answers will be empty at apply time (no users yet) but we DELETE them for`,
+    `-- safety in case this migration is later applied to a non-empty preview branch.`,
+    `--`,
+    `-- This entire migration runs in a single Postgres transaction so a failed integrity`,
+    `-- check rolls back the whole reseed (T-03-06 in the threat model).`,
+    ``,
+    `-- === RESEED PROLOGUE: clear stale rows in FK-safe order ===`,
+    `do $$`,
+    `declare`,
+    `  v_tournament_id uuid;`,
+    `begin`,
+    `  select id into v_tournament_id from public.tournament where code = 'WC2026';`,
+    `  if v_tournament_id is null then`,
+    `    raise notice 'WC2026 tournament row not found; INSERT in main body will create it.';`,
+    `    return;`,
+    `  end if;`,
+    `  -- FK chain (from 0001_init.sql):`,
+    `  --   predictions.fixture_id   -> fixtures (on delete cascade)`,
+    `  --   bracket_picks.slot_id    -> bracket_slots (on delete cascade)`,
+    `  --   bracket_picks.team_id    -> teams (on delete RESTRICT)`,
+    `  --   prop_answers.question_id -> prop_questions (on delete cascade)`,
+    `  --   bracket_slots.parent_slot_id -> bracket_slots (self, on delete RESTRICT)`,
+    `  --   bracket_slots.fixture_id -> fixtures (on delete set null)`,
+    `  --   fixtures.home_team_id / away_team_id -> teams (on delete RESTRICT)`,
+    `  -- Order matters because of the RESTRICT chains: clear bracket_picks first (else`,
+    `  -- teams DELETE would be blocked), null bracket_slots.parent_slot_id (else`,
+    `  -- bracket_slots DELETE would be blocked by the self-FK), then bottom-up.`,
+    `  delete from public.predictions where fixture_id in`,
+    `    (select id from public.fixtures where tournament_id = v_tournament_id);`,
+    `  delete from public.bracket_picks where slot_id in`,
+    `    (select id from public.bracket_slots where tournament_id = v_tournament_id);`,
+    `  delete from public.prop_answers where question_id in`,
+    `    (select id from public.prop_questions where tournament_id = v_tournament_id);`,
+    `  -- Break the self-FK on bracket_slots before deleting (parent_slot_id is on delete RESTRICT)`,
+    `  update public.bracket_slots set parent_slot_id = null`,
+    `    where tournament_id = v_tournament_id;`,
+    `  delete from public.bracket_slots where tournament_id = v_tournament_id;`,
+    `  delete from public.fixtures where tournament_id = v_tournament_id;`,
+    `  delete from public.prop_questions where tournament_id = v_tournament_id;`,
+    `  delete from public.teams where tournament_id = v_tournament_id;`,
+    `  raise notice 'Reseed prologue cleared stale rows for tournament %', v_tournament_id;`,
+    `end$$;`,
+    ``,
+    `-- === RESEED BODY: re-insert teams / fixtures / bracket_slots / prop_questions ===`,
+    ``,
+  );
+} else {
+  out.push(
+    `-- Migration ${migrationNumber}: WC 2026 seed data.`,
+    `-- Generated: ${generatedAt} from data/wc2026/*.csv by scripts/build-seed-sql.ts.`,
+    `-- DO NOT HAND-EDIT THIS FILE. Edit the CSV and re-run \`npm run seed:build\`.`,
+    `-- Idempotent: re-runs update existing rows via ON CONFLICT.`,
+    `-- Migration numbering note ([Rule 3 - Blocking] deviation): the plan called`,
+    `-- this 0003_seed_wc2026.sql but Plan 01-02 shipped 0001..0004. The next free`,
+    `-- sequential number is 0005. Migrations are append-only (Pattern 6, Plan 01-02).`,
+    `--`,
+    `-- This entire migration runs in a single Postgres transaction so a failed`,
+    `-- integrity check rolls back the whole seed (T-03-06 in the threat model).`,
+    ``,
+  );
+}
 
 // === 1. Tournament row ===
+// Tournament starts_at MUST equal the first kickoff (used by prop_answers RLS lock).
+// Derived from the fixtures CSV (min kickoff_at_utc across all rows).
+const fxKickoffIdxForTournament = colIndex(fixtures.header, "kickoff_at_utc");
+const firstKickoff = fixtures.rows
+  .map((r) => r[fxKickoffIdxForTournament])
+  .filter((s) => s && /Z$|\+00:00$/.test(s))
+  .sort()[0];
+if (!firstKickoff) throw new Error("Could not derive first kickoff from fixtures.csv");
+
 out.push(`-- 1. Tournament row (single WC 2026 row).`);
+out.push(`--    starts_at = first kickoff (${firstKickoff}, derived from fixtures.csv).`);
 out.push(`insert into public.tournament (code, name_en, name_he, starts_at, ends_at)`);
 out.push(
-  `values ('WC2026', 'FIFA World Cup 2026', 'גביע העולם 2026', '2026-06-11T20:00:00Z', '2026-07-19T23:59:59Z')`,
+  `values ('WC2026', 'FIFA World Cup 2026', 'גביע העולם 2026', '${firstKickoff}', '2026-07-19T23:59:59Z')`,
 );
 out.push(`on conflict (code) do update`);
 out.push(`  set name_en = excluded.name_en,`);
