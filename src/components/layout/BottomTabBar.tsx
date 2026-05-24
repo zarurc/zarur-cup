@@ -29,12 +29,22 @@ const TABS: Tab[] = [
  * locale-STRIPPED pathname (e.g. /matches on both /he/matches and /en/matches),
  * so active-tab matching is locale-agnostic. The render cost of the entire
  * bar is trivial; the client-only payload is ~1 KB.
+ *
+ * Active-state matching uses exact equality or prefix-with-slash so future
+ * subroutes (e.g. /me/edit) still highlight the parent tab without giving
+ * /me false matches on a hypothetical /me-something route.
  */
 export function BottomTabBar() {
   const t = useTranslations('tabs');
-  const pathname = usePathname();
+  // usePathname() from next-intl can return null outside of Next contexts
+  // (defensive: this is a client hook so it should always have a value at
+  // runtime, but the type is `string | null` because of next/navigation's
+  // upstream signature).
+  const pathname = usePathname() ?? '';
   const activeKey =
-    TABS.find((tab) => pathname.startsWith(tab.href))?.key ?? null;
+    TABS.find(
+      (tab) => pathname === tab.href || pathname.startsWith(`${tab.href}/`),
+    )?.key ?? null;
 
   return (
     <nav
