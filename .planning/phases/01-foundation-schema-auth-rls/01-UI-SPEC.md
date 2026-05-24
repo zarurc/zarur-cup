@@ -57,7 +57,7 @@ Total font payload budget: ≤ 80 KB after `subsets` filtering and `display: 'sw
 | Token | Value | Tailwind utility | Usage |
 |-------|-------|------------------|-------|
 | xs | 4px | `1` | Icon-to-label gap, inline label↔input gap inside a stacked form |
-| sm | 8px | `2` | Compact element spacing, badge padding, form helper-text gap |
+| sm | 8px | `2` | Compact element spacing, badge padding, form helper-text gap, form-field internal stack |
 | md | 16px | `4` | Default element spacing, card interior padding, tab bar vertical padding |
 | lg | 24px | `6` | Section padding inside `/join` hero, gap between form rows |
 | xl | 32px | `8` | Layout gaps, gap between hero and form, gap between page sections |
@@ -82,17 +82,16 @@ Total font payload budget: ≤ 80 KB after `subsets` filtering and `display: 'sw
 
 ## Typography
 
-Two weights (400 regular + 700 bold). Four declared sizes plus a display size for the wordmark. Hebrew Heebo and Latin Inter share the same scale tokens; only the `font-family` swaps via the locale-aware utility in §"Design System."
+Two weights (400 regular + 700 bold). **Four declared sizes** — collapsed to the Phase 1 cap. Hebrew Heebo and Latin Inter share the same scale tokens; only the `font-family` swaps via the locale-aware utility in §"Design System."
 
 | Role | Size (px) | Weight | Line Height | Letter Spacing | Tailwind utility | Usage |
 |------|-----------|--------|-------------|----------------|------------------|-------|
-| caption | 12 | 400 | 16px (1.33) | 0 | `text-xs` | Helper text under inputs, "coming soon" sub-line on placeholder tabs |
-| label | 14 | 400 / 700 | 20px (1.43) | 0 | `text-sm` | Form labels, bottom tab labels, inline errors |
-| body | 16 | 400 | 24px (1.5) | 0 | `text-base` | Default paragraph copy, placeholder empty-state body, input text |
-| h3 | 20 | 700 | 28px (1.4) | 0 | `text-xl` | Form section headings, placeholder empty-state heading |
-| h2 | 24 | 700 | 32px (1.33) | 0 | `text-2xl` | Sub-hero headings (not currently used in Phase 1 — reserved for Phase 2) |
-| h1 | 32 | 700 | 40px (1.25) | -0.01em on Latin, 0 on Hebrew | `text-3xl` | `/join` page heading "Join the Pool" / "הצטרפו לפול" |
-| display | 40 | 700 | 48px (1.2) | -0.02em on Latin (Inter tightens nicely), 0 on Hebrew (Heebo) | `text-4xl` | Wordmark in header on mobile (see "Wordmark" §); also the wordmark "hero" on `/join` |
+| label | 14 | 400 / 700 | 20px (1.43) | 0 | `text-sm` | Form labels, bottom tab labels, inline errors, helper text under inputs, "coming soon" sub-line on placeholder tabs, sub-wordmark, joined-at metadata, "← Back to app" link, locale-pill label |
+| body | 16 | 400 | 24px (1.5) | 0 | `text-base` | Default paragraph copy, subheadings, placeholder empty-state body, input text, CTA label |
+| h3 | 20 | 700 | 28px (1.4) | 0 | `text-xl` | Sticky-header wordmark, form section headings, placeholder empty-state heading, `/me` display-name h2-equivalent |
+| h1 | 32 | 700 | 40px (1.25) | -0.01em on Latin, 0 on Hebrew | `text-3xl` | `/join` page heading & hero wordmark, `/admin` page heading, 404/403 headings |
+
+**Total: 4 sizes — within Phase 1 typography cap.**
 
 **Cap at two weights:** **400 (regular) + 700 (bold)**. Weight 500 was suggested in CONTEXT.md D-15 but is explicitly disallowed in Phase 1 — keeps the visual contract minimal and the font payload predictable. If a Phase 2 form needs a third weight, it must be re-opened in that phase's UI-SPEC.
 
@@ -116,7 +115,7 @@ Two weights (400 regular + 700 bold). Four declared sizes plus a display size fo
 | Secondary (30%) — card-foreground | `#0a2540` | `--zc-card-foreground` | matches primary | Text on `--zc-card` (contrast 16.4:1, AAA) |
 | Secondary (30%) — muted | `#e7e5e0` | `--zc-muted` | `bg-stone-200` (closest) | Disabled inputs, divider lines, placeholder-state border |
 | Secondary (30%) — muted-foreground | `#525252` | `--zc-muted-foreground` | `text-stone-600` (closest) | Helper text, "coming soon" caption, joined-at timestamp, secondary metadata |
-| Primary (used inside the 30%) | `#0a2540` | `--zc-primary` | n/a (custom) | Primary CTA bg, sticky header text, wordmark, h1/h2/h3 text on cream |
+| Primary (used inside the 30%) | `#0a2540` | `--zc-primary` | n/a (custom) | Primary CTA bg, sticky header text, wordmark, h1/h3 text on cream |
 | Primary-foreground | `#fafaf7` | `--zc-primary-foreground` | matches surface | Text on primary bg (CTA label) — contrast 14.8:1 |
 | **Accent (10%)** | `#f59e0b` | `--zc-accent` | `bg-amber-500` (closest) | See "Accent reserved for" list below |
 | Accent-foreground | `#0a2540` | `--zc-accent-foreground` | matches primary | Text on accent bg (contrast 7.6:1, AAA on normal text) |
@@ -136,12 +135,12 @@ Two weights (400 regular + 700 bold). Four declared sizes plus a display size fo
 ### Accent reserved for (explicit, exhaustive list — never "all interactive elements"):
 
 1. **Primary CTA button background** on `/join` ("Join / הצטרפו") — the single most important action in Phase 1
-2. **Bottom tab bar — ACTIVE tab indicator** (a `bs-0.5` accent bar above the active tab's label; label itself stays primary navy for legibility)
+2. **Bottom tab bar — ACTIVE tab indicator** (a `bs-1` accent bar above the active tab's label; label itself stays primary navy for legibility)
 3. **Focus-visible ring** on all interactive elements (links, buttons, inputs, tab buttons, locale pill) — `--zc-ring` = accent
 4. **Saved / success indicator** copy color on the (future Phase 2) "saved" badge — Phase 1 reserves the token but does not paint it
 5. **Locale toggle pill — hover state border** (subtle 2px accent border on hover, no fill; default state is muted-bordered)
 
-Accent is NOT used for: links inside body copy (use primary navy with underline), placeholder tab "coming soon" callouts (use muted-foreground), wordmark, h1/h2/h3.
+Accent is NOT used for: links inside body copy (use primary navy with underline), placeholder tab "coming soon" callouts (use muted-foreground), wordmark, h1/h3.
 
 ### Destructive reserved for (explicit):
 
@@ -172,8 +171,8 @@ All copy declared in both Hebrew and English. Hebrew is the default locale (D-17
 
 | Surface | Hebrew primary (on `/he/`) | English primary (on `/en/`) |
 |---------|----------------------------|------------------------------|
-| Header (mobile, all pages) | **משחקי זערור** (text-3xl / 32px / 700) | **Zarur Cup** (text-3xl / 32px / 700) |
-| `/join` page hero (above the form) | **משחקי זערור** (text-4xl / 40px / 700, display weight) above small sub-wordmark **"Zarur Cup"** (text-sm / 14px / 400, muted-foreground); reverse on `/en/`: **Zarur Cup** display + small **משחקי זערור** sub | same |
+| Header (mobile, all pages) | **משחקי זערור** (text-xl / 20px / 700) | **Zarur Cup** (text-xl / 20px / 700) |
+| `/join` page hero (above the form) | **משחקי זערור** (text-3xl / 32px / 700, hero size) above small sub-wordmark **"Zarur Cup"** (text-sm / 14px / 400, muted-foreground); reverse on `/en/`: **Zarur Cup** hero + small **משחקי זערור** sub | same |
 | Other locale's wordmark in header | omitted (header shows the active locale's wordmark only; locale toggle pill signals the swap) | omitted |
 
 ### Primary CTA Label
@@ -192,10 +191,10 @@ The CTA verb is intentionally specific: "Join the Pool" / "הצטרפו" — not
 | Page heading (h1, text-3xl) | **הצטרפו למשחקי זערור** | **Join Zarur Cup** |
 | Subheading (body, muted-foreground) | בחרו שם שיופיע בלוח התוצאות, והכניסו את הקוד המשפחתי. | Pick the name you want on the leaderboard, then enter the family invite code. |
 | Field 1 label — display name | **שם** | **Your name** |
-| Field 1 helper (caption) | 2 עד 24 תווים — אותיות עברית, אנגלית, ספרות ורווחים. | 2–24 characters — Hebrew, Latin letters, digits, and spaces. |
+| Field 1 helper (label-size, muted) | 2 עד 24 תווים — אותיות עברית, אנגלית, ספרות ורווחים. | 2–24 characters — Hebrew, Latin letters, digits, and spaces. |
 | Field 1 placeholder | למשל: דני | e.g. Dani |
 | Field 2 label — invite code | **קוד הזמנה** | **Invite code** |
-| Field 2 helper (caption) | קוד משפחתי שקיבלת בוואטסאפ. | The family code you received over WhatsApp. |
+| Field 2 helper (label-size, muted) | קוד משפחתי שקיבלת בוואטסאפ. | The family code you received over WhatsApp. |
 | Field 2 placeholder | — (no placeholder; code format intentionally unhinted) | — |
 | Submit button label | **הצטרפו** | **Join the Pool** |
 | Submit button loading label | **מצטרפים...** | **Joining…** |
@@ -210,7 +209,7 @@ The CTA verb is intentionally specific: "Join the Pool" / "הצטרפו" — not
 | `/[locale]/matches` (Phase 1 placeholder) | **המשחקים פותחים ב-11 ביוני** | החזרו ביום הפתיחה כדי להגיש את הניחושים שלכם. | **Matches open June 11** | Come back on opening day to lock in your picks. |
 | `/[locale]/bracket` (Phase 1 placeholder) | **הברקט פותח לקראת שלב הנוקאאוט** | תוכלו לסמן את ההמשך החל מ-27 ביוני. | **Bracket opens before knockouts** | You'll fill in your picks starting June 27. |
 | `/[locale]/leaderboard` (Phase 1 placeholder) | **לוח התוצאות פותח עם הפתיחה** | הניקוד יופיע אוטומטית אחרי המשחק הראשון. | **Leaderboard goes live on opening day** | Standings will appear automatically after the first match. |
-| `/[locale]/me` (Phase 1 thin-live — shows display name + locale toggle + joined-at) | **{display_name}** (rendered as h2, no static heading copy) | הצטרפת ב־{joined_at_local} | **{display_name}** | Joined {joined_at_local} |
+| `/[locale]/me` (Phase 1 thin-live — shows display name + locale toggle + joined-at) | **{display_name}** (rendered as h3, no static heading copy) | הצטרפת ב־{joined_at_local} | **{display_name}** | Joined {joined_at_local} |
 | `/admin` (English-only per D-05) | n/a | **Admin** | No actions available yet. Admin pages light up in Phase 2. |
 | 404 (localized) | **הדף לא נמצא** | אולי שגיאת הקלדה בקישור? [חזרה למשחקים] | **Page not found** | The link may have a typo. [Back to Matches] |
 | `/admin/403` (English-only per D-05) | n/a | **Admin only** | This area is reserved for the tournament admin. |
@@ -270,7 +269,7 @@ Concrete, paste-into-code-level specifications for the Phase 1 components.
 | Z-index | `z-40` (above content, below modals — there are no modals in Phase 1) |
 | Padding | `ps-4 pe-4` (16px gutter) |
 | Layout | flex-row, items-center, justify-between. `<html dir>` flips the row order automatically — wordmark is on the inline-start side, locale pill on inline-end side, in both locales. |
-| Wordmark slot | inline-start: text-2xl (24px) / 700 / `text-[--zc-primary]`. Tap target wraps to logical home (`/[locale]` — `next-intl` Link). |
+| Wordmark slot | inline-start: `text-xl` (20px) / 700 / `text-[--zc-primary]`. Tap target wraps to logical home (`/[locale]` — `next-intl` Link). |
 | Locale pill slot | inline-end: see §4 |
 | Shadow | none (border-bottom only, keeps the surface flat) |
 | RTL behavior | flex-row auto-flips via `dir`. **Do not use** `flex-row-reverse` — let `<html dir>` do the work. |
@@ -288,7 +287,7 @@ Concrete, paste-into-code-level specifications for the Phase 1 components.
 | Tab order (DOM order, same in both locales) | Matches → Bracket → Leaderboard → Me (flex-row, `<html dir>` flips visual order — Hebrew shows Me on the visual-leading side, Matches on visual-trailing) |
 | Per-tab layout | flex-column, items-center, justify-center. Icon row is OMITTED in Phase 1 (text-only labels per "Icon library: none" in §"Design System"). Stack: label (text-sm / 14px / 700 if active, 400 if inactive) + active-state accent bar above the label. |
 | Per-tab tap target | minimum `bs-11 is-11` (44×44px) — wider than visible chrome to hit WCAG 2.5.5 |
-| Active state indicator | a `bs-0.5` (2px) bar in `bg-[--zc-accent]` directly above the active tab's label, anchored to the top of the tab via `pbs-0` and a separate inline child. Active label color: `text-[--zc-primary]` weight 700. Inactive label: `text-[--zc-muted-foreground]` weight 400. |
+| Active state indicator | a `bs-1` (4px) bar in `bg-[--zc-accent]` directly above the active tab's label, anchored to the top of the tab via `pbs-0` and a separate inline child. Active label color: `text-[--zc-primary]` weight 700. Inactive label: `text-[--zc-muted-foreground]` weight 400. |
 | Hover/focus | `focus-visible:ring-2 focus-visible:ring-[--zc-ring] focus-visible:ring-offset-2` |
 | Tab labels — Matches | HE: **משחקים** / EN: **Matches** |
 | Tab labels — Bracket | HE: **ברקט** / EN: **Bracket** |
@@ -322,7 +321,7 @@ Concrete, paste-into-code-level specifications for the Phase 1 components.
 | Page layout | single column, max-inline-size `is-md` (28rem / 448px), centered horizontally via `mi-auto` (Tailwind v4.3 inline-axis auto margin) |
 | Page vertical padding | `pbs-12 pbe-12` mobile; `pbs-16 pbe-16` ≥md |
 | Gutter | `ps-4 pe-4` mobile; `ps-6 pe-6` ≥md |
-| Hero block | text-center on mobile, text-start ≥md. Display wordmark on top (text-4xl / 40px / 700 / `text-[--zc-primary]`), small sub-wordmark below in the other locale (text-sm / 14px / 400 / `text-[--zc-muted-foreground]`). |
+| Hero block | text-center on mobile, text-start ≥md. Hero wordmark on top (`text-3xl` / 32px / 700 / `text-[--zc-primary]`), small sub-wordmark below in the other locale (text-sm / 14px / 400 / `text-[--zc-muted-foreground]`). |
 | Gap between hero and form | `mbs-8` (32px) |
 | Form container | `bg-[--zc-card] border-1 border-[--zc-border] rounded-2xl ps-6 pe-6 pbs-6 pbe-6` |
 | Form heading | h1 — `text-3xl` / 32px / 700, see Copywriting "Page heading" |
@@ -337,9 +336,9 @@ Concrete, paste-into-code-level specifications for the Phase 1 components.
 
 | Property | Value |
 |----------|-------|
-| Wrapper | flex-column, gap-1.5 (6px between label, input, helper, error) |
+| Wrapper | flex-column, `gap-2` (8px between label, input, helper, error) |
 | Label | text-sm (14px) / 700 / `text-[--zc-primary]` |
-| Helper | text-xs (12px) / 400 / `text-[--zc-muted-foreground]` |
+| Helper | text-sm (14px) / 400 / `text-[--zc-muted-foreground]` |
 | Input | `bs-12` (48px) tall, full inline-width, `bg-white border-1 border-[--zc-border] rounded-xl ps-4 pe-4 text-base text-[--zc-primary]`. Placeholder: `placeholder:text-[--zc-muted-foreground]` |
 | Input focus | `focus-visible:border-[--zc-accent] focus-visible:ring-2 focus-visible:ring-[--zc-ring] focus-visible:ring-offset-2 focus-visible:ring-offset-[--zc-card]` (focus visibly shifts border to accent AND adds a ring — defense in depth across pointer/keyboard) |
 | Input error state (when this field has an active error) | `border-[--zc-destructive]` replaces the default border |
@@ -367,15 +366,15 @@ Concrete, paste-into-code-level specifications for the Phase 1 components.
 | Body | empty-state card with English-only copy "No actions available yet. Admin pages light up in Phase 2." |
 | `<html dir>` | inherits `ltr` from the outer layout (since `/admin/*` is NOT under `[locale]`, there is no `dir="rtl"` ever). |
 | Font | Inter (the outer `<html>` has no `--font-heebo` active on `/admin/*` — admin layout sets `className="font-inter"` explicitly to be safe) |
-| Header / tab bar visibility | the header + bottom tab bar are NOT rendered on `/admin/*` — admin uses a separate, minimal shell with only the page heading + body. Logout / "back to app" link in the top-end corner: text-sm primary navy, label "← Back to app." |
+| Header / tab bar visibility | the header + bottom tab bar are NOT rendered on `/admin/*` — admin uses a separate, minimal shell with only the page heading + body. Logout / "back to app" link in the top-end corner: text-sm (14px) / 400 primary navy, label "← Back to app." |
 | Server gate | `app/admin/layout.tsx` calls `requireAdmin()` (per RESEARCH §"lib/auth/session.ts"); non-admins are redirected to `/`; pages render only after gate passes. UI hiding is NOT the gate. |
 
 ### 9. Error Pages
 
 | Page | Layout |
 |------|--------|
-| `/[locale]/404` (localized) | uses the same chrome (header + bottom tab bar visible). Empty-state card centered, heading + body per Copywriting "404," with a small primary-text-color link "← back to Matches" / "← חזרה למשחקים" pointing to `/[locale]/matches` |
-| `/admin/403` (English-only) | minimal admin shell, no header / tab bar. Empty-state card with destructive-color heading **Admin only** and body **This area is reserved for the tournament admin.** Link: "← Back to app" → `/` (root, will get redirected by middleware to `/he/` or `/en/`) |
+| `/[locale]/404` (localized) | uses the same chrome (header + bottom tab bar visible). Empty-state card centered, heading + body per Copywriting "404," with a small primary-text-color link "← back to Matches" / "← חזרה למשחקים" pointing to `/[locale]/matches` (rendered at text-sm / 14px) |
+| `/admin/403` (English-only) | minimal admin shell, no header / tab bar. Empty-state card with destructive-color heading **Admin only** and body **This area is reserved for the tournament admin.** Link: "← Back to app" → `/` (text-sm / 14px) — root will get redirected by middleware to `/he/` or `/en/` |
 
 ---
 
@@ -442,6 +441,7 @@ Recorded so the planner, executor, and Phase 2/3 UI-SPECs know what is NOT cover
 - **Dark mode** — POL-01 (v2 / Out of Scope), never reserved
 - **Animations / transitions** — none in Phase 1
 - **Destructive-action confirmation dialog** — no destructive actions in Phase 1; pattern deferred to Phase 2 (ADM-02 "delete result")
+- **Additional type-scale tiers** — Phase 1 caps at 4 sizes (14 / 16 / 20 / 32). Phase 2 may re-open the contract for a sub-hero (24px) or a numeric-display (40px) tier if leaderboard/scoring surfaces demand it.
 
 ---
 
@@ -473,9 +473,9 @@ Recorded so the planner, executor, and Phase 2/3 UI-SPECs know what is NOT cover
 | `REQUIREMENTS.md` FND-06 | Mobile-first verification on real phone in HE+EN |
 | `REQUIREMENTS.md` I18N-06 | `<bdi>` wrapping for mixed-direction text |
 | `REQUIREMENTS.md` POL-01 (v2) | Dark mode confirmed OUT of scope |
-| Researcher discretion (this doc) | Final hex picks (`#0a2540` primary, `#f59e0b` accent, `#fafaf7` surface), type scale (12/14/16/20/24/32/40), spacing exception list, exact Hebrew + English copy strings for `/join` / placeholder tabs / errors, focus-ring color, two-weight cap |
+| Researcher discretion (this doc) | Final hex picks (`#0a2540` primary, `#f59e0b` accent, `#fafaf7` surface), type scale collapsed to 4 sizes (14/16/20/32) at the checker's request in revision 1, spacing exception list, exact Hebrew + English copy strings for `/join` / placeholder tabs / errors, focus-ring color, two-weight cap, raised tab-bar active indicator to 4px and form-field internal gap to 8px in revision 1 to stay on the 4-multiple spacing scale |
 
 ---
 
 *UI-SPEC for: Phase 1 (Foundation, Schema, Auth & RLS), Zarur-Cup / משחקי זערור*
-*Generated: 2026-05-23 — ready for gsd-ui-checker validation*
+*Generated: 2026-05-23 — ready for gsd-ui-checker validation (revision 1)*
