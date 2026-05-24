@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+# Phase 1 pre-commit gates (FND-03 + TS):
+#   1. lint:rtl — fail on any physical-direction Tailwind utility under src/ or messages/
+#   2. typecheck — fail on TypeScript errors before they land on main
+# Husky v9 no longer needs the legacy `. "$(dirname -- "$0")/_/husky.sh"` shim.
+
+# FND-03: physical-direction Tailwind utility check.
+echo "Running lint:rtl (FND-03)..."
+if ! npm run lint:rtl --silent; then
+  echo ""
+  echo "FND-03 violation: physical-direction Tailwind utility detected."
+  echo "Use logical-property utilities instead:"
+  echo "  pl-* / pr-*       -> ps-* / pe-*"
+  echo "  ml-* / mr-*       -> ms-* / me-*"
+  echo "  text-left/right   -> text-start / text-end"
+  echo "  border-l-/r-      -> border-s-* / border-e-*"
+  echo "  left-/right-      -> inset-s-* / inset-e-*"
+  echo "  flex-row-reverse  -> NEVER — use <html dir> to flip"
+  exit 1
+fi
+
+# TypeScript build check
+echo "Running typecheck..."
+npm run --silent typecheck || exit 1
