@@ -1,6 +1,6 @@
 # STATE: Zarur-Cup / משחקי זערור
 
-**Last updated:** 2026-05-23
+**Last updated:** 2026-05-23 (Phase 1 context gathered)
 
 ## Project Reference
 
@@ -14,11 +14,11 @@
 
 | Field | Value |
 |-------|-------|
-| Phase | — (pre-Phase-1) |
+| Phase | 1 (Foundation, Schema, Auth & RLS) — context gathered |
 | Plan | — |
-| Status | Roadmap complete; awaiting `/gsd:plan-phase 1` |
-| Progress | `[░░░░░░░░░░] 0%` (0 / 3 phases complete) |
-| Last action | gsd-roadmapper wrote ROADMAP.md (3 phases, 66/66 requirements mapped) |
+| Status | Phase 1 CONTEXT.md written; awaiting `/gsd:plan-phase 1` |
+| Progress | `[░░░░░░░░░░] 0%` (0 / 3 phases complete; Phase 1 in context) |
+| Last action | gsd-discuss-phase wrote `.planning/phases/01-foundation-schema-auth-rls/01-CONTEXT.md` + 01-DISCUSSION-LOG.md (22 decisions across 6 areas) |
 
 ## Roadmap Snapshot
 
@@ -63,7 +63,20 @@
 
 - **Phase 1 / Phase 2 boundary:** Scoring trigger in PL/pgSQL vs Server Action — research split between architecture researcher ("mirror in both") and pitfalls researcher ("all math in SQL"). Resolve in Phase 2 planning. View-based aggregation is non-negotiable either way.
 - **Phase 3:** Bracket reveal granularity — single moment at first knockout vs per-stage reveal. Affects RLS policy specifics (BRK-03, VIS-03). Resolve in Phase 3 planning.
-- **Phase 1:** Hebrew native-speaker reviewer identified and scheduled? DATA-04 + QA-03 require a real human pass before invite distribution.
+- **Phase 1:** Hebrew native-speaker reviewer identified and scheduled? DATA-04 happens inside Phase 1 per CONTEXT.md D-22 (gates the seed sign-off). QA-03 (full copy review) is Phase 2/6.
+
+### Phase 1 Decisions Locked (2026-05-23 via gsd-discuss-phase)
+
+| Decision | Source | Notes |
+|----------|--------|-------|
+| Invite code = single env var (`INVITE_CODE`); no Turnstile/IP-cap in v1 | CONTEXT.md D-01..D-03 | AUTH-07 reinterpreted as satisfied by Supabase's 30/hr/IP built-in |
+| Admin bootstrap via `ADMIN_DISPLAY_NAME` env var match on join | CONTEXT.md D-04 | Mitigation: zekez joins first |
+| Admin routes unlocalized at `/admin/...` (no `[locale]` segment) | CONTEXT.md D-05 | Deliberate deviation from AUTH-06 literal wording |
+| Display name: 2–24 chars; HE+Latin+digits+spaces; case-insensitive + trim + NFC unique | CONTEXT.md D-07..D-10 | Inline-error UX on conflict |
+| Late-entrant: open join, zero past points; `profiles.joined_at` | CONTEXT.md D-11..D-12 | Closes STATE.md open question |
+| Visual: "Modern sports clean"; text wordmark; Heebo + Inter; bottom-tab-bar nav | CONTEXT.md D-13..D-17 | Hex/accent picked by UI-phase agent |
+| Heartbeat: public route, Vercel Cron every 3 days, real `SELECT FROM fixtures` | CONTEXT.md D-18 | FND-05 |
+| All schema + RLS in Phase 1; `timestamptz` only; `(select auth.uid())` pattern | CONTEXT.md D-19..D-22 | DATA-04 (Hebrew team-name review) inside Phase 1 |
 
 ### Todos (deferred to phase planning)
 
