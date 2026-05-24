@@ -15,6 +15,7 @@ External services that required (or will require) manual setup outside the codeb
 | 3 | **Project Settings -> API** | Confirm you see BOTH key formats: legacy (`anon` / `service_role`) AND new (`sb_publishable_*` / `sb_secret_*`). **Use the new format only.** |
 | 4 | **Account -> Access Tokens** | Create a token named `zarur-cup CLI`. Copy once. Cannot be re-read. |
 | 5 | **Project Settings -> General** | Note the **Reference ID** (e.g. `abcdefghijklmnop`) |
+| 6 | **Authentication -> Providers -> Anonymous Sign-Ins** | **Toggle ON.** (Default is OFF in 2026 Supabase projects.) Without this, `supabase.auth.signInAnonymously()` returns "Anonymous sign-ins are disabled" and the entire join flow (Plan 01-04) errors at Task 4. *Added 2026-05-23 as a fix-up after Plan 01-04 hit this at the human-verify checkpoint.* |
 
 ### Environment variables (server-side and client-side)
 
@@ -29,6 +30,7 @@ These go into `.env.local` at the project root. **`.env.local` is gitignored —
 | `SUPABASE_PROJECT_REF` | Supabase Dashboard -> Project Settings -> General -> Reference ID | local CLI / CI | Used by `npm run db:link`. |
 | `INVITE_CODE` | choose any string | **server only** | Family invite code. Plan 01-04 reads this. Placeholder is fine for now. |
 | `ADMIN_DISPLAY_NAME` | choose any string | **server only** | Admin bootstrap (D-04). First user whose display name matches this gets `is_admin=true`. Placeholder is fine for now. |
+| `NODE_EXTRA_CA_CERTS` | absolute path to corporate CA bundle | **local dev only** | **Corporate-network developers only** (e.g. JFrog VPN). Set to the absolute path of the company CA `.pem` (e.g. `/Users/<you>/Documents/Claude OS/zarur-cup/.dev/corp-ca.pem`). Without this, `next dev`'s outbound TLS to `*.supabase.co` fails with `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`. **Quote the value** if the path contains spaces so `bash source .env.local` parses it correctly. Not needed on Vercel deploys. *Added 2026-05-23 after dev-server TLS failures on corporate network.* |
 
 ### Verification
 
