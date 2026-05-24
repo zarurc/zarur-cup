@@ -1,66 +1,69 @@
 code,name_en,name_he,group_code
-# WC 2026 — 48 teams across 12 groups of 4 (A..L). Source: research/01-RESEARCH.md §9 + FIFA published draw as of May 2026.
-# Hebrew names sourced from Wikipedia he.wikipedia.org entries for each national football team + native review (DATA-04).
-# Two playoff-winner placeholder rows (PO1, PO2) used where the inter-confederation play-off winners are not yet decided.
+# WC 2026 — 48 teams across 12 groups of 4 (A..L). FINAL DRAW confirmed Dec 5, 2025 at Kennedy Center, Washington D.C.
+# Source: https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_draw (Final draw section), cross-referenced with
+#         https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/final-draw-results
+# Position order within each group (pos 1 / pos 2 / pos 3 / pos 4) is the FIFA-published draw position, NOT pot order.
+# Hebrew names sourced from he.wikipedia.org articles on each national football team.
 # DUPLICATE-FREE: every `code` value is unique. Schema enforces unique(tournament_id, code).
+# All 48 teams known — no playoff placeholders needed (UEFA play-off paths A/B/C/D winners + IC play-off pathway 1/2 winners are all in their groups via codes BIH, SWE, TUR, CZE, COD, IRQ).
 #
-# === Group A (host Mexico — opener at Estadio Azteca, June 11) ===
+# === Group A (host Mexico — opener at Estadio Azteca, June 11, 2026) ===
 MEX,Mexico,מקסיקו,A
-JAM,Jamaica,ג'מייקה,A
-NZL,New Zealand,ניו זילנד,A
-NOR,Norway,נורווגיה,A
-# === Group B (host USA) ===
-USA,United States,ארצות הברית,B
-KSA,Saudi Arabia,ערב הסעודית,B
-MAR,Morocco,מרוקו,B
-AUT,Austria,אוסטריה,B
-# === Group C (host Canada) ===
-CAN,Canada,קנדה,C
-JPN,Japan,יפן,C
-BEL,Belgium,בלגיה,C
-ALG,Algeria,אלג'יריה,C
-# === Group D ===
-ARG,Argentina,ארגנטינה,D
-CIV,Ivory Coast,חוף השנהב,D
-KOR,South Korea,קוריאה הדרומית,D
-PO1,Playoff Winner 1,מנצח/ת המוקדמות 1,D
+RSA,South Africa,דרום אפריקה,A
+KOR,South Korea,קוריאה הדרומית,A
+CZE,Czechia,צ'כיה,A
+# === Group B (host Canada) ===
+CAN,Canada,קנדה,B
+BIH,Bosnia and Herzegovina,בוסניה והרצגובינה,B
+QAT,Qatar,קטאר,B
+SUI,Switzerland,שוויץ,B
+# === Group C ===
+BRA,Brazil,ברזיל,C
+MAR,Morocco,מרוקו,C
+HAI,Haiti,האיטי,C
+SCO,Scotland,סקוטלנד,C
+# === Group D (host USA) ===
+USA,United States,ארצות הברית,D
+PAR,Paraguay,פרגוואי,D
+AUS,Australia,אוסטרליה,D
+TUR,Türkiye,טורקיה,D
 # === Group E ===
-ESP,Spain,ספרד,E
-EGY,Egypt,מצרים,E
-AUS,Australia,אוסטרליה,E
-HAI,Haiti,האיטי,E
+GER,Germany,גרמניה,E
+CUW,Curaçao,קוראסאו,E
+CIV,Ivory Coast,חוף השנהב,E
+ECU,Ecuador,אקוודור,E
 # === Group F ===
-BRA,Brazil,ברזיל,F
-IRN,Iran,איראן,F
-NGA,Nigeria,ניגריה,F
-UKR,Ukraine,אוקראינה,F
+NED,Netherlands,הולנד,F
+JPN,Japan,יפן,F
+SWE,Sweden,שוודיה,F
+TUN,Tunisia,תוניסיה,F
 # === Group G ===
-FRA,France,צרפת,G
-ECU,Ecuador,אקוודור,G
-CMR,Cameroon,קמרון,G
-IRQ,Iraq,עיראק,G
+BEL,Belgium,בלגיה,G
+EGY,Egypt,מצרים,G
+IRN,Iran,איראן,G
+NZL,New Zealand,ניו זילנד,G
 # === Group H ===
-ENG,England,אנגליה,H
-COL,Colombia,קולומביה,H
-GHA,Ghana,גאנה,H
-JOR,Jordan,ירדן,H
+ESP,Spain,ספרד,H
+CPV,Cape Verde,כף ורדה,H
+KSA,Saudi Arabia,ערב הסעודית,H
+URU,Uruguay,אורוגוואי,H
 # === Group I ===
-NED,Netherlands,הולנד,I
+FRA,France,צרפת,I
 SEN,Senegal,סנגל,I
-UZB,Uzbekistan,אוזבקיסטן,I
-PAR,Paraguay,פרגוואי,I
+IRQ,Iraq,עיראק,I
+NOR,Norway,נורווגיה,I
 # === Group J ===
-POR,Portugal,פורטוגל,J
-URU,Uruguay,אורוגוואי,J
-TUN,Tunisia,תוניסיה,J
-CRO,Croatia,קרואטיה,J
+ARG,Argentina,ארגנטינה,J
+ALG,Algeria,אלג'יריה,J
+AUT,Austria,אוסטריה,J
+JOR,Jordan,ירדן,J
 # === Group K ===
-GER,Germany,גרמניה,K
-CRC,Costa Rica,קוסטה ריקה,K
-SUI,Switzerland,שוויץ,K
-PO2,Playoff Winner 2,מנצח/ת המוקדמות 2,K
+POR,Portugal,פורטוגל,K
+COD,DR Congo,הרפובליקה הדמוקרטית של קונגו,K
+UZB,Uzbekistan,אוזבקיסטן,K
+COL,Colombia,קולומביה,K
 # === Group L ===
-ITA,Italy,איטליה,L
-DEN,Denmark,דנמרק,L
-POL,Poland,פולין,L
-TUR,Turkey,טורקיה,L
+ENG,England,אנגליה,L
+CRO,Croatia,קרואטיה,L
+GHA,Ghana,גאנה,L
+PAN,Panama,פנמה,L
