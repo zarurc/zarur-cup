@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-last_updated: "2026-05-23T22:34:54.958Z"
+last_updated: "2026-05-23T22:50:00.000Z"
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
-  percent: 60
+  completed_plans: 4
+  percent: 80
 ---
 
 # STATE: Zarur-Cup / משחקי זערור
 
-**Last updated:** 2026-05-23 (Plan 01-03 shipped — WC 2026 seed live on tjivukpxuhbrbshidbfv; DATA-04 signed off by zekez)
+**Last updated:** 2026-05-23 (Plan 01-04 shipped — auth flow + bilingual chrome + admin gate live; fix-up landed 4 bug fixes from human-verify checkpoint)
 
 ## Project Reference
 
@@ -27,14 +27,14 @@ progress:
 ## Current Position
 
 Phase: 01 (foundation-schema-auth-rls) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 | Field | Value |
 |-------|-------|
 | Phase | 1 (Foundation, Schema, Auth & RLS) — planned |
 | Plan | 5 plans (01-01 → 01-05) across 4 waves |
-| Status | Executing — Plans 01-01 + 01-02 + 01-03 complete; Wave 3 partial (01-04 auth/UI next, then Wave 4 / 01-05 heartbeat+deploy) |
-| Progress | `[██████░░░░] 60%` (3 / 5 Phase 1 plans complete; 0 / 3 phases complete) |
-| Last action | Plan 01-03 (WC 2026 seed) shipped — 1 tournament + 48 teams (bilingual, Dec 2025 Final Draw) + 104 fixtures (UTC kickoffs, symbolic KO placeholders) + 32 bracket_slots (non-sequential FIFA R32->R16 wiring) + 7 prop_questions live on tjivukpxuhbrbshidbfv. 6 deviations: filename slot 0003->0005 (Rule 3), full reseed via 0006_reseed_wc2026.sql after pre-draw projection caught (Rule 3), bracket parent wiring sequential->FIFA non-sequential (Rule 1), tournament.starts_at 20:00->19:00 UTC (Rule 2), build-script gained --target/--reseed flags (note), reseed pattern formalized (note). DATA-04: zekez approved all 48 Hebrew team names 2026-05-23. |
+| Status | Executing — Plans 01-01 + 01-02 + 01-03 + 01-04 complete; Wave 4 / 01-05 (heartbeat+deploy+CI) next |
+| Progress | `[████████░░] 80%` (4 / 5 Phase 1 plans complete; 0 / 3 phases complete) |
+| Last action | Plan 01-04 (auth + bilingual chrome + admin gate) shipped — joinPool Server Action with rebind path, signOutCurrent, switchLocale (form-action, no race), session helpers, /[locale]/{home,join,matches,bracket,leaderboard,me} routes, /admin/(protected) with 403 outside the gate, full he/en message bundles. 8 commits total (3 original + 5 fix-up). Fix-up resolved 4 human-verify checkpoint bugs: locale toggle DB persistence race (Bug 4 / Rule 1), logout button + rejoin rebind (Bug 1 / Rule 2 critical UX), BottomTabBar defensive hardening (Bug 2 / Rule 1), USER-SETUP omissions for Anonymous Sign-Ins toggle + NODE_EXTRA_CA_CERTS env-var (Rule 3 docs). |
 
 ## Roadmap Snapshot
 
@@ -52,6 +52,7 @@ Plan: 4 of 5
 | Phases planned | 1 / 3 | Phase 2 next |
 | Plans complete | 3 / 5 in Phase 1 | 01-01 (bootstrap) + 01-02 (schema+RLS) + 01-03 (WC 2026 seed, DATA-04 signed off by zekez) shipped 2026-05-23 |
 | Phase 01 P03 | 62min, 4 tasks, 8 files | Seed migration 0005 + corrective reseed 0006; live counts 1/48/104/32/7 verified |
+| Phase 01 P04 | 180min, 4 tasks, 31 files (20 created + 11 modified) | Auth + chrome + admin gate; 5 fix-up commits resolved 4 human-verify bugs (locale race, logout+rejoin, tab indicator hardening, USER-SETUP) |
 
 ## Accumulated Context
 
@@ -129,6 +130,19 @@ Plan: 4 of 5
 | Pattern: CSVs (data/<tournament>/*.csv) are source of truth; SQL migrations are GENERATED, never hand-edited | Pattern (new) | scripts/build-seed-sql.ts is the only writer of seed SQL | Edit CSV + rebuild + add new migration; never edit a pushed migration. |
 | DATA-04 sign-off: zekez approved all 48 name_he + 12 group assignments on 2026-05-23 | Gate cleared | CONTEXT.md D-22 designates zekez as the Hebrew reviewer | No corrections requested. |
 
+### Phase 1 Execution Decisions (2026-05-23, Plan 01-04 deviations)
+
+| Decision | Rule | Source | Notes |
+|----------|------|--------|-------|
+| Family-trust rebind on display_name conflict | Rule 2 (missing critical UX) | Human-verify Bug 1b: clearing cookies trapped users out of their own account | joinPool re-points existing profile + FK children to new auth.users + svc.auth.admin.deleteUser the stale row. NEVER fires when invite_code is invalid (T-04-04 info-disclosure tightening). |
+| Logout button on /me page | Rule 2 (missing critical UX) | Human-verify Bug 1a: no logout path existed | signOutCurrent() server action; preserves NEXT_LOCALE cookie so user lands on their preferred-locale /join. |
+| Locale toggle <Link> + startTransition -> <form action> + redirect | Rule 1 (bug) | Human-verify Bug 4: navigation tore down React tree before action's DB UPDATE committed; profiles.locale never persisted on live DB | switchLocale action awaits the UPDATE server-side then issues redirect(). Open-redirect mitigation: redirectPath must start with / and not //. |
+| BottomTabBar defensive null-guard + exact-or-prefix-slash match | Rule 1 (defensive hardening) | Human-verify Bug 2: active tab indicator never rendered; bug attribution to next/navigation import was inaccurate (already using @/lib/i18n/routing) | Most likely cause was stale dev-server module cache. Hardening landed anyway: pathname ?? "" guard + exact-or-prefix-slash match to future-proof against sibling routes. |
+| Pattern: Server actions that mutate AND navigate use <form action={serverAction}> + redirect() at end | Pattern (new) | Bug 4 root cause | Never combine client <Link> with parallel startTransition(action) -- the navigation tears down the React tree before the action commits. |
+| Pattern: Rebind on display_name 23505 conflict (only when invite_code valid) | Pattern (new) | Family-trust model from PROJECT.md | Service-role UPDATE on profiles + 3 FK children + svc.auth.admin.deleteUser. Defense against trapping users out of their account; respects family-trust anti-cheat assumption. |
+| Pattern: Always import usePathname from @/lib/i18n/routing (next-intl wrapper), never from next/navigation | Pattern (new) | next-intl strips locale prefix only in its own wrapper | Documented in BottomTabBar comments + this STATE.md. |
+| USER-SETUP omissions: Anonymous Sign-Ins toggle + NODE_EXTRA_CA_CERTS env-var | Rule 3 (docs) | Caught at human-verify | Both added to 01-USER-SETUP.md. .dev/ added to .gitignore for corp CA bundle. |
+
 ### Todos (deferred to phase planning)
 
 (None yet — all surfaced during roadmapping have been folded into phase Success Criteria or Open Questions above.)
@@ -145,7 +159,8 @@ Plan: 4 of 5
 - **Plan 01-01 shipped 2026-05-23** — Next.js 15.5.18 shell, next-intl he/en routing, Supabase clients, Tailwind v4.3 design tokens. RTL/LTR visually verified.
 - **Plan 01-02 shipped 2026-05-23** — 4 migrations on live project tjivukpxuhbrbshidbfv: 9 tables (all RLS-enabled), lock-and-reveal policies for predictions/prop_answers, B1 column grant on profiles (UPDATE = display_name + locale only), anon SELECT on all 9 tables so RLS is the visible lock. `bash scripts/verify-rls-no-leak.sh` confirms ALL 9 TABLES PASS (anon=[]). 2 deviations captured.
 - **Plan 01-03 shipped 2026-05-23** — WC 2026 seed live on tjivukpxuhbrbshidbfv: 1 tournament + 48 teams (bilingual, Dec 2025 Final Draw) + 104 fixtures (UTC kickoffs + symbolic KO placeholders) + 32 bracket_slots (R32->CHAMPION, FIFA non-sequential R32->R16 wiring) + 7 prop_questions. Live counts verified via SELECT count(*). DATA-04 gate cleared: zekez approved all 48 Hebrew team names + group assignments 2026-05-23. 6 deviations captured (filename 0003->0005, full reseed via 0006 after pre-draw projection caught, bracket parent wiring corrected, tournament.starts_at 20:00->19:00 UTC, build-script --target/--reseed flags, canonical reseed pattern). CSVs (`data/wc2026/*.csv`) are source of truth; SQL is generated by `scripts/build-seed-sql.ts`.
-- **Next: Plan 01-04 (auth + UI shell)**. Wave 3 plan 01-03 is done; the parallel partner 01-04 (auth flow + bilingual UI shell + admin gate) can proceed -- tournament row + teams + fixtures + props are all visible to authenticated users via RLS. After 01-04: Wave 4 / Plan 01-05 (heartbeat + Vercel deploy + Cron + CI).
+- **Plan 01-04 shipped 2026-05-23** — Phase-1 user-facing surface: invite-code-gated `signInAnonymously()` join flow with display-name rebind (family-trust), bilingual `/he//en/` chrome (header + locale-toggle pill + bottom tab bar), session-aware redirects, server-side admin gate at unlocalized `/admin/`, full he/en message bundles. 8 commits (3 original execute + 5 fix-up after human-verify checkpoint). Fix-up resolved: (1) locale toggle race lost DB UPDATE on every click -- converted to form-action + redirect (Rule 1 bug); (2) no logout path + cookie-clear trapped users out of own account -- added Logout button + family-trust rebind on display_name conflict (Rule 2 critical UX); (3) BottomTabBar defensive hardening for null pathname + exact-or-prefix-slash match (Rule 1); (4) USER-SETUP omissions for Anonymous Sign-Ins toggle + NODE_EXTRA_CA_CERTS env-var (Rule 3 docs). Patterns 14-17 added.
+- **Next: Plan 01-05 (heartbeat + Vercel deploy + Cron + CI)**. After 01-05: Phase 1 complete; Phase 2 planning begins.
 - Wave structure: W1 (Plan 01 bootstrap ✓) → W2 (Plan 02 schema+RLS+db push ✓) → W3 (Plans 03+04 in parallel — seed+Hebrew review by zekez, auth+UI shell) → W4 (Plan 05 heartbeat+deploy+CI).
 - Human checkpoints in Phase 1 (autonomous:false tasks): (a) Supabase project provisioning, (b) schema db push, (c) seed db push + Hebrew team-name review (zekez), (d) join/session/admin UX verify, (e) Vercel deploy + Cron verification.
 - After Phase 1 lands, Phase 2 has 10 working days to June 11. Plan-phase for Phase 2 should prioritize the critical path (League predictions → admin result → scoring view → leaderboard) over polish.

@@ -22,21 +22,21 @@ Requirements for initial release. Each maps to a roadmap phase below.
 
 - [x] **I18N-01**: User can browse the app at `/he/...` (RTL, Hebrew copy) and `/en/...` (LTR, English copy)
 - [x] **I18N-02**: First visit auto-selects locale based on `Accept-Language` header; falls back to Hebrew if no match
-- [ ] **I18N-03**: User can toggle between Hebrew and English from any page; selection persists across sessions (cookie + `profiles.locale` when signed in)
+- [x] **I18N-03**: User can toggle between Hebrew and English from any page; selection persists across sessions (cookie + `profiles.locale` when signed in)
 - [x] **I18N-04**: All UI strings live in `messages/{en,he}.json` via next-intl v4 with ICU plural rules
 - [x] **I18N-05**: Team names, prop questions, and other domain content render in the active locale (`_en` / `_he` DB columns)
-- [ ] **I18N-06**: Mixed-direction strings like scores ("2 - 1") render correctly in both locales (`<bdi>` or `<span dir="ltr">` wrapping where needed)
-- [ ] **I18N-07**: Kickoff times render in the viewer's local timezone using native `Intl.DateTimeFormat` with the correct locale-specific date/time format
+- [x] **I18N-06**: Mixed-direction strings like scores ("2 - 1") render correctly in both locales (`<bdi>` or `<span dir="ltr">` wrapping where needed) — *structural-only in Phase 1 (`<p lang>` on hero sub-wordmark); full bidi stress-test (deep nesting, embedded LTR codes in RTL paragraphs) deferred to Phase 2 QA-03*
+- [x] **I18N-07**: Kickoff times render in the viewer's local timezone using native `Intl.DateTimeFormat` with the correct locale-specific date/time format — *applied to `joined_at` on /me page in Phase 1; same pattern reused for kickoff times in Phase 2*
 
 ### Authentication & Identity
 
-- [ ] **AUTH-01**: Family member can join the pool by entering the shared invite code on a join page
-- [ ] **AUTH-02**: Successful invite-code validation creates an anonymous Supabase session (`signInAnonymously()`) and writes a row in `profiles` with the chosen display name and locale
-- [ ] **AUTH-03**: Display names are unique within the tournament, validated server-side, and sanitized to prevent XSS
-- [ ] **AUTH-04**: Session persists across browser refresh and across days on the same device (anonymous session refresh via `@supabase/ssr` middleware)
-- [ ] **AUTH-05**: Anyone without a profile sees the join page only; protected routes redirect unauthenticated users to `/[locale]/join`
-- [ ] **AUTH-06**: Admin identity is a boolean flag (`profiles.is_admin`); only admins can reach `/[locale]/admin/...` routes (enforced server-side, not just in the UI)
-- [ ] **AUTH-07**: Invite code is rate-limited / brute-force-resistant (e.g. Cloudflare Turnstile or per-IP attempt cap)
+- [x] **AUTH-01**: Family member can join the pool by entering the shared invite code on a join page
+- [x] **AUTH-02**: Successful invite-code validation creates an anonymous Supabase session (`signInAnonymously()`) and writes a row in `profiles` with the chosen display name and locale
+- [x] **AUTH-03**: Display names are unique within the tournament, validated server-side, and sanitized to prevent XSS — *also: family-trust rebind path re-points existing profile + FK children when invite code is valid (Plan 01-04 Bug 1b fix-up)*
+- [x] **AUTH-04**: Session persists across browser refresh and across days on the same device (anonymous session refresh via `@supabase/ssr` middleware)
+- [x] **AUTH-05**: Anyone without a profile sees the join page only; protected routes redirect unauthenticated users to `/[locale]/join`
+- [x] **AUTH-06**: Admin identity is a boolean flag (`profiles.is_admin`); only admins can reach `/admin/...` routes (enforced server-side at the (protected) layout, not just in the UI) — *D-05 deviation: unlocalized `/admin/*` instead of `/[locale]/admin/*`*
+- [x] **AUTH-07**: Invite code is rate-limited / brute-force-resistant — *D-02 reinterpretation: satisfied by Supabase's built-in 30 anonymous sign-ins/hr/IP cap as the v1 defense; Cloudflare Turnstile deferred to post-launch per CLAUDE.md + RESEARCH Pitfall 9*
 
 ### Tournament Data (Pre-Seeded WC 2026)
 
@@ -173,18 +173,18 @@ Populated by `gsd-roadmapper` on 2026-05-23. 100% v1 coverage (66 / 66 mapped).
 | FND-06 | Phase 1 | Pending |
 | I18N-01 | Phase 1 | Complete |
 | I18N-02 | Phase 1 | Complete |
-| I18N-03 | Phase 1 | Pending |
+| I18N-03 | Phase 1 | Complete |
 | I18N-04 | Phase 1 | Complete |
 | I18N-05 | Phase 1 | Complete |
-| I18N-06 | Phase 1 | Pending |
-| I18N-07 | Phase 1 | Pending |
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| AUTH-05 | Phase 1 | Pending |
-| AUTH-06 | Phase 1 | Pending |
-| AUTH-07 | Phase 1 | Pending |
+| I18N-06 | Phase 1 | Complete (structural; full bidi stress-test deferred to Phase 2 QA-03) |
+| I18N-07 | Phase 1 | Complete |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
+| AUTH-04 | Phase 1 | Complete |
+| AUTH-05 | Phase 1 | Complete |
+| AUTH-06 | Phase 1 | Complete (D-05: unlocalized /admin) |
+| AUTH-07 | Phase 1 | Complete (D-02: Supabase 30/hr/IP cap; Turnstile post-launch) |
 | DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Complete |
