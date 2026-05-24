@@ -25,7 +25,7 @@ Rationale:
 
 ## Phases
 
-- [ ] **Phase 1: Foundation, Schema, Auth & RLS** — Bilingual Next.js shell + Supabase schema + invite-code auth + RLS lock/reveal policies + WC 2026 data seed
+- [x] **Phase 1: Foundation, Schema, Auth & RLS** — Bilingual Next.js shell + Supabase schema + invite-code auth + RLS lock/reveal policies + WC 2026 data seed (COMPLETE 2026-05-24; live at https://zarur-cup.vercel.app)
 - [ ] **Phase 2: June 11 MVP — League + Props + Scoring + Leaderboard + Admin + Ship Gate** — End-to-end predict-lock-score-reveal-leaderboard flow; props; admin result entry; Playwright smoke; family invite distributed
 - [ ] **Phase 3: Bracket Mode (Pre-Knockout Ship)** — Slot-based knockout picks + bracket scoring rolled into unified leaderboard, locked at first knockout
 
@@ -59,7 +59,7 @@ Rationale:
 - [x] 01-02-PLAN.md — Wave 2: Schema migrations 0001 + 0002 (tables + RLS lock-and-reveal policies) + [BLOCKING] db push + types regen + VIS-06 verification script (shipped 2026-05-23; added 0003_grants.sql + 0004_anon_select.sql as Rule 2 / Rule 1 deviations to handle `Automatically expose new tables: OFF` and the RLS-as-visible-lock contract)
 - [x] 01-03-PLAN.md — Wave 3: WC 2026 seed migration 0003 (48 teams + 104 fixtures + bracket slot graph + props) with [DATA-04 GATE] Hebrew native-speaker review
 - [x] 01-04-PLAN.md — Wave 3 (parallel with 03): Auth flow (invite-code Server Action + signInAnonymously + profile insert with family-trust rebind on display_name conflict) + bilingual UI shell (header / locale pill / bottom tab bar / placeholder pages) + admin gate at unlocalized /admin/* (shipped 2026-05-23; 8 commits total = 3 original execute + 5 fix-up after human-verify; resolved 4 checkpoint bugs)
-- [ ] 01-05-PLAN.md — Wave 4: /api/heartbeat route + Vercel deploy + Cron + FND-03 pre-commit + CI lint workflow
+- [x] 01-05-PLAN.md — Wave 4: /api/heartbeat route + Vercel deploy + Cron + FND-03 pre-commit + CI lint workflow (shipped 2026-05-24; live at https://zarur-cup.vercel.app; cron `0 12 */3 * *` verified in Supabase Postgres logs; husky + GitHub Actions both gating FND-03; 4 Rule-3 blocking deviations recorded — lockfile rewrite, types un-gitignored, Tailwind v4 var(), git author rewrite)
 
 ---
 
@@ -115,7 +115,7 @@ Rationale:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation, Schema, Auth & RLS | 3/5 | In Progress | - |
+| 1. Foundation, Schema, Auth & RLS | 5/5 | Complete | 2026-05-24 |
 | 2. June 11 MVP (League + Props + Scoring + Leaderboard + Admin + Ship Gate) | 0/TBD | Not started | - |
 | 3. Bracket Mode (Pre-Knockout Ship) | 0/TBD | Not started | - |
 

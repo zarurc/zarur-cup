@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-last_updated: "2026-05-23T22:50:00.000Z"
+status: Phase 1 complete; Phase 2 ready to plan
+last_updated: "2026-05-24T02:35:00.000Z"
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
-  percent: 80
+  completed_plans: 5
+  percent: 100
 ---
 
 # STATE: Zarur-Cup / משחקי זערור
 
-**Last updated:** 2026-05-23 (Plan 01-04 shipped — auth flow + bilingual chrome + admin gate live; fix-up landed 4 bug fixes from human-verify checkpoint)
+**Last updated:** 2026-05-24 (Phase 1 COMPLETE — Plan 01-05 shipped: live at https://zarur-cup.vercel.app, Vercel Cron `0 12 */3 * *` registered, husky pre-commit + GitHub Actions CI enforcing FND-03, README + heartbeat smoke test in place; all 26 Phase 1 requirements satisfied)
 
 ## Project Reference
 
@@ -26,19 +26,19 @@ progress:
 
 ## Current Position
 
-Phase: 01 (foundation-schema-auth-rls) — EXECUTING
-Plan: 5 of 5
+Phase: 01 (foundation-schema-auth-rls) — COMPLETE
+Plan: 5 of 5 — DONE
 | Field | Value |
 |-------|-------|
-| Phase | 1 (Foundation, Schema, Auth & RLS) — planned |
-| Plan | 5 plans (01-01 → 01-05) across 4 waves |
-| Status | Executing — Plans 01-01 + 01-02 + 01-03 + 01-04 complete; Wave 4 / 01-05 (heartbeat+deploy+CI) next |
-| Progress | `[████████░░] 80%` (4 / 5 Phase 1 plans complete; 0 / 3 phases complete) |
-| Last action | Plan 01-04 (auth + bilingual chrome + admin gate) shipped — joinPool Server Action with rebind path, signOutCurrent, switchLocale (form-action, no race), session helpers, /[locale]/{home,join,matches,bracket,leaderboard,me} routes, /admin/(protected) with 403 outside the gate, full he/en message bundles. 8 commits total (3 original + 5 fix-up). Fix-up resolved 4 human-verify checkpoint bugs: locale toggle DB persistence race (Bug 4 / Rule 1), logout button + rejoin rebind (Bug 1 / Rule 2 critical UX), BottomTabBar defensive hardening (Bug 2 / Rule 1), USER-SETUP omissions for Anonymous Sign-Ins toggle + NODE_EXTRA_CA_CERTS env-var (Rule 3 docs). |
+| Phase | 1 (Foundation, Schema, Auth & RLS) — COMPLETE |
+| Plan | 5 plans (01-01 → 01-05) across 4 waves — all shipped |
+| Status | Phase 1 complete; ready for Phase 2 planning |
+| Progress | `[██████████] 100%` (5 / 5 Phase 1 plans complete; 1 / 3 phases complete) |
+| Last action | Plan 01-05 (heartbeat + Vercel deploy + Cron + CI + husky) shipped — live at https://zarur-cup.vercel.app. Production project tjivukpxuhbrbshidbfv. /api/heartbeat protected with CRON_SECRET; cron `0 12 */3 * *` registered and visible in Vercel dashboard; manual trigger produced visible SELECT on fixtures in Supabase Postgres logs at 688ms (FND-05 verified). FND-03 enforced via .husky/pre-commit + .github/workflows/lint.yml. 4 source commits (heartbeat, vercel+husky+CI, lockfile JFrog→npmjs rewrite, generated types un-gitignored) + Tailwind v4 var() rewrite attributed to 01-04 + git author rewrite of all 38 commits to GitHub noreply email for Vercel author-check. 4 Rule-3 blocking deviations + 3 operational notes recorded. zekez approved 2026-05-24. |
 
 ## Roadmap Snapshot
 
-- [ ] **Phase 1: Foundation, Schema, Auth & RLS** — 26 requirements — target ~June 1
+- [x] **Phase 1: Foundation, Schema, Auth & RLS** — 26 requirements — COMPLETE 2026-05-24 (target was ~June 1; shipped 8 days early)
 - [ ] **Phase 2: June 11 MVP — League + Props + Scoring + Leaderboard + Admin + Ship Gate** — 34 requirements — target **June 11 (hard)**
 - [ ] **Phase 3: Bracket Mode (Pre-Knockout Ship)** — 6 requirements — target **June 27 (soft)**
 
@@ -50,9 +50,10 @@ Plan: 5 of 5
 | Days to soft deadline | 35 (May 23 → June 27) | Phase 3 has the buffer |
 | Coverage | 66 / 66 v1 requirements (100%) | No orphans |
 | Phases planned | 1 / 3 | Phase 2 next |
-| Plans complete | 3 / 5 in Phase 1 | 01-01 (bootstrap) + 01-02 (schema+RLS) + 01-03 (WC 2026 seed, DATA-04 signed off by zekez) shipped 2026-05-23 |
+| Plans complete | 5 / 5 in Phase 1 | All Phase 1 plans shipped 2026-05-23/24 |
 | Phase 01 P03 | 62min, 4 tasks, 8 files | Seed migration 0005 + corrective reseed 0006; live counts 1/48/104/32/7 verified |
 | Phase 01 P04 | 180min, 4 tasks, 31 files (20 created + 11 modified) | Auth + chrome + admin gate; 5 fix-up commits resolved 4 human-verify bugs (locale race, logout+rejoin, tab indicator hardening, USER-SETUP) |
+| Phase 01 P05 | ~6h, 4 tasks, 8 created + 3 modified | Vercel deploy + Cron + heartbeat + husky/CI; 4 Rule-3 deviations (lockfile rewrite, types un-gitignored, Tailwind var(), author rewrite) — all required for production deploy. Live at https://zarur-cup.vercel.app, cron `0 12 */3 * *`, FND-05 verified via Supabase Postgres log. |
 
 ## Accumulated Context
 
@@ -144,6 +145,22 @@ Plan: 5 of 5
 | Pattern: Always import usePathname from @/lib/i18n/routing (next-intl wrapper), never from next/navigation | Pattern (new) | next-intl strips locale prefix only in its own wrapper | Documented in BottomTabBar comments + this STATE.md. |
 | USER-SETUP omissions: Anonymous Sign-Ins toggle + NODE_EXTRA_CA_CERTS env-var | Rule 3 (docs) | Caught at human-verify | Both added to 01-USER-SETUP.md. .dev/ added to .gitignore for corp CA bundle. |
 
+### Phase 1 Execution Decisions (2026-05-24, Plan 01-05 deviations)
+
+| Decision | Rule | Source | Notes |
+|----------|------|--------|-------|
+| Lockfile URLs sed-rewritten JFrog → npmjs (package-lock.json) | Rule 3 (blocking) | ZScaler corp policy transparently rewrites registry.npmjs.org → jfrogrepo24.jfrog.io/package-reroute; Vercel build runners 403 on JFrog URLs | Tarball SHA-512 integrity is content-addressed, so the same bytes verify either way. MUST be re-applied after every local `npm install`. Commit `f1a933a`. |
+| src/types/supabase.ts un-gitignored and committed | Rule 3 (blocking) | 01-04's src/lib/auth/session.ts imports `Database` from this file; Vercel can't regenerate without Supabase CLI in build env | Trade-off accepted: drift risk vs. zero-setup Vercel builds. Workflow: `npm run db:types && git add && git commit` after every schema change. Commit `1fec6f3`. |
+| Tailwind v4 syntax `[--zc-X]` → `[var(--zc-X)]` across 15 files | Rule 3 (blocking) | v4 dropped bare-CSS-var shorthand; 45 className refs compiled to invalid CSS (whole UI black/transparent in prod). zekez caught it on 01-04 mobile preview deploy | Mechanical sed. Formally attributed to 01-04 but materialized during 01-05 deploy. Commit `b79bdc5`. Lesson: visually verify Tailwind v4 token references on Vercel preview, not just localhost dev. |
+| Git author rewrite for Vercel author-check (all 38 phase-1 commits) | Rule 3 (blocking) | Vercel Hobby blocks deploys when commit author isn't on project team; `Zeke <zekez@jfrog.com>` didn't match linked GitHub identity | `git rebase --root --exec "git commit --amend --reset-author --no-edit"` with `user.email=10100761+zarurc@users.noreply.github.com`. Force-pushed. Stale SHAs in prior SUMMARYs accepted as forensic loss (4dc3a18, d90a203, etc. no longer findable in `git log`). |
+| CRON_SECRET configured = heartbeat PROTECTED (not public) | Posture decision (2026-05-24, deployer choice) | CONTEXT.md D-18 specified public; production chose protected | Route auth code is opt-in (only activates if env var present), so works either way. Stricter posture chosen for production. Verified: curl without Bearer → 401; curl with Bearer → 200 + real DB roundtrip at 688ms. |
+| NODE_EXTRA_CA_CERTS is local-dev-only | Note (env-var hygiene) | JFrog corporate TLS workaround | Documented in README + 01-USER-SETUP.md. Vercel env explicitly does NOT have this — Vercel build runners hit npmjs.org directly via the rewritten lockfile. |
+| GitHub repo zarurc/zarur-cup made private; ghp_* PAT used to push CI workflow | Note (operational) | `.github/workflows/lint.yml` push needed `workflow` scope on PAT | Token revoked after deploy completed. No secrets in repo (verified: only .env.example with placeholders tracked). |
+| Pattern: ZScaler corporate-proxy npm lockfile rewrite is reusable | Pattern (new) | Reapply via sed after every `npm install` | Documented in 01-05 SUMMARY Pattern 20. |
+| Pattern: Anti-pause heartbeat = real SELECT, verified via Supabase Postgres logs (NOT Vercel function logs) | Pattern (new) | FND-05 ground truth | Documented in 01-05 SUMMARY Pattern 18. |
+| Pattern: Opt-in CRON_SECRET via env-var presence check | Pattern (new) | Operator can toggle security without redeploying logic | Documented in 01-05 SUMMARY Pattern 19. |
+| W6 watchpoint: Vercel Hobby allows 1 cron — slot consumed by /api/heartbeat | Note (forward) | From PLAN frontmatter | Any Phase 2+ cron need must consolidate into heartbeat as conditional branches OR upgrade to Vercel Pro. Flag for Phase 2 planner. |
+
 ### Todos (deferred to phase planning)
 
 (None yet — all surfaced during roadmapping have been folded into phase Success Criteria or Open Questions above.)
@@ -161,11 +178,12 @@ Plan: 5 of 5
 - **Plan 01-02 shipped 2026-05-23** — 4 migrations on live project tjivukpxuhbrbshidbfv: 9 tables (all RLS-enabled), lock-and-reveal policies for predictions/prop_answers, B1 column grant on profiles (UPDATE = display_name + locale only), anon SELECT on all 9 tables so RLS is the visible lock. `bash scripts/verify-rls-no-leak.sh` confirms ALL 9 TABLES PASS (anon=[]). 2 deviations captured.
 - **Plan 01-03 shipped 2026-05-23** — WC 2026 seed live on tjivukpxuhbrbshidbfv: 1 tournament + 48 teams (bilingual, Dec 2025 Final Draw) + 104 fixtures (UTC kickoffs + symbolic KO placeholders) + 32 bracket_slots (R32->CHAMPION, FIFA non-sequential R32->R16 wiring) + 7 prop_questions. Live counts verified via SELECT count(*). DATA-04 gate cleared: zekez approved all 48 Hebrew team names + group assignments 2026-05-23. 6 deviations captured (filename 0003->0005, full reseed via 0006 after pre-draw projection caught, bracket parent wiring corrected, tournament.starts_at 20:00->19:00 UTC, build-script --target/--reseed flags, canonical reseed pattern). CSVs (`data/wc2026/*.csv`) are source of truth; SQL is generated by `scripts/build-seed-sql.ts`.
 - **Plan 01-04 shipped 2026-05-23** — Phase-1 user-facing surface: invite-code-gated `signInAnonymously()` join flow with display-name rebind (family-trust), bilingual `/he//en/` chrome (header + locale-toggle pill + bottom tab bar), session-aware redirects, server-side admin gate at unlocalized `/admin/`, full he/en message bundles. 8 commits (3 original execute + 5 fix-up after human-verify checkpoint). Fix-up resolved: (1) locale toggle race lost DB UPDATE on every click -- converted to form-action + redirect (Rule 1 bug); (2) no logout path + cookie-clear trapped users out of own account -- added Logout button + family-trust rebind on display_name conflict (Rule 2 critical UX); (3) BottomTabBar defensive hardening for null pathname + exact-or-prefix-slash match (Rule 1); (4) USER-SETUP omissions for Anonymous Sign-Ins toggle + NODE_EXTRA_CA_CERTS env-var (Rule 3 docs). Patterns 14-17 added.
-- **Next: Plan 01-05 (heartbeat + Vercel deploy + Cron + CI)**. After 01-05: Phase 1 complete; Phase 2 planning begins.
-- Wave structure: W1 (Plan 01 bootstrap ✓) → W2 (Plan 02 schema+RLS+db push ✓) → W3 (Plans 03+04 in parallel — seed+Hebrew review by zekez, auth+UI shell) → W4 (Plan 05 heartbeat+deploy+CI).
-- Human checkpoints in Phase 1 (autonomous:false tasks): (a) Supabase project provisioning, (b) schema db push, (c) seed db push + Hebrew team-name review (zekez), (d) join/session/admin UX verify, (e) Vercel deploy + Cron verification.
-- After Phase 1 lands, Phase 2 has 10 working days to June 11. Plan-phase for Phase 2 should prioritize the critical path (League predictions → admin result → scoring view → leaderboard) over polish.
+- **Plan 01-05 shipped 2026-05-24 — PHASE 1 COMPLETE** — Production deploy at https://zarur-cup.vercel.app on Vercel Hobby linked to Supabase tjivukpxuhbrbshidbfv. Heartbeat live at /api/heartbeat (protected with CRON_SECRET, opt-in guard in route code so works either way); Vercel Cron `0 12 */3 * *` registered, manual trigger produced visible SELECT on fixtures in Supabase Postgres logs at 688ms (FND-05 ground-truth verified). FND-03 enforcement: .husky/pre-commit + .github/workflows/lint.yml both run lint:rtl + typecheck and block on failure. README documents env vars + scripts + FND-03 do-not-use rules. 4 Rule-3 blocking deviations: (1) package-lock.json URLs sed-rewritten JFrog → npmjs for Vercel build runner reachability; (2) src/types/supabase.ts un-gitignored and committed since Vercel can't regen; (3) Tailwind v4 syntax `[--zc-X]` → `[var(--zc-X)]` across 15 files (45 className refs); (4) git author rewrite of all 38 phase-1 commits to GitHub noreply email for Vercel Hobby author-check (force-pushed; stale SHAs in prior SUMMARYs accepted as forensic loss). Patterns 18-22 added. zekez approved 2026-05-24.
+- **Next: Phase 2 planning (`/gsd:plan-phase 2`).** Phase 2 has 18 days to June 11 hard deadline. Critical path: League predictions UI → admin result entry → scoring view → unified leaderboard → props → QA gates.
+- **W6 watchpoint for Phase 2:** Vercel Hobby allows exactly 1 cron job; current slot consumed by /api/heartbeat. Any Phase 2 cron need (leaderboard recompute, integrity sweep, score notification) must consolidate into heartbeat route as conditional branches OR upgrade to Vercel Pro.
+- Wave structure of Phase 1 (now historical): W1 (Plan 01 bootstrap ✓) → W2 (Plan 02 schema+RLS+db push ✓) → W3 (Plans 03+04 in parallel — seed+Hebrew review by zekez, auth+UI shell ✓) → W4 (Plan 05 heartbeat+deploy+CI ✓).
 - Bracket Mode deferral to Phase 3 stays in ROADMAP.md; do not silently merge it into Phase 2 during planning.
+- **Operational notes for any contributor:** (a) before any new commit, `git config user.email 10100761+zarurc@users.noreply.github.com`; (b) after every local `npm install`, re-apply lockfile sed `s|https://jfrogrepo24.jfrog.io/artifactory/api/npm/npm-virtual/|https://registry.npmjs.org/|g` then commit; (c) after every schema change, `npm run db:types && git add src/types/supabase.ts && git commit`.
 
 ## File Reference
 

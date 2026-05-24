@@ -13,10 +13,10 @@ Requirements for initial release. Each maps to a roadmap phase below.
 
 - [x] **FND-01**: Next.js 15 (App Router) project deployable on Vercel from `main` branch
 - [x] **FND-02**: Tailwind CSS v4 configured; `<html dir>` is set server-side per locale so there is no FOUC/hydration flash
-- [ ] **FND-03**: CI lint rule (or grep-based pre-commit) rejects physical-direction Tailwind utilities (`pl-/pr-/ml-/mr-/text-left/text-right/border-l-/border-r-/left-/right-`); only logical equivalents (`ps-`, `pe-`, `ms-`, `me-`, `text-start`, `text-end`, `start-`, `end-`) are allowed
+- [x] **FND-03**: CI lint rule (or grep-based pre-commit) rejects physical-direction Tailwind utilities (`pl-/pr-/ml-/mr-/text-left/text-right/border-l-/border-r-/left-/right-`); only logical equivalents (`ps-`, `pe-`, `ms-`, `me-`, `text-start`, `text-end`, `start-`, `end-`) are allowed — *Plan 01-05: .husky/pre-commit + .github/workflows/lint.yml both run `npm run lint:rtl` and block on physical-direction utilities; verified locally and in CI*
 - [x] **FND-04**: Supabase project provisioned with `@supabase/ssr` integration and generated TypeScript types
-- [ ] **FND-05**: Vercel Cron triggers `/api/heartbeat` every 3 days; heartbeat performs a real DB query (e.g. `SELECT 1 FROM fixtures LIMIT 1`) so Supabase free-tier auto-pause never fires before tournament end
-- [ ] **FND-06**: Mobile-responsive shell (header, footer, layout primitives) verified on a real phone in both Hebrew (RTL) and English (LTR)
+- [x] **FND-05**: Vercel Cron triggers `/api/heartbeat` every 3 days; heartbeat performs a real DB query (e.g. `SELECT 1 FROM fixtures LIMIT 1`) so Supabase free-tier auto-pause never fires before tournament end — *Plan 01-05: deployed at https://zarur-cup.vercel.app/api/heartbeat; vercel.json declares cron `0 12 */3 * *`; manual dashboard trigger 2026-05-24 produced visible SELECT on fixtures in Supabase Postgres logs at 688ms; CRON_SECRET protects external pingers*
+- [x] **FND-06**: Mobile-responsive shell (header, footer, layout primitives) verified on a real phone in both Hebrew (RTL) and English (LTR) — *Plan 01-05 Task 4: zekez verified production URL https://zarur-cup.vercel.app on real phone 2026-05-24 — bilingual chrome, locale toggle, bottom-tab-bar, safe-area inset, 44px tap targets, no FOUC; approved end-to-end*
 
 ### Internationalization & Localization
 
@@ -167,10 +167,10 @@ Populated by `gsd-roadmapper` on 2026-05-23. 100% v1 coverage (66 / 66 mapped).
 |-------------|-------|--------|
 | FND-01 | Phase 1 | Complete |
 | FND-02 | Phase 1 | Complete |
-| FND-03 | Phase 1 | Pending |
+| FND-03 | Phase 1 | Complete (Plan 01-05: husky + GH Actions both gate lint:rtl) |
 | FND-04 | Phase 1 | Complete |
-| FND-05 | Phase 1 | Pending |
-| FND-06 | Phase 1 | Pending |
+| FND-05 | Phase 1 | Complete (Plan 01-05: cron `0 12 */3 * *` on /api/heartbeat; Supabase Postgres log verified) |
+| FND-06 | Phase 1 | Complete (Plan 01-05 Task 4: zekez mobile QA approved 2026-05-24) |
 | I18N-01 | Phase 1 | Complete |
 | I18N-02 | Phase 1 | Complete |
 | I18N-03 | Phase 1 | Complete |
@@ -247,4 +247,4 @@ Populated by `gsd-roadmapper` on 2026-05-23. 100% v1 coverage (66 / 66 mapped).
 
 ---
 *Requirements defined: 2026-05-23*
-*Last updated: 2026-05-23 — traceability populated by gsd-roadmapper*
+*Last updated: 2026-05-24 — Phase 1 complete (all 26 Phase 1 requirements addressed; FND-03 + FND-05 + FND-06 marked complete by Plan 01-05)*
