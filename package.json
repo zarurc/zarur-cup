@@ -12,7 +12,8 @@
     "db:reset": "supabase db reset --linked",
     "db:push": "supabase db push --linked",
     "db:link": "supabase link --project-ref \"$SUPABASE_PROJECT_REF\"",
-    "verify:rls": "bash scripts/verify-rls-no-leak.sh"
+    "verify:rls": "bash scripts/verify-rls-no-leak.sh",
+    "seed:build": "tsx scripts/build-seed-sql.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
@@ -36,6 +37,7 @@
     "eslint-config-next": "15.5.18",
     "supabase": "^2.0.0",
     "tailwindcss": "^4.3.0",
+    "tsx": "^4.22.0",
     "typescript": "^5"
   }
 }
