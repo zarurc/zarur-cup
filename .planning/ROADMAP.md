@@ -55,7 +55,7 @@ Rationale:
 
 **Plans**: 5 plans across 4 waves
 
-- [ ] 01-01-PLAN.md — Wave 1: Bootstrap (Next.js 15.5 + Tailwind v4 + next-intl + Supabase clients + design tokens)
+- [x] 01-01-PLAN.md — Wave 1: Bootstrap (Next.js 15.5 + Tailwind v4 + next-intl + Supabase clients + design tokens)
 - [ ] 01-02-PLAN.md — Wave 2: Schema migrations 0001 + 0002 (tables + RLS lock-and-reveal policies) + [BLOCKING] db push + types regen + VIS-06 verification script
 - [ ] 01-03-PLAN.md — Wave 3: WC 2026 seed migration 0003 (48 teams + 104 fixtures + bracket slot graph + props) with [DATA-04 GATE] Hebrew native-speaker review
 - [ ] 01-04-PLAN.md — Wave 3 (parallel with 03): Auth flow (invite-code Server Action + signInAnonymously + profile insert) + bilingual UI shell (header / locale pill / bottom tab bar / placeholder pages) + admin gate at unlocalized /admin/*
@@ -115,7 +115,7 @@ Rationale:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation, Schema, Auth & RLS | 0/TBD | Not started | - |
+| 1. Foundation, Schema, Auth & RLS | 1/5 | In Progress | - |
 | 2. June 11 MVP (League + Props + Scoring + Leaderboard + Admin + Ship Gate) | 0/TBD | Not started | - |
 | 3. Bracket Mode (Pre-Knockout Ship) | 0/TBD | Not started | - |
 

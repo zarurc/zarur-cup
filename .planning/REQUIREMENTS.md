@@ -11,19 +11,19 @@ Requirements for initial release. Each maps to a roadmap phase below.
 
 ### Foundation & Shell
 
-- [ ] **FND-01**: Next.js 15 (App Router) project deployable on Vercel from `main` branch
-- [ ] **FND-02**: Tailwind CSS v4 configured; `<html dir>` is set server-side per locale so there is no FOUC/hydration flash
+- [x] **FND-01**: Next.js 15 (App Router) project deployable on Vercel from `main` branch
+- [x] **FND-02**: Tailwind CSS v4 configured; `<html dir>` is set server-side per locale so there is no FOUC/hydration flash
 - [ ] **FND-03**: CI lint rule (or grep-based pre-commit) rejects physical-direction Tailwind utilities (`pl-/pr-/ml-/mr-/text-left/text-right/border-l-/border-r-/left-/right-`); only logical equivalents (`ps-`, `pe-`, `ms-`, `me-`, `text-start`, `text-end`, `start-`, `end-`) are allowed
-- [ ] **FND-04**: Supabase project provisioned with `@supabase/ssr` integration and generated TypeScript types
+- [x] **FND-04**: Supabase project provisioned with `@supabase/ssr` integration and generated TypeScript types
 - [ ] **FND-05**: Vercel Cron triggers `/api/heartbeat` every 3 days; heartbeat performs a real DB query (e.g. `SELECT 1 FROM fixtures LIMIT 1`) so Supabase free-tier auto-pause never fires before tournament end
 - [ ] **FND-06**: Mobile-responsive shell (header, footer, layout primitives) verified on a real phone in both Hebrew (RTL) and English (LTR)
 
 ### Internationalization & Localization
 
-- [ ] **I18N-01**: User can browse the app at `/he/...` (RTL, Hebrew copy) and `/en/...` (LTR, English copy)
-- [ ] **I18N-02**: First visit auto-selects locale based on `Accept-Language` header; falls back to Hebrew if no match
+- [x] **I18N-01**: User can browse the app at `/he/...` (RTL, Hebrew copy) and `/en/...` (LTR, English copy)
+- [x] **I18N-02**: First visit auto-selects locale based on `Accept-Language` header; falls back to Hebrew if no match
 - [ ] **I18N-03**: User can toggle between Hebrew and English from any page; selection persists across sessions (cookie + `profiles.locale` when signed in)
-- [ ] **I18N-04**: All UI strings live in `messages/{en,he}.json` via next-intl v4 with ICU plural rules
+- [x] **I18N-04**: All UI strings live in `messages/{en,he}.json` via next-intl v4 with ICU plural rules
 - [ ] **I18N-05**: Team names, prop questions, and other domain content render in the active locale (`_en` / `_he` DB columns)
 - [ ] **I18N-06**: Mixed-direction strings like scores ("2 - 1") render correctly in both locales (`<bdi>` or `<span dir="ltr">` wrapping where needed)
 - [ ] **I18N-07**: Kickoff times render in the viewer's local timezone using native `Intl.DateTimeFormat` with the correct locale-specific date/time format
@@ -165,16 +165,16 @@ Populated by `gsd-roadmapper` on 2026-05-23. 100% v1 coverage (66 / 66 mapped).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | Phase 1 | Pending |
-| FND-02 | Phase 1 | Pending |
+| FND-01 | Phase 1 | Complete |
+| FND-02 | Phase 1 | Complete |
 | FND-03 | Phase 1 | Pending |
-| FND-04 | Phase 1 | Pending |
+| FND-04 | Phase 1 | Complete |
 | FND-05 | Phase 1 | Pending |
 | FND-06 | Phase 1 | Pending |
-| I18N-01 | Phase 1 | Pending |
-| I18N-02 | Phase 1 | Pending |
+| I18N-01 | Phase 1 | Complete |
+| I18N-02 | Phase 1 | Complete |
 | I18N-03 | Phase 1 | Pending |
-| I18N-04 | Phase 1 | Pending |
+| I18N-04 | Phase 1 | Complete |
 | I18N-05 | Phase 1 | Pending |
 | I18N-06 | Phase 1 | Pending |
 | I18N-07 | Phase 1 | Pending |
