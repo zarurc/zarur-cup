@@ -161,17 +161,90 @@ Explicitly excluded for v1. Documented so they do not get re-added by accident.
 
 ## Traceability
 
-Empty initially. Populated by `gsd-roadmapper` during roadmap creation.
+Populated by `gsd-roadmapper` on 2026-05-23. 100% v1 coverage (66 / 66 mapped).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (to be populated by roadmap) | | |
+| FND-01 | Phase 1 | Pending |
+| FND-02 | Phase 1 | Pending |
+| FND-03 | Phase 1 | Pending |
+| FND-04 | Phase 1 | Pending |
+| FND-05 | Phase 1 | Pending |
+| FND-06 | Phase 1 | Pending |
+| I18N-01 | Phase 1 | Pending |
+| I18N-02 | Phase 1 | Pending |
+| I18N-03 | Phase 1 | Pending |
+| I18N-04 | Phase 1 | Pending |
+| I18N-05 | Phase 1 | Pending |
+| I18N-06 | Phase 1 | Pending |
+| I18N-07 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Pending |
+| AUTH-02 | Phase 1 | Pending |
+| AUTH-03 | Phase 1 | Pending |
+| AUTH-04 | Phase 1 | Pending |
+| AUTH-05 | Phase 1 | Pending |
+| AUTH-06 | Phase 1 | Pending |
+| AUTH-07 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Pending |
+| DATA-05 | Phase 1 | Pending |
+| VIS-06 | Phase 1 | Pending |
+| LGE-01 | Phase 2 | Pending |
+| LGE-02 | Phase 2 | Pending |
+| LGE-03 | Phase 2 | Pending |
+| LGE-04 | Phase 2 | Pending |
+| LGE-05 | Phase 2 | Pending |
+| LGE-06 | Phase 2 | Pending |
+| PRP-01 | Phase 2 | Pending |
+| PRP-02 | Phase 2 | Pending |
+| PRP-03 | Phase 2 | Pending |
+| PRP-04 | Phase 2 | Pending |
+| VIS-01 | Phase 2 | Pending |
+| VIS-02 | Phase 2 | Pending |
+| VIS-04 | Phase 2 | Pending |
+| VIS-05 | Phase 2 | Pending |
+| ADM-01 | Phase 2 | Pending |
+| ADM-02 | Phase 2 | Pending |
+| ADM-03 | Phase 2 | Pending |
+| ADM-04 | Phase 2 | Pending |
+| ADM-05 | Phase 2 | Pending |
+| ADM-06 | Phase 2 | Pending |
+| SCR-01 | Phase 2 | Pending |
+| SCR-02 | Phase 2 | Pending |
+| SCR-04 | Phase 2 | Pending |
+| SCR-05 | Phase 2 | Pending |
+| SCR-06 | Phase 2 | Pending |
+| SCR-07 | Phase 2 | Pending |
+| LB-01 | Phase 2 | Pending |
+| LB-02 | Phase 2 | Pending |
+| LB-03 | Phase 2 | Pending |
+| LB-04 | Phase 2 | Pending |
+| QA-01 | Phase 2 | Pending |
+| QA-02 | Phase 2 | Pending |
+| QA-03 | Phase 2 | Pending |
+| QA-04 | Phase 2 | Pending |
+| BRK-01 | Phase 3 | Pending |
+| BRK-02 | Phase 3 | Pending |
+| BRK-03 | Phase 3 | Pending |
+| BRK-04 | Phase 3 | Pending |
+| VIS-03 | Phase 3 | Pending |
+| SCR-03 | Phase 3 | Pending |
 
 **Coverage:**
-- v1 requirements: 67 total
-- Mapped to phases: 0
-- Unmapped: 67 ⚠️ (will be resolved by roadmapper)
+- v1 requirements: 66 total (note: REQUIREMENTS.md previously stated "67 total" — recount audit during roadmap mapping reconciled to 66 distinct REQ-IDs)
+- Mapped to phases: 66
+- Unmapped: 0 ✓
+
+### Coverage by Phase
+
+| Phase | Count | Categories |
+|-------|-------|------------|
+| Phase 1: Foundation, Schema, Auth & RLS | 26 | FND × 6, I18N × 7, AUTH × 7, DATA × 5, VIS-06 |
+| Phase 2: June 11 MVP | 34 | LGE × 6, PRP × 4, VIS (01/02/04/05) × 4, ADM × 6, SCR (01/02/04/05/06/07) × 6, LB × 4, QA × 4 |
+| Phase 3: Bracket Mode | 6 | BRK × 4, VIS-03, SCR-03 |
 
 ---
 *Requirements defined: 2026-05-23*
-*Last updated: 2026-05-23 after initial definition*
+*Last updated: 2026-05-23 — traceability populated by gsd-roadmapper*
