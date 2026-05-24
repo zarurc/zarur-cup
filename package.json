@@ -11,7 +11,8 @@
     "db:types": "supabase gen types typescript --linked > src/types/supabase.ts",
     "db:reset": "supabase db reset --linked",
     "db:push": "supabase db push --linked",
-    "db:link": "supabase link --project-ref \"$SUPABASE_PROJECT_REF\""
+    "db:link": "supabase link --project-ref \"$SUPABASE_PROJECT_REF\"",
+    "verify:rls": "bash scripts/verify-rls-no-leak.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
