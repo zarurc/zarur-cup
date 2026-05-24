@@ -1,0 +1,11 @@
+code,prompt_en,prompt_he,answer_type,points
+# WC 2026 — Tournament-level prop questions (DATA-05). Bilingual prompts.
+# answer_type must match schema CHECK: single_team | single_player | text
+# points = positive integer reward awarded when prop is settled correctly by admin (Phase 2).
+WINNER,Who will win the World Cup?,מי תזכה בגביע העולם?,single_team,10
+RUNNER_UP,Who will be the runner-up?,מי תהיה הסגנית הראשונה?,single_team,5
+TOP_SCORER,Who will be the tournament top scorer?,מי יהיה הכובש המוביל בטורניר?,single_player,10
+GOLDEN_BOOT,Who will win the Golden Boot (Top Scorer trophy)?,מי יזכה בנעל הזהב?,single_player,5
+GOLDEN_BALL,Who will win the Golden Ball (Best Player)?,מי יזכה בכדור הזהב (השחקן הטוב ביותר)?,single_player,5
+BIGGEST_UPSET,Which team will provide the biggest upset?,איזו נבחרת תספק את ההפתעה הגדולה ביותר?,single_team,3
+DARK_HORSE_SF,Which non-favourite will reach the semi-finals?,איזו נבחרת לא-מועדפת תגיע לחצי הגמר?,single_team,4

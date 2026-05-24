@@ -1,0 +1,44 @@
+slot_code,stage,parent_slot_code,fixture_external_match_no
+# WC 2026 — Bracket slot graph (R32 -> R16 -> QF -> SF -> F -> CHAMPION). 32 slots total.
+# parent_slot_code is empty only for CHAMPION (terminal node).
+# fixture_external_match_no is empty for CHAMPION (no match decides the champion — it's the winner of F).
+# Wiring (matches that feed into the next slot): see comments below.
+#
+# === ROUND OF 32 (16 slots, fixtures 73-88) — each feeds into an R16 slot ===
+R32_M1,round_of_32,R16_M1,73
+R32_M2,round_of_32,R16_M1,74
+R32_M3,round_of_32,R16_M2,75
+R32_M4,round_of_32,R16_M2,76
+R32_M5,round_of_32,R16_M3,77
+R32_M6,round_of_32,R16_M3,78
+R32_M7,round_of_32,R16_M4,79
+R32_M8,round_of_32,R16_M4,80
+R32_M9,round_of_32,R16_M5,81
+R32_M10,round_of_32,R16_M5,82
+R32_M11,round_of_32,R16_M6,83
+R32_M12,round_of_32,R16_M6,84
+R32_M13,round_of_32,R16_M7,85
+R32_M14,round_of_32,R16_M7,86
+R32_M15,round_of_32,R16_M8,87
+R32_M16,round_of_32,R16_M8,88
+# === ROUND OF 16 (8 slots, fixtures 89-96) — each feeds into a QF slot ===
+R16_M1,round_of_16,QF_M1,89
+R16_M2,round_of_16,QF_M1,90
+R16_M3,round_of_16,QF_M2,91
+R16_M4,round_of_16,QF_M2,92
+R16_M5,round_of_16,QF_M3,93
+R16_M6,round_of_16,QF_M3,94
+R16_M7,round_of_16,QF_M4,95
+R16_M8,round_of_16,QF_M4,96
+# === QUARTER-FINALS (4 slots, fixtures 97-100) — each feeds into a SF slot ===
+QF_M1,quarter_final,SF_M1,97
+QF_M2,quarter_final,SF_M1,98
+QF_M3,quarter_final,SF_M2,99
+QF_M4,quarter_final,SF_M2,100
+# === SEMI-FINALS (2 slots, fixtures 101-102) — each feeds into the Final ===
+SF_M1,semi_final,F,101
+SF_M2,semi_final,F,102
+# === FINAL (1 slot, fixture 104) — winner feeds into CHAMPION ===
+F,final,CHAMPION,104
+# === CHAMPION (1 slot, no fixture, no parent) ===
+CHAMPION,champion,,
