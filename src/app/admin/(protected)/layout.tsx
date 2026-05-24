@@ -19,11 +19,11 @@ export default async function AdminProtectedLayout({
   await requireAdmin();
   return (
     <>
-      <header className="flex items-center justify-between ps-4 pe-4 bs-14 border-b-1 border-[--zc-border] bg-[--zc-card]">
-        <span className="text-xl font-bold text-[--zc-primary]">Admin</span>
+      <header className="flex items-center justify-between ps-4 pe-4 bs-14 border-b-1 border-[var(--zc-border)] bg-[var(--zc-card)]">
+        <span className="text-xl font-bold text-[var(--zc-primary)]">Admin</span>
         <Link
           href={'/' as Route}
-          className="text-sm text-[--zc-primary] underline"
+          className="text-sm text-[var(--zc-primary)] underline"
         >
           ← Back to app
         </Link>

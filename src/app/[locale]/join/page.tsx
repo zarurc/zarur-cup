@@ -28,21 +28,21 @@ export default async function JoinPage({ params }: Props) {
   return (
     <section className="mi-auto max-is-md ps-4 pe-4 md:ps-6 md:pe-6 pbs-12 pbe-12 md:pbs-16 md:pbe-16">
       <div className="text-center md:text-start mbe-8">
-        <h1 className="text-3xl font-bold text-[--zc-primary]">
+        <h1 className="text-3xl font-bold text-[var(--zc-primary)]">
           {wordmarkT('primary')}
         </h1>
         <p
-          className="text-sm text-[--zc-muted-foreground]"
+          className="text-sm text-[var(--zc-muted-foreground)]"
           lang={otherLang}
         >
           {wordmarkT('secondary')}
         </p>
       </div>
-      <div className="bg-[--zc-card] border border-[--zc-border] rounded-2xl ps-6 pe-6 pbs-6 pbe-6">
-        <h2 className="text-3xl font-bold text-[--zc-primary]">
+      <div className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl ps-6 pe-6 pbs-6 pbe-6">
+        <h2 className="text-3xl font-bold text-[var(--zc-primary)]">
           {t('pageHeading')}
         </h2>
-        <p className="text-base text-[--zc-muted-foreground] mbs-2">
+        <p className="text-base text-[var(--zc-muted-foreground)] mbs-2">
           {t('subheading')}
         </p>
         <div className="mbs-6">

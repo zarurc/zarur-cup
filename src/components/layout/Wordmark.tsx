@@ -13,7 +13,7 @@ export function Wordmark() {
   return (
     <Link
       href="/"
-      className="text-xl font-bold text-[--zc-primary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--zc-ring] focus-visible:ring-offset-2 focus-visible:ring-offset-[--zc-card] rounded"
+      className="text-xl font-bold text-[var(--zc-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)] rounded"
     >
       {t('primary')}
     </Link>

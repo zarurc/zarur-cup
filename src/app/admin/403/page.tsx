@@ -11,14 +11,14 @@ import type { Route } from 'next';
  */
 export default function Admin403() {
   return (
-    <section className="mi-auto max-is-md mbs-12 ps-6 pe-6 pbs-8 pbe-8 bg-[--zc-card] border border-[--zc-border] rounded-2xl text-center">
-      <h1 className="text-3xl font-bold text-[--zc-destructive]">Admin only</h1>
-      <p className="text-base text-[--zc-muted-foreground] mbs-2">
+    <section className="mi-auto max-is-md mbs-12 ps-6 pe-6 pbs-8 pbe-8 bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl text-center">
+      <h1 className="text-3xl font-bold text-[var(--zc-destructive)]">Admin only</h1>
+      <p className="text-base text-[var(--zc-muted-foreground)] mbs-2">
         This area is reserved for the tournament admin.
       </p>
       <Link
         href={'/' as Route}
-        className="text-sm text-[--zc-primary] underline mbs-4 inline-block"
+        className="text-sm text-[var(--zc-primary)] underline mbs-4 inline-block"
       >
         ← Back to app
       </Link>

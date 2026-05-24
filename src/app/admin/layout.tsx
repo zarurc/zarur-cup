@@ -22,7 +22,7 @@ export default function AdminOuterLayout({
 }) {
   return (
     <html lang="en" dir="ltr" className={inter.variable}>
-      <body className="font-inter min-bs-dvh bg-[--zc-surface] text-[--zc-surface-foreground]">
+      <body className="font-inter min-bs-dvh bg-[var(--zc-surface)] text-[var(--zc-surface-foreground)]">
         {children}
       </body>
     </html>

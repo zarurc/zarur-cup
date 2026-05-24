@@ -43,7 +43,7 @@ export function LocaleTogglePill() {
       <button
         type="submit"
         aria-label={t('ariaLabel')}
-        className="bs-8 inline-flex items-center justify-center rounded-full border border-[--zc-border] bg-transparent ps-3 pe-3 text-sm font-bold text-[--zc-primary] hover:bg-[--zc-muted] hover:border-[--zc-accent] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--zc-ring] focus-visible:ring-offset-2 focus-visible:ring-offset-[--zc-card]"
+        className="bs-8 inline-flex items-center justify-center rounded-full border border-[var(--zc-border)] bg-transparent ps-3 pe-3 text-sm font-bold text-[var(--zc-primary)] hover:bg-[var(--zc-muted)] hover:border-[var(--zc-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)]"
       >
         {t('switchTo')}
       </button>

@@ -30,21 +30,21 @@ export default async function MePage({ params }: Props) {
   ).format(new Date(member.joined_at));
 
   return (
-    <section className="mi-auto max-is-md mbs-12 ps-6 pe-6 pbs-8 pbe-8 bg-[--zc-card] border border-[--zc-border] rounded-2xl">
-      <h2 className="text-xl font-bold text-[--zc-primary]">
+    <section className="mi-auto max-is-md mbs-12 ps-6 pe-6 pbs-8 pbe-8 bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl">
+      <h2 className="text-xl font-bold text-[var(--zc-primary)]">
         {member.display_name}
       </h2>
-      <p className="text-sm text-[--zc-muted-foreground] mbs-2">
+      <p className="text-sm text-[var(--zc-muted-foreground)] mbs-2">
         {t('joinedAt', { joined_at_local: joinedAtLocal })}
       </p>
-      <p className="text-sm text-[--zc-muted-foreground] mbs-1">
+      <p className="text-sm text-[var(--zc-muted-foreground)] mbs-1">
         {t('localeLabel')}: {member.locale === 'he' ? 'עברית' : 'English'}
       </p>
       <form action={signOutCurrent} className="mbs-6">
         <button
           type="submit"
           aria-label={t('logoutAria')}
-          className="bs-12 is-full bg-transparent border border-[--zc-border] text-[--zc-primary] rounded-xl font-bold text-base hover:bg-[--zc-muted] hover:border-[--zc-accent] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--zc-ring] focus-visible:ring-offset-2 focus-visible:ring-offset-[--zc-card]"
+          className="bs-12 is-full bg-transparent border border-[var(--zc-border)] text-[var(--zc-primary)] rounded-xl font-bold text-base hover:bg-[var(--zc-muted)] hover:border-[var(--zc-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)]"
         >
           {t('logout')}
         </button>

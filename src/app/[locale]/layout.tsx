@@ -58,7 +58,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       className={`${heebo.variable} ${inter.variable}`}
     >
       <body
-        className={`${bodyFont} min-bs-dvh bg-[--zc-surface] text-[--zc-surface-foreground]`}
+        className={`${bodyFont} min-bs-dvh bg-[var(--zc-surface)] text-[var(--zc-surface-foreground)]`}
       >
         <NextIntlClientProvider messages={messages} locale={locale}>
           <Header />

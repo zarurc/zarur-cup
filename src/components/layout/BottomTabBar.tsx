@@ -49,7 +49,7 @@ export function BottomTabBar() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-be-0 inset-i-0 z-40 bg-[--zc-card] border-t-1 border-[--zc-border] pbs-2 ps-2 pe-2"
+      className="fixed inset-be-0 inset-i-0 z-40 bg-[var(--zc-card)] border-t-1 border-[var(--zc-border)] pbs-2 ps-2 pe-2"
       style={{ paddingBlockEnd: 'calc(8px + env(safe-area-inset-bottom))' }}
     >
       <ul className="flex flex-row items-stretch justify-around">
@@ -60,19 +60,19 @@ export function BottomTabBar() {
               <Link
                 href={tab.href}
                 aria-current={active ? 'page' : undefined}
-                className="flex flex-col items-center justify-center bs-11 is-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--zc-ring] focus-visible:ring-offset-2 focus-visible:ring-offset-[--zc-card]"
+                className="flex flex-col items-center justify-center bs-11 is-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)]"
               >
                 {active && (
                   <span
-                    className="bs-1 is-8 bg-[--zc-accent] mbe-1 rounded"
+                    className="bs-1 is-8 bg-[var(--zc-accent)] mbe-1 rounded"
                     aria-hidden
                   />
                 )}
                 <span
                   className={
                     active
-                      ? 'text-sm font-bold text-[--zc-primary]'
-                      : 'text-sm font-normal text-[--zc-muted-foreground]'
+                      ? 'text-sm font-bold text-[var(--zc-primary)]'
+                      : 'text-sm font-normal text-[var(--zc-muted-foreground)]'
                   }
                 >
                   {t(tab.key)}

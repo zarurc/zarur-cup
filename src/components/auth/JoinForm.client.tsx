@@ -14,7 +14,7 @@ function SubmitButton() {
       type="submit"
       disabled={pending}
       aria-busy={pending}
-      className="bs-12 is-full bg-[--zc-primary] text-[--zc-primary-foreground] rounded-xl font-bold text-base hover:bg-[#13325a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--zc-ring] focus-visible:ring-offset-2 focus-visible:ring-offset-[--zc-card] disabled:opacity-80"
+      className="bs-12 is-full bg-[var(--zc-primary)] text-[var(--zc-primary-foreground)] rounded-xl font-bold text-base hover:bg-[#13325a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)] disabled:opacity-80"
     >
       {pending ? t('submitLoading') : t('submitIdle')}
     </button>
@@ -89,7 +89,7 @@ export function JoinForm() {
       />
       {formError && (
         <p
-          className="text-sm text-[--zc-destructive]"
+          className="text-sm text-[var(--zc-destructive)]"
           aria-live="polite"
         >
           {formError}

@@ -37,13 +37,13 @@ export function FormField({
   const describedBy =
     [helperId, errorId].filter(Boolean).join(' ') || undefined;
   const borderClass = error
-    ? 'border-[--zc-destructive]'
-    : 'border-[--zc-border] focus-visible:border-[--zc-accent]';
+    ? 'border-[var(--zc-destructive)]'
+    : 'border-[var(--zc-border)] focus-visible:border-[var(--zc-accent)]';
   return (
     <div className="flex flex-col gap-2">
       <label
         htmlFor={id}
-        className="text-sm font-bold text-[--zc-primary]"
+        className="text-sm font-bold text-[var(--zc-primary)]"
       >
         {label}
       </label>
@@ -57,17 +57,17 @@ export function FormField({
         required={required}
         aria-describedby={describedBy}
         aria-invalid={error ? true : undefined}
-        className={`bs-12 is-full bg-white rounded-xl border ${borderClass} ps-4 pe-4 text-base text-[--zc-primary] placeholder:text-[--zc-muted-foreground] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--zc-ring] focus-visible:ring-offset-2 focus-visible:ring-offset-[--zc-card]`}
+        className={`bs-12 is-full bg-white rounded-xl border ${borderClass} ps-4 pe-4 text-base text-[var(--zc-primary)] placeholder:text-[var(--zc-muted-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)]`}
       />
       {helper && (
-        <p id={helperId} className="text-sm text-[--zc-muted-foreground]">
+        <p id={helperId} className="text-sm text-[var(--zc-muted-foreground)]">
           {helper}
         </p>
       )}
       {error && (
         <p
           id={errorId}
-          className="text-sm text-[--zc-destructive]"
+          className="text-sm text-[var(--zc-destructive)]"
           aria-live="polite"
         >
           {error}

@@ -10,7 +10,7 @@ import { LocaleTogglePill } from './LocaleTogglePill.client';
  */
 export function Header() {
   return (
-    <header className="fixed inset-bs-0 inset-i-0 z-40 bs-14 bg-[--zc-card] border-b-1 border-[--zc-border]">
+    <header className="fixed inset-bs-0 inset-i-0 z-40 bs-14 bg-[var(--zc-card)] border-b-1 border-[var(--zc-border)]">
       <div className="bs-full flex items-center justify-between ps-4 pe-4">
         <Wordmark />
         <LocaleTogglePill />
