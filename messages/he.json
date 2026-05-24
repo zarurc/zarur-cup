@@ -57,7 +57,9 @@
   },
   "me": {
     "joinedAt": "הצטרפת ב־{joined_at_local}",
-    "localeLabel": "שפה"
+    "localeLabel": "שפה",
+    "logout": "יציאה",
+    "logoutAria": "התנתקות מהחשבון הנוכחי"
   },
   "notFound": {
     "heading": "הדף לא נמצא",

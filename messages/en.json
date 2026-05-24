@@ -57,7 +57,9 @@
   },
   "me": {
     "joinedAt": "Joined {joined_at_local}",
-    "localeLabel": "Language"
+    "localeLabel": "Language",
+    "logout": "Log out",
+    "logoutAria": "Sign out of the current account"
   },
   "notFound": {
     "heading": "Page not found",

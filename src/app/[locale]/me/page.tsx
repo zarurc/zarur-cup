@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { requireMember } from '@/lib/auth/session';
+import { signOutCurrent } from '@/app/actions/signout';
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -11,6 +12,8 @@ type Props = { params: Promise<{ locale: string }> };
  *   - Below the name: localized joined-at date via native Intl.DateTimeFormat
  *     (I18N-07 - no date library needed for format-only)
  *   - And the active locale label
+ *   - At the bottom: Logout button (fix-up plan 01-04, Bug 1a). Clicking it
+ *     submits a form that calls signOutCurrent() then redirects to /.
  *
  * The locale TOGGLE itself lives in the header pill; this page just shows the
  * CURRENT locale's display string.
@@ -37,6 +40,15 @@ export default async function MePage({ params }: Props) {
       <p className="text-sm text-[--zc-muted-foreground] mbs-1">
         {t('localeLabel')}: {member.locale === 'he' ? 'עברית' : 'English'}
       </p>
+      <form action={signOutCurrent} className="mbs-6">
+        <button
+          type="submit"
+          aria-label={t('logoutAria')}
+          className="bs-12 is-full bg-transparent border border-[--zc-border] text-[--zc-primary] rounded-xl font-bold text-base hover:bg-[--zc-muted] hover:border-[--zc-accent] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--zc-ring] focus-visible:ring-offset-2 focus-visible:ring-offset-[--zc-card]"
+        >
+          {t('logout')}
+        </button>
+      </form>
     </section>
   );
 }
