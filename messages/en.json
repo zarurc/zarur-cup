@@ -96,6 +96,18 @@
     "post": { "heading": "Tournament over", "body": "Thanks for playing. The final leaderboard is set." },
     "loading": { "heading": "Matches loading", "body": "One moment while we fetch the schedule." }
   },
+  "admin": {
+    "modeToggle": {
+      "view": "View Mode",
+      "entry": "Score Entry Mode"
+    },
+    "saveResult": {
+      "idle": "Save Result",
+      "saving": "Saving…",
+      "saved": "Saved ✓",
+      "failed": "Couldn't save — check the integrity widget below"
+    }
+  },
   "me": {
     "joinedAt": "Joined {joined_at_local}",
     "localeLabel": "Language",
