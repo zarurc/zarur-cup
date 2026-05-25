@@ -35,11 +35,15 @@ export function AdminModeToggle() {
   const mode = sp?.get('mode') === 'entry' ? 'entry' : 'view';
 
   // Preserve any unrelated search params (none expected on /admin/matches
-  // in Phase 2, but future-proof).
+  // in Phase 2, but future-proof). Returns a UrlObject so Next 15.5's
+  // typedRoutes accepts the dynamic query without a string-literal cast.
   const next = (target: 'view' | 'entry') => {
-    const params = new URLSearchParams(sp?.toString() ?? '');
-    params.set('mode', target);
-    return `/admin/matches?${params.toString()}`;
+    const query: Record<string, string> = {};
+    sp?.forEach((value, key) => {
+      query[key] = value;
+    });
+    query.mode = target;
+    return { pathname: '/admin/matches' as const, query };
   };
 
   const baseSeg =
