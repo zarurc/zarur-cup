@@ -17,6 +17,10 @@
     "verify:rls": "bash scripts/verify-rls-no-leak.sh",
     "verify:heartbeat": "bash scripts/verify-heartbeat.sh",
     "seed:build": "tsx scripts/build-seed-sql.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "db:test-seed": "psql \"$DATABASE_URL\" -f data/test-fixtures.sql",
+    "db:test-clean": "psql \"$DATABASE_URL\" -f data/test-fixtures-clean.sql",
     "prepare": "husky"
   },
   "dependencies": {
@@ -32,6 +36,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/cli": "^4.3.0",
     "@tailwindcss/postcss": "^4.3.0",
     "@types/node": "^20",

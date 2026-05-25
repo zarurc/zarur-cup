@@ -53,3 +53,12 @@ next-env.d.ts
 
 # boost (per-machine T&C acceptance — not shared)
 .boost/
+
+# Playwright (Phase 2)
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/playwright/.auth/
+# admin storageState — minted out-of-band via scripts/db-mint-admin-session.cjs,
+# contains a session cookie + JWT for the bootstrap admin; never commit.
+tests/e2e/.admin-storage-state.json
