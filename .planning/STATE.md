@@ -26,15 +26,15 @@ progress:
 
 ## Current Position
 
-Phase: 02 (june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate) — EXECUTING
-Plan: 8 of 8 (Waves 1-6 complete; Wave 7 = ship-gate next)
+Phase: 02 (june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate) — EXECUTING (ship-gate checkpoint pending)
+Plan: 8 of 8 partial — Tasks 0/1/2/4 + SUMMARY shipped; QA-01 CI iterating; QA-02/03/04 await human
 | Field | Value |
 |-------|-------|
-| Phase | 2 (June 11 MVP) — Wave 6 complete; Wave 7 (Playwright + ship gate) next |
-| Plan | 8 plans across 7 waves; 02-01..02-07 shipped 2026-05-25 |
-| Status | All Phase-2 product surfaces live; final wave wires Playwright E2E smoke + CI + launch checklist |
-| Progress | `[█████████░] 88%` (7 / 8 Phase 2 plans complete) |
-| Last action | Wave 6 complete: 02-07 ships /[locale]/leaderboard RSC reading v_leaderboard with LB-04 tiebreaker in TypeScript via Intl.Collator(locale) (Pitfall 5 — avoids ICU collation question), inline-expand per-row showing League/Bracket/Props subtotals, bracket subtotal renders D-28 "opens June 27" placeholder. /[locale]/me extended with total-points readout via own-row v_leaderboard query. 5 commits, 4min. First attempt died at socket-close after Task 1; clean restart succeeded with no salvage attempt (cleanest path). Closes LB-01/02/04 + SCR-07 transparency. Post-merge gate green; /[locale]/leaderboard built at 1.15kB. |
+| Phase | 2 (June 11 MVP) — Wave 7 partial; QA-01 CI in flight, QA-02/03/04 manual gates pending |
+| Plan | 8 plans across 7 waves; 02-01..02-07 fully shipped + 02-08 partial 2026-05-25 |
+| Status | All product surfaces LIVE on https://zarur-cup.vercel.app. Plan 02-08 (ship gate) blocked on (a) Playwright smoke green on CI + (b) manual mobile QA HE+EN + Hebrew copy review + family WhatsApp send by June 11 19:00 UTC. |
+| Progress | `[█████████░] 88%` (7 / 8 Phase 2 plans complete; 02-08 partial) |
+| Last action | 55 commits pushed to origin/main, Vercel deployed Phase 2 to production. CI e2e job iterating through resolution issues: (1) Supabase IPv6 vs GH Actions IPv4 → user updated DATABASE_URL to Session pooler URL; (2) Node 20 missing native WebSocket → added ws + @types/ws devDeps and passed realtime.transport in test fixtures; (3) npm platform-conditional lockfile drift (Mac install missed Linux SWC binary chain requiring @swc/helpers@0.5.21) → regenerated lockfile with `--include=optional` (commit 4db9430). Currently awaiting CI result on 4db9430. Handoff doc at .planning/phases/02-.../.continue-here.md captures full context. |
 
 ## Roadmap Snapshot
 
