@@ -27,14 +27,14 @@ progress:
 ## Current Position
 
 Phase: 02 (june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate) — EXECUTING
-Plan: 7 of 8 (Waves 1-5 complete; Wave 6 next)
+Plan: 8 of 8 (Waves 1-6 complete; Wave 7 = ship-gate next)
 | Field | Value |
 |-------|-------|
-| Phase | 2 (June 11 MVP) — Wave 5 complete; Wave 6 (leaderboard + /me) next |
-| Plan | 8 plans across 7 waves; 02-01..02-06 shipped 2026-05-25 |
-| Status | Schema + scoring + matches + props + full admin surface live; leaderboard + smoke pending |
-| Progress | `[████████░░] 75%` (6 / 8 Phase 2 plans complete) |
-| Last action | Wave 5 complete: 02-06 ships 4 admin surfaces (/admin/{props,roster,tournament-tree} + admin home nav + integrity widget at bottom of every admin page). 4 Server Actions (resolvePlaceholder, createOrUpdateProp, gradeProp, mergeUsers — all service-role). IntegrityWidget queries v_leaderboard (live via 0011 grant). Agent caught 3 plan-vs-DB drift bugs at execution time: (1) DB col is `points` not `points_value` (mapped at Zod-boundary), (2) DB col is `slot_code` not `code`, (3) `prop_questions.code` is NOT NULL (auto-generated CUSTOM_${ts}). Agent also flagged a parallel pre-existing bug in Plan 02-04 props RSC (same points_value misname) — fixed in follow-up commit 2292b10. Closes ADM-03/04/05/06 + PRP-04 + LGE-06. Post-merge gate green; all 4 admin sub-routes built. |
+| Phase | 2 (June 11 MVP) — Wave 6 complete; Wave 7 (Playwright + ship gate) next |
+| Plan | 8 plans across 7 waves; 02-01..02-07 shipped 2026-05-25 |
+| Status | All Phase-2 product surfaces live; final wave wires Playwright E2E smoke + CI + launch checklist |
+| Progress | `[█████████░] 88%` (7 / 8 Phase 2 plans complete) |
+| Last action | Wave 6 complete: 02-07 ships /[locale]/leaderboard RSC reading v_leaderboard with LB-04 tiebreaker in TypeScript via Intl.Collator(locale) (Pitfall 5 — avoids ICU collation question), inline-expand per-row showing League/Bracket/Props subtotals, bracket subtotal renders D-28 "opens June 27" placeholder. /[locale]/me extended with total-points readout via own-row v_leaderboard query. 5 commits, 4min. First attempt died at socket-close after Task 1; clean restart succeeded with no salvage attempt (cleanest path). Closes LB-01/02/04 + SCR-07 transparency. Post-merge gate green; /[locale]/leaderboard built at 1.15kB. |
 
 ## Roadmap Snapshot
 
