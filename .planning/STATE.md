@@ -27,14 +27,14 @@ progress:
 ## Current Position
 
 Phase: 02 (june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate) — EXECUTING
-Plan: 6 of 8 (Waves 1-4 complete; Wave 5 next)
+Plan: 7 of 8 (Waves 1-5 complete; Wave 6 next)
 | Field | Value |
 |-------|-------|
-| Phase | 2 (June 11 MVP) — Wave 4 complete; Wave 5 (admin surfaces) next |
-| Plan | 8 plans across 7 waves; 02-01..02-05 shipped 2026-05-25 |
-| Status | Schema + scoring + matches + props + admin score entry live; admin surfaces/leaderboard/smoke pending |
-| Progress | `[██████░░░░] 63%` (5 / 8 Phase 2 plans complete) |
-| Last action | Wave 4 complete: 02-05 ships /admin/matches RSC (unlocalized per D-05) with URL-driven View/Entry mode toggle (AdminModeToggle as <Link>-based segmented control), AdminResultInputs (two dir="ltr" number inputs + explicit-save button, idle/saving/saved/failed state machine). saveResult Server Action: thin 6-step orchestrator (requireAdmin → resultSchema → UPDATE fixtures._90min → SELECT predictions → map(scoreMatch) → sweepAndUpsert) — uses adminReadClient (service-role) per D-18. 4 atomic commits + 1 post-merge fix commit (edcab7c — UrlObject href to satisfy Next 15.5 typedRoutes strictness; agent's worktree typecheck passed but main-tree typecheck rejected dynamic-string href). Closes ADM-01/02 + SCR-01/02/06 + LB-03. Post-merge gate: all green; /admin/matches built at 1.67kB. |
+| Phase | 2 (June 11 MVP) — Wave 5 complete; Wave 6 (leaderboard + /me) next |
+| Plan | 8 plans across 7 waves; 02-01..02-06 shipped 2026-05-25 |
+| Status | Schema + scoring + matches + props + full admin surface live; leaderboard + smoke pending |
+| Progress | `[████████░░] 75%` (6 / 8 Phase 2 plans complete) |
+| Last action | Wave 5 complete: 02-06 ships 4 admin surfaces (/admin/{props,roster,tournament-tree} + admin home nav + integrity widget at bottom of every admin page). 4 Server Actions (resolvePlaceholder, createOrUpdateProp, gradeProp, mergeUsers — all service-role). IntegrityWidget queries v_leaderboard (live via 0011 grant). Agent caught 3 plan-vs-DB drift bugs at execution time: (1) DB col is `points` not `points_value` (mapped at Zod-boundary), (2) DB col is `slot_code` not `code`, (3) `prop_questions.code` is NOT NULL (auto-generated CUSTOM_${ts}). Agent also flagged a parallel pre-existing bug in Plan 02-04 props RSC (same points_value misname) — fixed in follow-up commit 2292b10. Closes ADM-03/04/05/06 + PRP-04 + LGE-06. Post-merge gate green; all 4 admin sub-routes built. |
 
 ## Roadmap Snapshot
 
