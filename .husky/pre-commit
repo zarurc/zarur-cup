@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
-# Phase 1 pre-commit gates (FND-03 + TS):
+# Phase 1+2 pre-commit gates (FND-03 + SCR-05 + TS):
 #   1. lint:rtl — fail on any physical-direction Tailwind utility under src/ or messages/
-#   2. typecheck — fail on TypeScript errors before they land on main
+#   2. lint:tailwind-v4 — fail on bare [--zc-X] CSS-var shorthand (Phase 1 P05 regression mode)
+#   3. typecheck — fail on TypeScript errors before they land on main
 # Husky v9 no longer needs the legacy `. "$(dirname -- "$0")/_/husky.sh"` shim.
 
 # FND-03: physical-direction Tailwind utility check.
@@ -16,6 +17,17 @@ if ! npm run lint:rtl --silent; then
   echo "  border-l-/r-      -> border-s-* / border-e-*"
   echo "  left-/right-      -> inset-s-* / inset-e-*"
   echo "  flex-row-reverse  -> NEVER — use <html dir> to flip"
+  exit 1
+fi
+
+# SCR-05: Tailwind v4 bare CSS-var shorthand check.
+echo "Running lint:tailwind-v4 (SCR-05)..."
+if ! npm run lint:tailwind-v4 --silent; then
+  echo ""
+  echo "SCR-05 violation: bare [--zc-X] CSS-var shorthand detected (Phase 1 P05 regression)."
+  echo "Tailwind v4 needs the var(...) wrapper for arbitrary CSS-var references:"
+  echo "  bg-[--zc-pitch]    -> bg-[var(--zc-pitch)]"
+  echo "  text-[--zc-cream]  -> text-[var(--zc-cream)]"
   exit 1
 fi
 

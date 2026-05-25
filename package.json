@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "lint:rtl": "! grep -REn '\\b(p|m|border|rounded)[lr]-|\\btext-(left|right)\\b|\\b(left|right)-(\\[|[0-9])|\\bflex-row-reverse\\b|style=\\{\\{[^}]*\\b(left|right)\\s*:' src/ messages/ || (echo 'FND-03 violation: physical-direction Tailwind utility OR inline style with left/right found' && exit 1)",
+    "lint:tailwind-v4": "! grep -REn '\\[--zc-' src/ || (echo 'Tailwind v4 violation: bare CSS-var shorthand. Use [var(--zc-X)] not [--zc-X]' && exit 1)",
     "db:types": "supabase gen types typescript --linked > src/types/supabase.ts",
     "db:reset": "supabase db reset --linked",
     "db:push": "supabase db push --linked",
