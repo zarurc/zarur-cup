@@ -21,6 +21,30 @@
   --zc-ring: #f59e0b;
   --zc-destructive: #dc2626;
   --zc-destructive-foreground: #fafaf7;
+  /* Phase 2 extended tokens (UI-SPEC §"Color" Phase-2-extended) */
+  --zc-score-exact: #0a2540;
+  --zc-score-good: #525252;
+  --zc-score-miss: #a3a3a3;
+  --zc-lock: #525252;
+  --zc-integrity-ok: #16a34a;
+}
+
+/*
+ * SavedIndicator pulse animation (UI-SPEC §10 / "Motion Timings").
+ * 2000ms total: 150ms fade-in, 1400ms hold, 450ms fade-out.
+ * Used as `key={lastSavedAt}` re-mount on each successful save.
+ */
+@keyframes zc-saved-pulse {
+  0%   { opacity: 0; }
+  7.5% { opacity: 1; }
+  77.5%{ opacity: 1; }
+  100% { opacity: 0; }
+}
+.zc-saved-indicator {
+  animation: zc-saved-pulse 2000ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .zc-saved-indicator { animation: zc-saved-pulse 2000ms steps(2,end) forwards; }
 }
 
 @utility font-heebo {
