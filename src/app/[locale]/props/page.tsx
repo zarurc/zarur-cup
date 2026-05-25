@@ -62,11 +62,14 @@ export default async function PropsPage({ params }: Props) {
     new Date(tournament.starts_at).getTime() <= Date.now();
 
   // 2. Questions for this tournament. answer_type widens to `string` in
-  //    generated types (CHECK enum) — narrowed below per row.
+  //    generated types (CHECK enum) — narrowed below per row. DB column
+  //    is `points`; the Zod/form/UI field is `points_value` (Plan 02-02),
+  //    so we map at the row-construction boundary below (same pattern as
+  //    the admin props RSC).
   const { data: questions } = await supabase
     .from('prop_questions')
     .select(
-      'id, answer_type, points_value, prompt_en, prompt_he, correct_answer, correct_answer_aliases',
+      'id, answer_type, points, prompt_en, prompt_he, correct_answer, correct_answer_aliases',
     )
     .eq('tournament_id', tournament.id)
     .order('id', { ascending: true });
@@ -172,7 +175,7 @@ export default async function PropsPage({ params }: Props) {
           const narrowed: PropQuestion = {
             id: q.id,
             answer_type: q.answer_type as PropQuestion['answer_type'],
-            points_value: q.points_value,
+            points_value: q.points,
             prompt_en: q.prompt_en,
             prompt_he: q.prompt_he,
           };
