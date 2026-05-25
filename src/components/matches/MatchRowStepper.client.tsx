@@ -112,6 +112,18 @@ export function MatchRowStepper({
   const btnClass =
     'bs-11 is-11 inline-flex items-center justify-center rounded-xl border border-[var(--zc-border)] bg-[var(--zc-card)] text-xl font-bold text-[var(--zc-primary)] active:bg-[var(--zc-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)] disabled:opacity-40 disabled:pointer-events-none';
 
+  // Explicit testid literals (Plan 02-08 Task 0 contract — keep the literal
+  // tokens `stepper-home-plus-`, `stepper-away-plus-`, `stepper-home-minus-`,
+  // `stepper-away-minus-` grep-able in source for the smoke selector audit).
+  const testIdMinus = (side: 'home' | 'away') =>
+    side === 'home'
+      ? `stepper-home-minus-${fixtureId}`
+      : `stepper-away-minus-${fixtureId}`;
+  const testIdPlus = (side: 'home' | 'away') =>
+    side === 'home'
+      ? `stepper-home-plus-${fixtureId}`
+      : `stepper-away-plus-${fixtureId}`;
+
   const renderStepper = (
     side: 'home' | 'away',
     value: number,
@@ -120,6 +132,7 @@ export function MatchRowStepper({
     <div className="inline-flex items-center gap-1">
       <button
         type="button"
+        data-testid={testIdMinus(side)}
         className={btnClass}
         aria-label={side === 'home' ? '−1 home' : '−1 away'}
         disabled={value <= MIN_SCORE}
@@ -140,6 +153,7 @@ export function MatchRowStepper({
       </span>
       <button
         type="button"
+        data-testid={testIdPlus(side)}
         className={btnClass}
         aria-label={side === 'home' ? '+1 home' : '+1 away'}
         disabled={value >= MAX_SCORE}
