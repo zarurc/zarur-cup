@@ -41,7 +41,10 @@ export function MatchRow({
     timeZoneName: 'short',
   }).format(new Date(kickoffAt));
   return (
-    <div className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-3 pbe-3 mbs-3 min-bs-16 flex items-center gap-4">
+    <div
+      data-testid={`match-row-${fixtureId}`}
+      className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-3 pbe-3 mbs-3 min-bs-16 flex items-center gap-4"
+    >
       <div className="flex items-center gap-2 min-is-0 flex-1">
         <span className="text-xl" aria-hidden>
           🏴
