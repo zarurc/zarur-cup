@@ -1063,29 +1063,31 @@ These can be:
 | A4 | The `replace(', ', ' · ')` trick to produce `Saturday · June 14` works for `Intl.DateTimeFormat('he-IL', { weekday, month, day })` HE output too — UI-SPEC's worked example shows it does, but the exact comma character in `יום שבת, 14 ביוני` is `, ` (ASCII), not a Hebrew punctuation char. | Code Examples | If HE uses `، ` or another separator, the replace silently no-ops and the bullet doesn't appear. Verify in QA-03. |
 | A5 | React 19's `useTransition` correctly gates a `revalidatePath` triggered inside an async Server Action without race conditions for the stepper case. | Pattern 3 | If the saved-indicator pulses or the value rolls back inappropriately, fall back to `useOptimistic`. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Q: Does Supabase Postgres on tjivukpxuhbrbshidbfv have `und-x-icu` / `he-x-icu` ICU collations?**
+> All five open questions below were resolved during planning by following the recommended path (the recommendations are the disposition the plans implement). The original question text + recommendation are kept as the paper trail.
+
+1. **RESOLVED:** Use Pattern 7's TS-side `Intl.Collator` sort in the leaderboard RSC (Plan 02-07); no DB-side ICU collation dependency. **Q: Does Supabase Postgres on tjivukpxuhbrbshidbfv have `und-x-icu` / `he-x-icu` ICU collations?**
    - What we know: ICU collations are Postgres 15+ feature; Supabase supports it but build varies.
    - What's unclear: Which collations are present on this specific project.
    - **Recommendation:** Run `SELECT collname, collprovider, collversion FROM pg_collation WHERE collname ~* 'icu' OR collname ~* 'und'` on tjivukpxuhbrbshidbfv during planning. If a sensible collation exists, the planner may use it in `v_leaderboard`; if not, use Pattern 7's TS-side `Intl.Collator` sort (recommended default).
 
-2. **Q: Does the planner want `correct_answer_aliases text[]` on `prop_questions` or a separate `prop_answer_aliases` table?**
+2. **RESOLVED:** `correct_answer_aliases text[]` column on `prop_questions` (migration 0010, Plan 02-01); no separate aliases table for Phase 2. **Q: Does the planner want `correct_answer_aliases text[]` on `prop_questions` or a separate `prop_answer_aliases` table?**
    - What we know: D-24 says column OR table, planner's discretion.
    - What's unclear: Whether the family will want >5 aliases per prop (table starts to make sense at scale).
    - **Recommendation:** `text[]` column. Migrate to a table only if a prop ends up needing >10 aliases (unlikely for 5–10 props).
 
-3. **Q: Should every admin RSC use `createServiceClient()` by default, or `createClient()` + careful policies?**
+3. **RESOLVED:** Added `src/lib/auth/adminReadClient.ts` helper (Plan 02-02); every admin RSC in Plans 02-05 and 02-06 imports it. **Q: Should every admin RSC use `createServiceClient()` by default, or `createClient()` + careful policies?**
    - What we know: Pitfall 10 — `createClient()` from admin pages applies RLS, which hides other users' data from the admin.
    - What's unclear: Whether the planner adds a helper `adminReadClient()` (recommended) or audits every page individually.
    - **Recommendation:** Add a thin helper `src/lib/auth/adminReadClient.ts` that calls `requireAdmin()` and returns `createServiceClient()`. Every admin RSC imports this; symmetric to admin write actions.
 
-4. **Q: How do the Playwright smoke fixtures (`SMOKE_PRE_LOCK`, `SMOKE_POST_LOCK`) coexist with the 104 real WC fixtures?**
+4. **RESOLVED:** `data/test-fixtures.sql` + `data/test-fixtures-clean.sql` injected via `npm run db:test-seed` / `db:test-clean` scripts; `external_match_no` 9001/9002 outside the 1..104 real range (Plan 02-08). **Q: How do the Playwright smoke fixtures (`SMOKE_PRE_LOCK`, `SMOKE_POST_LOCK`) coexist with the 104 real WC fixtures?**
    - What we know: D-30 says "no fake-time mocking — real clocks against seeded kickoff times." Real fixtures all start June 11+.
    - What's unclear: How to inject two test fixtures without polluting the prod-like seed.
    - **Recommendation:** A new `data/test-fixtures.sql` outside the canonical CSV pipeline. The Playwright config's `webServer` runs `psql -f data/test-fixtures.sql` pre-suite (against a test/preview Supabase branch — NOT prod). Cleaned via a teardown step. Test fixtures use `external_match_no` values outside the 1..104 range (e.g., 9001, 9002) to avoid collisions.
 
-5. **Q: Where does the daily LGE-06 integrity query live if there's no cron (D-33)?**
+5. **RESOLVED:** LGE-06 query is fired by the always-visible IntegrityWidget RSC on every admin pageload (Plan 02-06, per D-15); the "daily" semantic is satisfied operationally since admin reviews predictions daily. **Q: Where does the daily LGE-06 integrity query live if there's no cron (D-33)?**
    - What we know: D-15 says it runs on every admin pageload as part of the integrity widget RSC.
    - What's unclear: Whether "daily" in LGE-06 is satisfied by "every time admin loads any admin page" — REQUIREMENTS.md says "daily."
    - **Recommendation:** Treat "daily" as a loose requirement — the integrity widget hits the same query on every admin page load, which is at least daily in practice (admin reviews predictions daily). If a stricter audit is needed, fold a "log integrity check result to a `system_logs` table" into the widget RSC — but that's gold-plating for Phase 2. Just leave as-is.
