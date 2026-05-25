@@ -58,6 +58,19 @@
   "matches": {
     "cta": "Submit picks before kickoff"
   },
+  "props": {
+    "cta": "Lock your picks before opening kickoff",
+    "lockedNote": "Locked — opens with the first match",
+    "saved": "Saved",
+    "saveFailed": "Couldn't save — tap to retry",
+    "lockedSaveFailed": "Props are locked. Reload to see everyone's picks.",
+    "empty": {
+      "heading": "Props coming soon",
+      "body": "Tournament-level questions appear here before the first kickoff."
+    },
+    "yourAnswerLabel": "Your answer",
+    "correctAnswerLabel": "Correct"
+  },
   "countdown": {
     "next": "Next:",
     "kicksOffIn": "· kicks off in"
