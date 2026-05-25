@@ -27,14 +27,14 @@ progress:
 ## Current Position
 
 Phase: 02 (june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate) — EXECUTING
-Plan: 3 of 8 (Wave 1 complete; Wave 2 next)
+Plan: 4 of 8 (Waves 1-2 complete; Wave 3 next)
 | Field | Value |
 |-------|-------|
-| Phase | 2 (June 11 MVP) — Wave 1 complete; Wave 2 (matches feed UI) next |
-| Plan | 8 plans across 7 waves; 02-01 + 02-02 shipped 2026-05-25 |
-| Status | Schema foundation + scoring engine live; UI plans 02-03..02-07 + smoke 02-08 pending |
-| Progress | `[██░░░░░░░░] 25%` (2 / 8 Phase 2 plans complete) |
-| Last action | Wave 1 (parallel: 02-01 + 02-02) complete. 02-01: 5 migrations live on tjivukpxuhbrbshidbfv (0007 score_events, 0008 v_leaderboard, 0009 fixtures ET cols, 0010 prop_questions.correct_answer_aliases, 0011 corrective v_leaderboard service_role grant — 0008 had wrong inheritance assumption per Phase 1 P02 posture). lint:tailwind-v4 wired into husky + CI (SCR-05). Types regenerated. 02-02: pure-TS scoring engine (league + props + sweepAndUpsert), 4 Zod schemas, adminReadClient — 10/10 smoke assertions pass. Post-merge gate: lints + typecheck + next build all green. SCR-05 + SCR-06 closed. |
+| Phase | 2 (June 11 MVP) — Wave 2 complete; Wave 3 (props surface) next |
+| Plan | 8 plans across 7 waves; 02-01 + 02-02 + 02-03 shipped 2026-05-25 |
+| Status | Schema + scoring engine + matches feed UI live; props/admin/leaderboard/smoke pending |
+| Progress | `[████░░░░░░] 38%` (3 / 8 Phase 2 plans complete) |
+| Last action | Wave 2 complete: 02-03 ships /[locale]/matches RSC (1-query fetch of 104 fixtures + nested predictions + score_events), 3 row variants (editable/locked/resulted), 600ms-debounced MatchRowStepper + transient SavedIndicator, sticky CountdownBanner ticking to next kickoff, locale-aware date grouping. savePrediction Server Action validates against the prediction.ts Zod schema (Plan 02-02), translates RLS 42501 to a `locked` error code. 4 atomic commits, 75min, 17-assertion smoke pass. Post-merge gate: lints + typecheck + next build all green; /[locale]/matches grew from 182B to 2.48kB as expected. |
 
 ## Roadmap Snapshot
 
