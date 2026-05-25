@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-last_updated: "2026-05-25T04:54:11.835Z"
+status: Executing Phase 02
+last_updated: "2026-05-25T13:52:14.280Z"
 progress:
   total_phases: 3
   completed_phases: 1
@@ -22,19 +22,19 @@ progress:
 **Core value:** Predictions submitted before kickoff get scored automatically against a unified leaderboard that the whole family can see. If the leaderboard is broken, nothing else matters.
 **Hard deadline:** June 11, 2026 (WC 2026 opening match) — Phases 1 + 2
 **Soft deadline:** June 27, 2026 (first knockout match) — Phase 3
-**Current focus:** Phase 01 — foundation-schema-auth-rls
+**Current focus:** Phase 02 — june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
+Phase: 02 (june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate) — EXECUTING
+Plan: 3 of 8 (Wave 1 complete; Wave 2 next)
 | Field | Value |
 |-------|-------|
-| Phase | 1 (Foundation, Schema, Auth & RLS) — COMPLETE |
-| Plan | 5 plans (01-01 → 01-05) across 4 waves — all shipped |
-| Status | Phase 1 complete; ready for Phase 2 planning |
-| Progress | `[██████████] 100%` (5 / 5 Phase 1 plans complete; 1 / 3 phases complete) |
-| Last action | Plan 01-05 (heartbeat + Vercel deploy + Cron + CI + husky) shipped — live at https://zarur-cup.vercel.app. Production project tjivukpxuhbrbshidbfv. /api/heartbeat protected with CRON_SECRET; cron `0 12 */3 * *` registered and visible in Vercel dashboard; manual trigger produced visible SELECT on fixtures in Supabase Postgres logs at 688ms (FND-05 verified). FND-03 enforced via .husky/pre-commit + .github/workflows/lint.yml. 4 source commits (heartbeat, vercel+husky+CI, lockfile JFrog→npmjs rewrite, generated types un-gitignored) + Tailwind v4 var() rewrite attributed to 01-04 + git author rewrite of all 38 commits to GitHub noreply email for Vercel author-check. 4 Rule-3 blocking deviations + 3 operational notes recorded. zekez approved 2026-05-24. |
+| Phase | 2 (June 11 MVP) — Wave 1 complete; Wave 2 (matches feed UI) next |
+| Plan | 8 plans across 7 waves; 02-01 + 02-02 shipped 2026-05-25 |
+| Status | Schema foundation + scoring engine live; UI plans 02-03..02-07 + smoke 02-08 pending |
+| Progress | `[██░░░░░░░░] 25%` (2 / 8 Phase 2 plans complete) |
+| Last action | Wave 1 (parallel: 02-01 + 02-02) complete. 02-01: 5 migrations live on tjivukpxuhbrbshidbfv (0007 score_events, 0008 v_leaderboard, 0009 fixtures ET cols, 0010 prop_questions.correct_answer_aliases, 0011 corrective v_leaderboard service_role grant — 0008 had wrong inheritance assumption per Phase 1 P02 posture). lint:tailwind-v4 wired into husky + CI (SCR-05). Types regenerated. 02-02: pure-TS scoring engine (league + props + sweepAndUpsert), 4 Zod schemas, adminReadClient — 10/10 smoke assertions pass. Post-merge gate: lints + typecheck + next build all green. SCR-05 + SCR-06 closed. |
 
 ## Roadmap Snapshot
 
