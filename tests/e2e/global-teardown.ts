@@ -12,6 +12,7 @@
 
 import { execSync } from 'node:child_process';
 import { createClient } from '@supabase/supabase-js';
+import ws from 'ws';
 
 export default async function globalTeardown() {
   // 1. Clean DB-side test fixtures + SmokeUser cascade via SQL.
@@ -33,6 +34,8 @@ export default async function globalTeardown() {
     }
     const svc = createClient(url, key, {
       auth: { persistSession: false },
+      // Node 20 lacks native WebSocket; see tests/e2e/fixtures/db.ts.
+      realtime: { transport: ws as unknown as typeof WebSocket },
     });
     // The SmokeUser profile rows were already deleted by db:test-clean; find
     // any orphan auth.users by listing all anon users and matching the smoke

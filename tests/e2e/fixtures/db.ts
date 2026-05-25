@@ -10,6 +10,13 @@
 // full 104-row seed).
 
 import { createClient } from '@supabase/supabase-js';
+import ws from 'ws';
+
+// Node 20 lacks native WebSocket; supabase-js's realtime client initializes
+// even when we never subscribe. Pass `ws` as the realtime transport so
+// createClient() can construct without throwing on CI runners.
+// Drop this once we move CI to Node 22+ (which has native WebSocket).
+const REALTIME_TRANSPORT = { transport: ws as unknown as typeof WebSocket };
 
 function svc() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
@@ -21,6 +28,7 @@ function svc() {
   }
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    realtime: REALTIME_TRANSPORT,
   });
 }
 
