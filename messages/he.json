@@ -96,11 +96,26 @@
     "post": { "heading": "הטורניר הסתיים", "body": "תודה ששיחקתם. הטבלה הסופית סגורה." },
     "loading": { "heading": "המשחקים נטענים", "body": "רק רגע ואנחנו טוענים את הלוח." }
   },
+  "leaderboard": {
+    "heading": "טבלה",
+    "rankLabel": "דירוג",
+    "totalLabel": "סך הכל",
+    "league": "ליגה: {n}",
+    "bracketPlaceholder": "נוקאאוט: 0 — נפתח 27 ביוני",
+    "props": "שאלות: {n}",
+    "expandAriaOpen": "הצג פירוט",
+    "expandAriaClose": "הסתר פירוט",
+    "empty": {
+      "heading": "הטבלה נפתחת עם התוצאה הראשונה",
+      "body": "הדירוג יופיע ברגע שהמנהל יזין תוצאה."
+    }
+  },
   "me": {
     "joinedAt": "הצטרפת ב־{joined_at_local}",
     "localeLabel": "שפה",
     "logout": "יציאה",
-    "logoutAria": "התנתקות מהחשבון הנוכחי"
+    "logoutAria": "התנתקות מהחשבון הנוכחי",
+    "totalLabel": "הסך שלך"
   },
   "notFound": {
     "heading": "הדף לא נמצא",

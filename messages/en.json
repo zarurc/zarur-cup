@@ -152,11 +152,26 @@
       "unscored": "Unscored Completed Matches"
     }
   },
+  "leaderboard": {
+    "heading": "Leaderboard",
+    "rankLabel": "Rank",
+    "totalLabel": "Total",
+    "league": "League: {n}",
+    "bracketPlaceholder": "Bracket: 0 — opens June 27",
+    "props": "Props: {n}",
+    "expandAriaOpen": "Show breakdown",
+    "expandAriaClose": "Hide breakdown",
+    "empty": {
+      "heading": "Standings open with the first result",
+      "body": "Standings appear once the admin enters a result."
+    }
+  },
   "me": {
     "joinedAt": "Joined {joined_at_local}",
     "localeLabel": "Language",
     "logout": "Log out",
-    "logoutAria": "Sign out of the current account"
+    "logoutAria": "Sign out of the current account",
+    "totalLabel": "Your total"
   },
   "notFound": {
     "heading": "Page not found",
