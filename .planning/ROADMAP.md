@@ -92,7 +92,7 @@ Rationale:
 - [x] 02-01-PLAN.md — Wave 1: Schema extensions (migrations 0007 score_events + 0008 v_leaderboard + 0009 result_full + 0010 prop_questions_aliases) + types regen + lint:tailwind-v4 wiring
 - [x] 02-02-PLAN.md — Wave 1: Pure scoring engine (`scoreMatch` + `scoreProp`), `sweepAndUpsert` server-only helper, `adminReadClient`, 4 Zod schemas (prediction / result / propAnswer / propAuthoring)
 - [x] 02-03-PLAN.md — Wave 2: Player matches feed — chronological RSC + CountdownBanner + 3 row variants (editable/locked/resulted) + Stepper debounced save + savePrediction Server Action + PtsBadge + SavedIndicator
-- [ ] 02-04-PLAN.md — Wave 3: Player props page — single-page editable cards + 48-flag grid + free-text input + savePropAnswer + post-first-kickoff reveal variant
+- [x] 02-04-PLAN.md — Wave 3: Player props page — single-page editable cards + 48-flag grid + free-text input + savePropAnswer + post-first-kickoff reveal variant
 - [ ] 02-05-PLAN.md — Wave 4: Admin score entry — `/admin/matches?mode=view|entry` toggle + AdminResultInputs + saveResult Server Action (sweep + UPSERT idempotency)
 - [ ] 02-06-PLAN.md — Wave 5: Admin tournament-tree + props authoring/grading + roster merge + IntegrityWidget (LGE-06 lock-breach audit) + admin home nav
 - [ ] 02-07-PLAN.md — Wave 6: Unified leaderboard — RSC reads `v_leaderboard`, TS-side LB-04 tiebreaker via `Intl.Collator`, inline-expand per-mode breakdown, /me total readout

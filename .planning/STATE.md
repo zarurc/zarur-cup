@@ -27,14 +27,14 @@ progress:
 ## Current Position
 
 Phase: 02 (june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate) — EXECUTING
-Plan: 4 of 8 (Waves 1-2 complete; Wave 3 next)
+Plan: 5 of 8 (Waves 1-3 complete; Wave 4 next)
 | Field | Value |
 |-------|-------|
-| Phase | 2 (June 11 MVP) — Wave 2 complete; Wave 3 (props surface) next |
-| Plan | 8 plans across 7 waves; 02-01 + 02-02 + 02-03 shipped 2026-05-25 |
-| Status | Schema + scoring engine + matches feed UI live; props/admin/leaderboard/smoke pending |
-| Progress | `[████░░░░░░] 38%` (3 / 8 Phase 2 plans complete) |
-| Last action | Wave 2 complete: 02-03 ships /[locale]/matches RSC (1-query fetch of 104 fixtures + nested predictions + score_events), 3 row variants (editable/locked/resulted), 600ms-debounced MatchRowStepper + transient SavedIndicator, sticky CountdownBanner ticking to next kickoff, locale-aware date grouping. savePrediction Server Action validates against the prediction.ts Zod schema (Plan 02-02), translates RLS 42501 to a `locked` error code. 4 atomic commits, 75min, 17-assertion smoke pass. Post-merge gate: lints + typecheck + next build all green; /[locale]/matches grew from 182B to 2.48kB as expected. |
+| Phase | 2 (June 11 MVP) — Wave 3 complete; Wave 4 (admin score entry) next |
+| Plan | 8 plans across 7 waves; 02-01 + 02-02 + 02-03 + 02-04 shipped 2026-05-25 |
+| Status | Schema + scoring engine + matches feed + props feed live; admin/leaderboard/smoke pending |
+| Progress | `[█████░░░░░] 50%` (4 / 8 Phase 2 plans complete) |
+| Last action | Wave 3 complete: 02-04 ships /[locale]/props RSC with variant chooser keyed on tournament.starts_at (pre-reveal editable / post-reveal read-only). FlagGrid (6×8 role=radiogroup, locale-sorted via Intl.Collator), PropCard (discriminated dispatch on answer_type — single_team→FlagGrid, single_player/text→FreeTextPropCard with client-mirror of FREE_TEXT_REGEX). savePropAnswer Server Action validates against propAnswer.ts Zod schema (Plan 02-02), upserts on (user_id, question_id), translates RLS 42501→locked, revalidates both locale paths. 4 atomic commits, 75min. Closes PRP-01/02/03 + VIS-04 + SCR-07. Post-merge gate: lints + typecheck + scoring smoke + next build all green; /[locale]/props grew from 180B to 2.13kB. |
 
 ## Roadmap Snapshot
 
