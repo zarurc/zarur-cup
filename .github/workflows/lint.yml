@@ -19,6 +19,8 @@ jobs:
       - run: npm ci
       - name: FND-03 — no physical-direction Tailwind utilities
         run: npm run lint:rtl
+      - name: SCR-05 — no bare [--zc-X] Tailwind v4 shorthand
+        run: npm run lint:tailwind-v4
       - name: ESLint
         run: npm run lint
       - name: TypeScript
