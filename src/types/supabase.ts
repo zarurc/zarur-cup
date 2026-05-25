@@ -156,8 +156,10 @@ export type Database = {
           kickoff_at: string
           result_away: number | null
           result_away_90min: number | null
+          result_away_full: number | null
           result_home: number | null
           result_home_90min: number | null
+          result_home_full: number | null
           stage: string
           tournament_id: string
           updated_at: string
@@ -175,8 +177,10 @@ export type Database = {
           kickoff_at: string
           result_away?: number | null
           result_away_90min?: number | null
+          result_away_full?: number | null
           result_home?: number | null
           result_home_90min?: number | null
+          result_home_full?: number | null
           stage: string
           tournament_id: string
           updated_at?: string
@@ -194,8 +198,10 @@ export type Database = {
           kickoff_at?: string
           result_away?: number | null
           result_away_90min?: number | null
+          result_away_full?: number | null
           result_home?: number | null
           result_home_90min?: number | null
+          result_home_full?: number | null
           stage?: string
           tournament_id?: string
           updated_at?: string
@@ -330,6 +336,7 @@ export type Database = {
           answer_type: string
           code: string
           correct_answer: string | null
+          correct_answer_aliases: string[]
           created_at: string
           id: string
           points: number
@@ -342,6 +349,7 @@ export type Database = {
           answer_type: string
           code: string
           correct_answer?: string | null
+          correct_answer_aliases?: string[]
           created_at?: string
           id?: string
           points?: number
@@ -354,6 +362,7 @@ export type Database = {
           answer_type?: string
           code?: string
           correct_answer?: string | null
+          correct_answer_aliases?: string[]
           created_at?: string
           id?: string
           points?: number
@@ -371,6 +380,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      score_events: {
+        Row: {
+          kind: string | null
+          points: number
+          ref_id: string
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          kind?: string | null
+          points: number
+          ref_id: string
+          source: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          kind?: string | null
+          points?: number
+          ref_id?: string
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       teams: {
         Row: {
@@ -442,7 +478,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_leaderboard: {
+        Row: {
+          bracket_total: number | null
+          correct_count: number | null
+          display_name: string | null
+          exact_count: number | null
+          league_total: number | null
+          props_total: number | null
+          total: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
