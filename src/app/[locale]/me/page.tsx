@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { requireMember } from '@/lib/auth/session';
 import { signOutCurrent } from '@/app/actions/signout';
+import { createClient } from '@/lib/supabase/server';
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -24,6 +25,14 @@ export default async function MePage({ params }: Props) {
   const member = await requireMember(locale);
   const t = await getTranslations('me');
 
+  const supabase = await createClient();
+  const { data: lbRow } = await supabase
+    .from('v_leaderboard')
+    .select('total')
+    .eq('user_id', member.user_id)
+    .maybeSingle();
+  const total = lbRow?.total ?? 0;
+
   const joinedAtLocal = new Intl.DateTimeFormat(
     locale === 'he' ? 'he-IL' : 'en-US',
     { dateStyle: 'long' },
@@ -39,6 +48,17 @@ export default async function MePage({ params }: Props) {
       </p>
       <p className="text-sm text-[var(--zc-muted-foreground)] mbs-1">
         {t('localeLabel')}: {member.locale === 'he' ? 'עברית' : 'English'}
+      </p>
+      <p className="flex items-center justify-between gap-3 mbs-4 pbs-3 border-t border-[var(--zc-border)]">
+        <span className="text-base text-[var(--zc-muted-foreground)]">
+          {t('totalLabel')}
+        </span>
+        <span
+          dir="ltr"
+          className="text-2xl font-bold text-[var(--zc-primary)] tabular-nums"
+        >
+          {total}
+        </span>
       </p>
       <form action={signOutCurrent} className="mbs-6">
         <button
