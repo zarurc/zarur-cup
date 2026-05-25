@@ -106,6 +106,50 @@
       "saving": "Saving…",
       "saved": "Saved ✓",
       "failed": "Couldn't save — check the integrity widget below"
+    },
+    "home": {
+      "heading": "Admin",
+      "navMatches": "Matches & results",
+      "navTree": "Tournament tree",
+      "navProps": "Props",
+      "navRoster": "Roster"
+    },
+    "tree": {
+      "heading": "Resolve placeholders",
+      "rowSelectLabel": "Resolve to team",
+      "saveButton": "Save placeholder",
+      "noPlaceholders": "All placeholders resolved.",
+      "savedNotice": "Resolved {n, plural, =1 {1 fixture} other {# fixtures}}"
+    },
+    "props": {
+      "authorHeading": "Author Props",
+      "gradeHeading": "Grade Props",
+      "promptEn": "Prompt (English)",
+      "promptHe": "Prompt (Hebrew)",
+      "answerType": "Answer type",
+      "answerTypeSingleTeam": "Pick a team",
+      "answerTypeSinglePlayer": "Pick a player",
+      "answerTypeText": "Free text",
+      "pointsValue": "Points value",
+      "createButton": "Create prop",
+      "updateButton": "Save changes",
+      "correctAnswer": "Correct answer",
+      "aliasesHelper": "Alias set (one per line): canonical + variants for fuzzy matching",
+      "gradeButton": "Save grade",
+      "gradedNotice": "Grade applied — leaderboard updated"
+    },
+    "roster": {
+      "heading": "Family Roster",
+      "merge": "Merge into…",
+      "mergeConfirm": "Merge {source} → {target}? This moves all picks and deletes {source}. This cannot be undone.",
+      "totalPointsLabel": "Total"
+    },
+    "integrity": {
+      "syncLabel": "Database Sync",
+      "syncOk": "OK ✓",
+      "syncFail": "✗ ({n, plural, =1 {1 row} other {# rows}} past kickoff)",
+      "totalPreds": "Total Predictions",
+      "unscored": "Unscored Completed Matches"
     }
   },
   "me": {
