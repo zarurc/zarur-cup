@@ -25,3 +25,77 @@ jobs:
         run: npm run lint
       - name: TypeScript
         run: npm run typecheck
+
+  e2e:
+    # Plan 02-08 — Playwright smoke (QA-01). Runs against `next start`
+    # output, NEVER `next dev` (Phase 1 P05 contract).
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Apply mandatory lockfile JFrog→npmjs rewrite (Phase 1 P05)
+        # Lockfile rewrite must be re-applied after every npm install on CI
+        # runners too (defensive — the committed lockfile is already rewritten,
+        # but `npm ci` regenerates parts of it under some scenarios).
+        run: sed -i 's|https://jfrogrepo24.jfrog.io/artifactory/api/npm/npm-virtual/|https://registry.npmjs.org/|g' package-lock.json
+      - name: Check secrets present
+        # Step-output gate (portable form — addresses NIT #1). Job-level
+        # `if: ${{ secrets.X != '' }}` is non-portable and silently always-true
+        # on some GHA runners.
+        id: secret_check
+        env:
+          PLAYWRIGHT_INVITE_CODE: ${{ secrets.PLAYWRIGHT_INVITE_CODE }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          if [ -n "$PLAYWRIGHT_INVITE_CODE" ] && [ -n "$SUPABASE_SECRET_KEY" ]; then
+            echo "have_secrets=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "have_secrets=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install Playwright browsers
+        if: steps.secret_check.outputs.have_secrets == 'true'
+        run: npx playwright install --with-deps chromium
+      - name: Build Next.js (must happen BEFORE Playwright launches — Phase 1 P05 contract)
+        if: steps.secret_check.outputs.have_secrets == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: npm run build
+      - name: Seed test fixtures
+        if: steps.secret_check.outputs.have_secrets == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run db:test-seed
+      - name: Run Playwright smoke against `next start`
+        if: steps.secret_check.outputs.have_secrets == 'true'
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          INVITE_CODE: ${{ secrets.PLAYWRIGHT_INVITE_CODE }}
+          ADMIN_DISPLAY_NAME: ${{ secrets.PLAYWRIGHT_ADMIN_NAME }}
+          PLAYWRIGHT_INVITE_CODE: ${{ secrets.PLAYWRIGHT_INVITE_CODE }}
+          PLAYWRIGHT_ADMIN_NAME: ${{ secrets.PLAYWRIGHT_ADMIN_NAME }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        # webServer in playwright.config.ts re-runs `npm run build && npm run start` —
+        # the explicit build step above warms the .next/ cache so the webServer
+        # invocation is fast (just re-builds incrementally then starts).
+        run: npm run test:e2e
+      - name: Cleanup test fixtures (always)
+        if: always() && steps.secret_check.outputs.have_secrets == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run db:test-clean
+      - name: Upload artifacts on failure
+        if: failure() && steps.secret_check.outputs.have_secrets == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
