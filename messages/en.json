@@ -55,6 +55,34 @@
       "body": "Standings will appear automatically after the first match."
     }
   },
+  "matches": {
+    "cta": "Submit picks before kickoff"
+  },
+  "countdown": {
+    "next": "Next:",
+    "kicksOffIn": "· kicks off in"
+  },
+  "prediction": {
+    "saved": "Saved",
+    "saveFailed": "Couldn't save — tap to retry",
+    "lockedSaveFailed": "Match locked at kickoff. Your pick wasn't saved."
+  },
+  "match": {
+    "kickoffSrLabel": "Kicks off",
+    "lockedAria": "Locked at kickoff",
+    "actual": "FT · Actual"
+  },
+  "pts": {
+    "exact": "exact",
+    "goalDiff": "goal-diff",
+    "winner": "winner",
+    "miss": "(missed)",
+    "correct": "correct"
+  },
+  "matchesEmpty": {
+    "post": { "heading": "Tournament over", "body": "Thanks for playing. The final leaderboard is set." },
+    "loading": { "heading": "Matches loading", "body": "One moment while we fetch the schedule." }
+  },
   "me": {
     "joinedAt": "Joined {joined_at_local}",
     "localeLabel": "Language",

@@ -123,4 +123,47 @@ assert(
   }).points === 3,
 );
 
+// Plan 02-03 structural assertion: the savePrediction Server Action module
+// MUST export the `savePrediction` symbol with the expected callable shape.
+// We cannot invoke it here (it depends on Next.js request scope + Supabase
+// cookie context), but a static-text grep confirms the module declares
+// `'use server'` and exports `savePrediction`.
+//
+// A dynamic import is intentionally avoided — savePrediction imports
+// next/cache + @/lib/supabase/server which only resolve inside the Next.js
+// runtime. The grep-style structural check is the equivalent for a plain
+// node/tsx context.
+import { readFileSync, existsSync } from 'fs';
+import { resolve } from 'path';
+
+const savePredictionPath = resolve(
+  __dirname,
+  '..',
+  'src',
+  'app',
+  'actions',
+  'savePrediction.ts',
+);
+assert(
+  'savePrediction file exists',
+  existsSync(savePredictionPath),
+);
+const savePredictionSrc = readFileSync(savePredictionPath, 'utf8');
+assert(
+  'savePrediction declares use server',
+  savePredictionSrc.includes("'use server'"),
+);
+assert(
+  'savePrediction exports the function',
+  /export\s+async\s+function\s+savePrediction\s*\(/.test(savePredictionSrc),
+);
+assert(
+  'savePrediction calls predictionSchema.safeParse',
+  savePredictionSrc.includes('predictionSchema.safeParse'),
+);
+assert(
+  'savePrediction translates RLS 42501 to locked',
+  savePredictionSrc.includes("error.code === '42501'"),
+);
+
 console.log('all scoring smokes pass');

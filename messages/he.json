@@ -55,6 +55,34 @@
       "body": "הניקוד יופיע אוטומטית אחרי המשחק הראשון."
     }
   },
+  "matches": {
+    "cta": "הגישו את הניחושים לפני השריקה"
+  },
+  "countdown": {
+    "next": "הקרוב:",
+    "kicksOffIn": "· בעוד"
+  },
+  "prediction": {
+    "saved": "נשמר",
+    "saveFailed": "הניחוש לא נשמר — הקישו לנסות שוב",
+    "lockedSaveFailed": "המשחק ננעל בשריקת הפתיחה. הניחוש לא נשמר."
+  },
+  "match": {
+    "kickoffSrLabel": "שריקת פתיחה",
+    "lockedAria": "נעול בשריקת הפתיחה",
+    "actual": "סיום · תוצאה"
+  },
+  "pts": {
+    "exact": "מדויק",
+    "goalDiff": "הפרש",
+    "winner": "מנצח",
+    "miss": "(לא קלע)",
+    "correct": "מדויק"
+  },
+  "matchesEmpty": {
+    "post": { "heading": "הטורניר הסתיים", "body": "תודה ששיחקתם. הטבלה הסופית סגורה." },
+    "loading": { "heading": "המשחקים נטענים", "body": "רק רגע ואנחנו טוענים את הלוח." }
+  },
   "me": {
     "joinedAt": "הצטרפת ב־{joined_at_local}",
     "localeLabel": "שפה",
