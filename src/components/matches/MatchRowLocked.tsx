@@ -36,59 +36,65 @@ export async function MatchRowLocked({
   const t = await getTranslations('match');
   const hasPick = userHome !== null && userAway !== null;
   const intlLocale = locale === 'he' ? 'he-IL' : 'en-US';
+  // Mobile-first layout matches the editable variant: team names + time on
+  // top row, score capsule + 🔒 centered on second row. Browser-local time
+  // without tz-name label (viewers share their device clock).
   const time = new Intl.DateTimeFormat(intlLocale, {
     hour: '2-digit',
     minute: '2-digit',
-    timeZoneName: 'short',
   }).format(new Date(kickoffAt));
   return (
     <div
       data-testid={`match-row-${fixtureId}`}
-      className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-3 pbe-3 mbs-3 min-bs-16 flex items-center gap-4"
+      className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-3 pbe-3 mbs-3 flex flex-col gap-3"
     >
-      <div className="flex items-center gap-2 min-is-0 flex-1">
-        <span className="text-xl" aria-hidden>
-          🏴
-        </span>
-        <span className="text-base truncate">
-          {locale === 'he' ? homeTeam.name_he : homeTeam.name_en}
-        </span>
-      </div>
-      {hasPick ? (
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 min-is-0 flex-1">
+          <span className="text-xl" aria-hidden>
+            🏴
+          </span>
+          <span className="text-base truncate">
+            {locale === 'he' ? homeTeam.name_he : homeTeam.name_en}
+          </span>
+        </div>
         <span
           dir="ltr"
-          className="bs-8 inline-flex items-center justify-center pi-3 rounded-full bg-[var(--zc-muted)] text-base font-bold text-[var(--zc-primary)] tabular-nums"
+          className="text-sm text-[var(--zc-muted-foreground)] tabular-nums shrink-0"
         >
-          {userHome} : {userAway}
+          {time}
         </span>
-      ) : (
+        <div className="flex items-center gap-2 min-is-0 flex-1 justify-end">
+          <span className="text-base truncate text-end">
+            {locale === 'he' ? awayTeam.name_he : awayTeam.name_en}
+          </span>
+          <span className="text-xl" aria-hidden>
+            🏴
+          </span>
+        </div>
+      </div>
+      <div className="flex justify-center items-center gap-3">
+        {hasPick ? (
+          <span
+            dir="ltr"
+            className="bs-8 inline-flex items-center justify-center pi-3 rounded-full bg-[var(--zc-muted)] text-base font-bold text-[var(--zc-primary)] tabular-nums"
+          >
+            {userHome} : {userAway}
+          </span>
+        ) : (
+          <span
+            dir="ltr"
+            className="bs-8 inline-flex items-center justify-center pi-3 rounded-full bg-transparent border border-[var(--zc-border)] text-base text-[var(--zc-muted-foreground)] tabular-nums"
+          >
+            - : -
+          </span>
+        )}
         <span
-          dir="ltr"
-          className="bs-8 inline-flex items-center justify-center pi-3 rounded-full bg-transparent border border-[var(--zc-border)] text-base text-[var(--zc-muted-foreground)] tabular-nums"
+          className="text-base text-[var(--zc-muted-foreground)]"
+          aria-label={t('lockedAria')}
         >
-          - : -
-        </span>
-      )}
-      <span
-        className="ms-2 text-base text-[var(--zc-muted-foreground)]"
-        aria-label={t('lockedAria')}
-      >
-        🔒
-      </span>
-      <div className="flex items-center gap-2 min-is-0 flex-1 justify-end">
-        <span className="text-base truncate text-end">
-          {locale === 'he' ? awayTeam.name_he : awayTeam.name_en}
-        </span>
-        <span className="text-xl" aria-hidden>
-          🏴
+          🔒
         </span>
       </div>
-      <span
-        dir="ltr"
-        className="text-sm text-[var(--zc-muted-foreground)] tabular-nums"
-      >
-        {time}
-      </span>
     </div>
   );
 }

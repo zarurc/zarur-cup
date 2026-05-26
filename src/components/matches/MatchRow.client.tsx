@@ -35,43 +35,49 @@ export function MatchRow({
   initialAway: number | null;
 }) {
   const intlLocale = locale === 'he' ? 'he-IL' : 'en-US';
+  // Mobile layout: stepper on its own row to fit 360px viewports (Plan 02-08
+  // post-execution review caught the overflow). Time is shown in browser-local
+  // tz without a tz-name label since all viewers share their device clock.
   const time = new Intl.DateTimeFormat(intlLocale, {
     hour: '2-digit',
     minute: '2-digit',
-    timeZoneName: 'short',
   }).format(new Date(kickoffAt));
   return (
     <div
       data-testid={`match-row-${fixtureId}`}
-      className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-3 pbe-3 mbs-3 min-bs-16 flex items-center gap-4"
+      className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-3 pbe-3 mbs-3 flex flex-col gap-3"
     >
-      <div className="flex items-center gap-2 min-is-0 flex-1">
-        <span className="text-xl" aria-hidden>
-          🏴
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 min-is-0 flex-1">
+          <span className="text-xl" aria-hidden>
+            🏴
+          </span>
+          <span className="text-base truncate">
+            {locale === 'he' ? homeTeam.name_he : homeTeam.name_en}
+          </span>
+        </div>
+        <span
+          dir="ltr"
+          className="text-sm text-[var(--zc-muted-foreground)] tabular-nums shrink-0"
+        >
+          {time}
         </span>
-        <span className="text-base truncate">
-          {locale === 'he' ? homeTeam.name_he : homeTeam.name_en}
-        </span>
+        <div className="flex items-center gap-2 min-is-0 flex-1 justify-end">
+          <span className="text-base truncate text-end">
+            {locale === 'he' ? awayTeam.name_he : awayTeam.name_en}
+          </span>
+          <span className="text-xl" aria-hidden>
+            🏴
+          </span>
+        </div>
       </div>
-      <MatchRowStepper
-        fixtureId={fixtureId}
-        initialHome={initialHome}
-        initialAway={initialAway}
-      />
-      <div className="flex items-center gap-2 min-is-0 flex-1 justify-end">
-        <span className="text-base truncate text-end">
-          {locale === 'he' ? awayTeam.name_he : awayTeam.name_en}
-        </span>
-        <span className="text-xl" aria-hidden>
-          🏴
-        </span>
+      <div className="flex justify-center">
+        <MatchRowStepper
+          fixtureId={fixtureId}
+          initialHome={initialHome}
+          initialAway={initialAway}
+        />
       </div>
-      <span
-        dir="ltr"
-        className="text-sm text-[var(--zc-muted-foreground)] tabular-nums"
-      >
-        {time}
-      </span>
     </div>
   );
 }
