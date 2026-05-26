@@ -1,12 +1,18 @@
-// src/app/api/_test/save-prediction/route.ts
+// src/app/api/test/save-prediction/route.ts
 //
 // TEST-ONLY route — exposes the savePrediction Server Action over JSON for
 // the Plan 02-08 Playwright smoke (QA-01).
 //
+// FOLDER NAME: must be `test/`, NOT `_test/`. Next.js App Router excludes
+// underscore-prefixed folders from routing entirely (private-folder
+// convention) — the route returns 404 even when the file exists. The
+// production-safety boundary is the NODE_ENV + PLAYWRIGHT_INVITE_CODE gate
+// below, NOT the folder name.
+//
 // Hard gate (T-02-08-07): in production, this route MUST return 403 unless
 // PLAYWRIGHT_INVITE_CODE is set on the server. Production Vercel deploys
 // MUST NOT set PLAYWRIGHT_INVITE_CODE (it's a CI-only secret per
-// 02-USER-SETUP.md). Verification: `curl https://zarur-cup.vercel.app/api/_test/save-prediction`
+// 02-USER-SETUP.md). Verification: `curl https://zarur-cup.vercel.app/api/test/save-prediction`
 // MUST return 403 with no body.
 //
 // Why this route exists: the savePrediction Server Action's wire protocol

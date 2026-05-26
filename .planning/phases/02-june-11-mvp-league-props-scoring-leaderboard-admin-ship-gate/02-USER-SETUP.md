@@ -65,12 +65,12 @@ DELETE FROM profiles WHERE display_name LIKE 'SmokeUser%';
 -- Then via Supabase admin API or dashboard: delete the auth.users row for SmokeUser.
 ```
 
-## Production safety: /api/_test/save-prediction is gated
+## Production safety: /api/test/save-prediction is gated
 
-The test-only route `src/app/api/_test/save-prediction/route.ts` is hard-gated:
+The test-only route `src/app/api/test/save-prediction/route.ts` is hard-gated:
 - In production (`NODE_ENV === 'production'`) it returns HTTP 403 UNLESS `PLAYWRIGHT_INVITE_CODE` is also set.
 - Vercel production env MUST NOT set `PLAYWRIGHT_INVITE_CODE` (it's a CI-only secret).
-- Verify after every deploy: `curl https://zarur-cup.vercel.app/api/_test/save-prediction` MUST return `403` with body `{"ok":false,"error":"unauthenticated"}`.
+- Verify after every deploy: `curl https://zarur-cup.vercel.app/api/test/save-prediction` MUST return `403` with body `{"ok":false,"error":"unauthenticated"}`.
 
 ## Family invite distribution (QA-04)
 

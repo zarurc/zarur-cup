@@ -10,10 +10,14 @@
 // (HTTP 4xx OR `{ ok: false, error: 'locked' | 'rls_denied' }`).
 //
 // This helper POSTs against the test-only JSON route
-// `src/app/api/_test/save-prediction/route.ts` (gated by NODE_ENV +
+// `src/app/api/test/save-prediction/route.ts` (gated by NODE_ENV +
 // PLAYWRIGHT_INVITE_CODE), which internally calls the savePrediction Server
 // Action. The route forwards the action's discriminated result and maps
 // `error: 'locked'` to HTTP 403 so the smoke can assert either form.
+//
+// NB: the folder is `test/`, NOT `_test/`. Next.js excludes underscore-
+// prefixed folders from routing entirely (private-folder convention), so
+// a route under `_test/` returns 404 even when the file exists.
 
 import type { BrowserContext } from '@playwright/test';
 
@@ -55,7 +59,7 @@ export async function attemptPredictionAgainstLockedFixture(
   home: number,
   away: number,
 ): Promise<PredictionWriteResult> {
-  const response = await ctx.request.post('/api/_test/save-prediction', {
+  const response = await ctx.request.post('/api/test/save-prediction', {
     data: { fixture_id: fixtureId, home_score: home, away_score: away },
   });
 
