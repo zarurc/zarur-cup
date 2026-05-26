@@ -14,7 +14,7 @@ progress:
 
 # STATE: Zarur-Cup / משחקי זערור
 
-**Last updated:** 2026-05-24 (Phase 1 COMPLETE — Plan 01-05 shipped: live at https://zarur-cup.vercel.app, Vercel Cron `0 12 */3 * *` registered, husky pre-commit + GitHub Actions CI enforcing FND-03, README + heartbeat smoke test in place; all 26 Phase 1 requirements satisfied)
+**Last updated:** 2026-05-25 (Plan 02-08 QA-01 GREEN — Playwright e2e smoke passing on CI `095a828`. RLS lock contract verified end-to-end. Remaining: QA-02/03/04 manual gates + post-execution audits.)
 
 ## Project Reference
 
@@ -32,9 +32,9 @@ Plan: 8 of 8 partial — Tasks 0/1/2/4 + SUMMARY shipped; QA-01 CI iterating; QA
 |-------|-------|
 | Phase | 2 (June 11 MVP) — Wave 7 partial; QA-01 CI in flight, QA-02/03/04 manual gates pending |
 | Plan | 8 plans across 7 waves; 02-01..02-07 fully shipped + 02-08 partial 2026-05-25 |
-| Status | All product surfaces LIVE on https://zarur-cup.vercel.app. Plan 02-08 (ship gate) blocked on (a) Playwright smoke green on CI + (b) manual mobile QA HE+EN + Hebrew copy review + family WhatsApp send by June 11 19:00 UTC. |
-| Progress | `[█████████░] 88%` (7 / 8 Phase 2 plans complete; 02-08 partial) |
-| Last action | 55 commits pushed to origin/main, Vercel deployed Phase 2 to production. CI e2e job iterating through resolution issues: (1) Supabase IPv6 vs GH Actions IPv4 → user updated DATABASE_URL to Session pooler URL; (2) Node 20 missing native WebSocket → added ws + @types/ws devDeps and passed realtime.transport in test fixtures; (3) npm platform-conditional lockfile drift (Mac install missed Linux SWC binary chain requiring @swc/helpers@0.5.21) → regenerated lockfile with `--include=optional` (commit 4db9430). Currently awaiting CI result on 4db9430. Handoff doc at .planning/phases/02-.../.continue-here.md captures full context. |
+| Status | All product surfaces LIVE on https://zarur-cup.vercel.app. **QA-01 closed (CI green on `095a828`, 2026-05-25).** Plan 02-08 (ship gate) now blocked only on manual gates: mobile QA HE+EN + Hebrew copy review + family WhatsApp send by June 11 19:00 UTC. Post-execution gates (`/gsd-code-review 02` + `gsd-verifier`) can run in parallel. |
+| Progress | `[█████████░] 88%` (7 / 8 Phase 2 plans complete; 02-08 partial — QA-01 ✓, QA-02/03/04 pending) |
+| Last action | QA-01 GREEN on commit `095a828` (Playwright smoke 25.9s, RLS-rejection assertion verified). Took 7 CI iterations: (1-3) lockfile drift + Node 20 WebSocket + IPv6→pooler env fixes; (4) match-row testid missing on locked + resulted variants (`7a71967`); (5) helper used Playwright's top-level `request` fixture instead of `ctx.request` (`1d5e03c`); (6) **root cause** — Next.js App Router excludes `_`-prefixed folders from routing entirely; `src/app/api/_test/save-prediction/route.ts` was never built into the route manifest; renamed `_test` → `test` (`095a828`). All 7 iterations + the BLOCKING anti-pattern documented in `.continue-here.md` for forensic reference. |
 
 ## Roadmap Snapshot
 
