@@ -108,6 +108,19 @@
   max-inline-size: 32rem;
 }
 
+/*
+ * min-is-* — min-inline-size, mirrors min-bs-* (block-axis). Critical for
+ * allowing flex children to shrink below their content's min-content width
+ * so `truncate` actually fires (the default `min-width: auto` on flex items
+ * prevents truncation). Plan 02-08 mobile QA caught the omission.
+ */
+@utility min-is-* {
+  min-inline-size: calc(var(--spacing) * --value(integer));
+}
+@utility min-is-full {
+  min-inline-size: 100%;
+}
+
 @utility mi-* {
   margin-inline: calc(var(--spacing) * --value(integer));
 }
