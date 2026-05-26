@@ -1,0 +1,27 @@
+======================================
+=== Claude transcript: start-issue ===
+======================================
+
+Issue:        #1
+Workflow run: https://github.com/zarurc/zarur-cup/actions/runs/26429256716
+Model:        claude-opus-4-7
+Session:      5915d7d5-5a5a-4d6d-b11b-8c786d770f6c
+Duration:     1s
+Turns:        1
+Cost:         $0.0000
+Status:       ERROR
+
+------------------------------------------------------------------------
+
+--- Turn 1 (Assistant) ---
+
+Failed to authenticate. API Error: 401 Invalid bearer token
+
+------------------------------------------------------------------------
+
+Run summary
+
+  Status:   error
+  Duration: 1s
+  Turns:    1
+  Cost:     $0.0000

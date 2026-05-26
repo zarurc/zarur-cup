@@ -1,0 +1,204 @@
+[
+  {
+    "type": "system",
+    "subtype": "init",
+    "cwd": "/home/runner/work/zarur-cup/zarur-cup",
+    "session_id": "5915d7d5-5a5a-4d6d-b11b-8c786d770f6c",
+    "tools": [
+      "Task",
+      "AskUserQuestion",
+      "Bash",
+      "CronCreate",
+      "CronDelete",
+      "CronList",
+      "Edit",
+      "EnterPlanMode",
+      "EnterWorktree",
+      "ExitPlanMode",
+      "ExitWorktree",
+      "Monitor",
+      "NotebookEdit",
+      "PushNotification",
+      "Read",
+      "RemoteTrigger",
+      "ScheduleWakeup",
+      "Skill",
+      "TaskCreate",
+      "TaskGet",
+      "TaskList",
+      "TaskOutput",
+      "TaskStop",
+      "TaskUpdate",
+      "ToolSearch",
+      "WebFetch",
+      "WebSearch",
+      "Write",
+      "mcp__github_comment__update_claude_comment"
+    ],
+    "mcp_servers": [
+      {
+        "name": "github_comment",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-opus-4-7",
+    "permissionMode": "acceptEdits",
+    "slash_commands": [
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "batch",
+      "fewer-permission-prompts",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator",
+      "clear",
+      "compact",
+      "context",
+      "heapdump",
+      "init",
+      "review",
+      "security-review",
+      "usage",
+      "insights",
+      "goal",
+      "team-onboarding"
+    ],
+    "apiKeySource": "none",
+    "claude_code_version": "2.1.150",
+    "output_style": "default",
+    "agents": [
+      "claude",
+      "claude-code-guide",
+      "Explore",
+      "general-purpose",
+      "Plan",
+      "statusline-setup"
+    ],
+    "skills": [
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "batch",
+      "fewer-permission-prompts",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "plugins": [],
+    "analytics_disabled": false,
+    "product_feedback_disabled": true,
+    "uuid": "e2c8fe95-189c-44a1-8948-9a15773606f9",
+    "memory_paths": {
+      "auto": "/home/runner/.claude/projects/-home-runner-work-zarur-cup-zarur-cup/memory/"
+    },
+    "fast_mode_state": "off"
+  },
+  {
+    "type": "system",
+    "subtype": "api_retry",
+    "attempt": 1,
+    "max_retries": 10,
+    "retry_delay_ms": 521.8440724008263,
+    "error_status": 401,
+    "error": "authentication_failed",
+    "session_id": "5915d7d5-5a5a-4d6d-b11b-8c786d770f6c",
+    "uuid": "8e7f80e5-d886-4039-a741-e6bd641c9053"
+  },
+  {
+    "type": "system",
+    "subtype": "api_retry",
+    "attempt": 2,
+    "max_retries": 10,
+    "retry_delay_ms": 1164.7446020142706,
+    "error_status": 401,
+    "error": "authentication_failed",
+    "session_id": "5915d7d5-5a5a-4d6d-b11b-8c786d770f6c",
+    "uuid": "91a5cedb-71b1-4448-ad5c-e9e08712ed44"
+  },
+  {
+    "type": "assistant",
+    "message": {
+      "id": "dc719c16-5e1e-4abb-9917-d2b6105d35c6",
+      "container": null,
+      "model": "<synthetic>",
+      "role": "assistant",
+      "stop_details": null,
+      "stop_reason": "stop_sequence",
+      "stop_sequence": "",
+      "type": "message",
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": null,
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": null,
+        "iterations": null,
+        "speed": null
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Failed to authenticate. API Error: 401 Invalid bearer token"
+        }
+      ],
+      "context_management": null
+    },
+    "parent_tool_use_id": null,
+    "session_id": "5915d7d5-5a5a-4d6d-b11b-8c786d770f6c",
+    "uuid": "60b5a047-70e8-4552-8217-19a31dbc0bda",
+    "error": "authentication_failed",
+    "request_id": "req_011CbQRGxBQCK1xwTicnnUKG"
+  },
+  {
+    "type": "result",
+    "subtype": "success",
+    "is_error": true,
+    "api_error_status": 401,
+    "duration_ms": 1832,
+    "duration_api_ms": 0,
+    "num_turns": 1,
+    "result": "Failed to authenticate. API Error: 401 Invalid bearer token",
+    "stop_reason": "stop_sequence",
+    "session_id": "5915d7d5-5a5a-4d6d-b11b-8c786d770f6c",
+    "total_cost_usd": 0,
+    "usage": {
+      "input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 0,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {},
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "876929fc-6101-408d-816a-3fcc2c709729"
+  }
+]
