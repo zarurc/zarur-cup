@@ -75,13 +75,13 @@ export function CountdownBanner({ upcoming }: { upcoming: UpcomingFixture[] }) {
   const isEscalation = remaining <= ESCALATION_THRESHOLD_MS;
 
   return (
-    <div className="fixed inset-bs-14 inset-i-0 z-30 bs-10 bg-[var(--zc-card)] border-b border-[var(--zc-border)] pi-4 flex items-center justify-between gap-4">
-      <span className="text-sm font-bold text-[var(--zc-primary)] truncate">
+    <div className="fixed inset-bs-14 inset-i-0 z-30 bs-10 bg-[var(--zc-card)] border-b border-[var(--zc-border)] pi-4 flex items-center justify-between gap-3">
+      <span className="text-sm font-bold text-[var(--zc-primary)] truncate min-is-0">
         {t('next')} {current.home_name} vs {current.away_name}
       </span>
       <span
         dir="ltr"
-        className={`text-base font-bold tabular-nums ${isEscalation ? 'text-[var(--zc-accent)]' : 'text-[var(--zc-primary)]'}`}
+        className={`text-base font-bold tabular-nums shrink-0 ${isEscalation ? 'text-[var(--zc-accent)]' : 'text-[var(--zc-primary)]'}`}
       >
         {t('kicksOffIn')} {formatRemaining(remaining)}
       </span>

@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { PtsBadge, type PtsKind } from '@/components/ui/PtsBadge';
+import { codeToFlag } from '@/lib/teams/codeToFlag';
 
 /**
  * Post-result reveal row per UI-SPEC §4 + SCR-07 + VIS-05.
@@ -55,25 +56,25 @@ export async function MatchRowResulted({
     >
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 min-is-0 flex-1">
-          <span className="text-xl" aria-hidden>
-            🏴
+          <span className="text-xl shrink-0" aria-hidden>
+            {codeToFlag(homeTeam.code)}
           </span>
-          <span className="text-base truncate">
+          <span className="text-base truncate min-is-0">
             {locale === 'he' ? homeTeam.name_he : homeTeam.name_en}
           </span>
         </div>
         <span
           dir="ltr"
-          className="bs-8 inline-flex items-center justify-center pi-3 rounded-full bg-[var(--zc-primary)] text-base font-bold text-[var(--zc-primary-foreground)] tabular-nums"
+          className="bs-8 inline-flex items-center justify-center pi-3 rounded-full bg-[var(--zc-primary)] text-base font-bold text-[var(--zc-primary-foreground)] tabular-nums shrink-0"
         >
           {resultHome} : {resultAway}
         </span>
         <div className="flex items-center gap-2 min-is-0 flex-1 justify-end">
-          <span className="text-base truncate text-end">
+          <span className="text-base truncate text-end min-is-0">
             {locale === 'he' ? awayTeam.name_he : awayTeam.name_en}
           </span>
-          <span className="text-xl" aria-hidden>
-            🏴
+          <span className="text-xl shrink-0" aria-hidden>
+            {codeToFlag(awayTeam.code)}
           </span>
         </div>
         <span className="text-sm text-[var(--zc-muted-foreground)]">

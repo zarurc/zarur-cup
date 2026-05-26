@@ -1,6 +1,7 @@
 'use client';
 
 import { MatchRowStepper } from './MatchRowStepper.client';
+import { codeToFlag } from '@/lib/teams/codeToFlag';
 
 type Team = { code: string; name_en: string; name_he: string };
 
@@ -49,10 +50,10 @@ export function MatchRow({
     >
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 min-is-0 flex-1">
-          <span className="text-xl" aria-hidden>
-            🏴
+          <span className="text-xl shrink-0" aria-hidden>
+            {codeToFlag(homeTeam.code)}
           </span>
-          <span className="text-base truncate">
+          <span className="text-base truncate min-is-0">
             {locale === 'he' ? homeTeam.name_he : homeTeam.name_en}
           </span>
         </div>
@@ -63,11 +64,11 @@ export function MatchRow({
           {time}
         </span>
         <div className="flex items-center gap-2 min-is-0 flex-1 justify-end">
-          <span className="text-base truncate text-end">
+          <span className="text-base truncate text-end min-is-0">
             {locale === 'he' ? awayTeam.name_he : awayTeam.name_en}
           </span>
-          <span className="text-xl" aria-hidden>
-            🏴
+          <span className="text-xl shrink-0" aria-hidden>
+            {codeToFlag(awayTeam.code)}
           </span>
         </div>
       </div>
