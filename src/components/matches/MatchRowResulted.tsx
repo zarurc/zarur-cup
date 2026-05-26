@@ -59,8 +59,11 @@ export async function MatchRowResulted({
           <span className="text-xl shrink-0" aria-hidden>
             {codeToFlag(homeTeam.code)}
           </span>
-          <span className="text-base truncate min-is-0">
-            {locale === 'he' ? homeTeam.name_he : homeTeam.name_en}
+          <span
+            className="text-base font-bold tabular-nums"
+            aria-label={locale === 'he' ? homeTeam.name_he : homeTeam.name_en}
+          >
+            {homeTeam.code}
           </span>
         </div>
         <span
@@ -70,8 +73,11 @@ export async function MatchRowResulted({
           {resultHome} : {resultAway}
         </span>
         <div className="flex items-center gap-2 min-is-0 flex-1 justify-end">
-          <span className="text-base truncate text-end min-is-0">
-            {locale === 'he' ? awayTeam.name_he : awayTeam.name_en}
+          <span
+            className="text-base font-bold tabular-nums text-end"
+            aria-label={locale === 'he' ? awayTeam.name_he : awayTeam.name_en}
+          >
+            {awayTeam.code}
           </span>
           <span className="text-xl shrink-0" aria-hidden>
             {codeToFlag(awayTeam.code)}

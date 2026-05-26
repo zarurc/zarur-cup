@@ -21,8 +21,10 @@ import { useTranslations } from 'next-intl';
  */
 export type UpcomingFixture = {
   kickoff_at: string;
-  home_name: string;
-  away_name: string;
+  /** Short label — FIFA 3-letter code or knockout placeholder ("1A", "W49"). */
+  home_label: string;
+  /** Short label — FIFA 3-letter code or knockout placeholder ("1A", "W49"). */
+  away_label: string;
 };
 
 const ESCALATION_THRESHOLD_MS = 60_000;
@@ -76,8 +78,8 @@ export function CountdownBanner({ upcoming }: { upcoming: UpcomingFixture[] }) {
 
   return (
     <div className="fixed inset-bs-14 inset-i-0 z-30 bs-10 bg-[var(--zc-card)] border-b border-[var(--zc-border)] pi-4 flex items-center justify-between gap-3">
-      <span className="text-sm font-bold text-[var(--zc-primary)] truncate min-is-0">
-        {t('next')} {current.home_name} vs {current.away_name}
+      <span className="text-sm font-bold text-[var(--zc-primary)] truncate min-is-0 tabular-nums">
+        {t('next')} {current.home_label} vs {current.away_label}
       </span>
       <span
         dir="ltr"

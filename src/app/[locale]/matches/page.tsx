@@ -172,16 +172,8 @@ export default async function MatchesPage({ params }: Props) {
     .filter((f) => new Date(f.kickoff_at).getTime() > now)
     .map((f) => ({
       kickoff_at: f.kickoff_at,
-      home_name: f.home_team
-        ? safeLocale === 'he'
-          ? f.home_team.name_he
-          : f.home_team.name_en
-        : (f.home_placeholder ?? '?'),
-      away_name: f.away_team
-        ? safeLocale === 'he'
-          ? f.away_team.name_he
-          : f.away_team.name_en
-        : (f.away_placeholder ?? '?'),
+      home_label: f.home_team?.code ?? f.home_placeholder ?? '?',
+      away_label: f.away_team?.code ?? f.away_placeholder ?? '?',
     }));
 
   // groupByLocalDate is generic over the row shape — only `kickoff_at` is
