@@ -1,0 +1,49 @@
+# Translates a /claude-review comment on a PR into a claude:ready-for-review
+# label application, which kicks off the existing pipeline:
+#   claude-pr-review.yml -> claude-apply-review-fixes.yml -> claude:done
+#
+# Re-triggering is allowed: if the PR already has claude:review-complete or
+# claude:done, those labels are removed first so the pipeline starts cleanly
+# from claude:ready-for-review.
+#
+# Dependencies:
+#   - Labels claude:ready-for-review, claude:review-complete, claude:done.
+#   - Secret CLAUDE_AUTOMATION_PAT (same as other claude-*.yml workflows) so
+#     the label add fires the downstream pull_request:labeled event.
+
+name: Claude Review Comment Trigger
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: claude-review-comment-trigger-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  apply-label:
+    if: >
+      github.event.issue.pull_request != null &&
+      contains(github.event.comment.body, '/claude-review') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    env:
+      PR_NUMBER: ${{ github.event.issue.number }}
+      GH_TOKEN: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Strip terminal labels and apply claude:ready-for-review
+        run: |
+          set -euo pipefail
+          # Remove ready-for-review first too: if it's already there, the
+          # downstream pull_request:labeled event won't fire unless we
+          # remove-then-add. gh runs --remove-label before --add-label in
+          # a single edit, so the add always emits a fresh labeled event.
+          gh pr edit "$PR_NUMBER" --repo "$REPO" \
+            --remove-label "claude:ready-for-review" \
+            --remove-label "claude:review-complete" \
+            --remove-label "claude:done" \
+            --add-label "claude:ready-for-review"

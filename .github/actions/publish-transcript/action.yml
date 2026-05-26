@@ -1,0 +1,157 @@
+name: Publish Claude transcript
+description: >
+  Render the Claude execution transcript and commit it to the claude-transcripts
+  orphan branch. Returns URLs for the rendered text and the raw JSON.
+
+inputs:
+  execution-file:
+    required: true
+    description: Path to the SDKMessage[] JSON file produced by claude-code-action.
+  workflow-name:
+    required: true
+    description: Workflow identifier used in the filename (start-issue, pr-review, apply-review-fixes).
+  issue-number:
+    required: false
+    default: ""
+    description: Originating issue number. Used to pick the directory (issue-<N>/...).
+  pr-number:
+    required: false
+    default: ""
+    description: Pull request number. Falls back to pr-<N>/... when issue is unknown.
+  branch:
+    required: false
+    default: ""
+    description: Source branch name. Informational, included in the rendered header only.
+  run-url:
+    required: true
+    description: GitHub Actions run URL, embedded in the transcript header.
+  gh-token:
+    required: true
+    description: Token with contents:write permission on this repo.
+
+outputs:
+  transcript-url:
+    description: URL of the rendered transcript on the claude-transcripts branch.
+    value: ${{ steps.push.outputs.transcript_url }}
+  raw-json-url:
+    description: URL of the raw JSON on the claude-transcripts branch.
+    value: ${{ steps.push.outputs.raw_json_url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Render transcript
+      shell: bash
+      env:
+        EXECUTION_FILE: ${{ inputs.execution-file }}
+        ISSUE_NUMBER: ${{ inputs.issue-number }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        BRANCH: ${{ inputs.branch }}
+        WORKFLOW: ${{ inputs.workflow-name }}
+        RUN_URL: ${{ inputs.run-url }}
+      run: |
+        set -euo pipefail
+        mkdir -p ./.transcript-staging
+        cp "$EXECUTION_FILE" ./.transcript-staging/raw.json
+
+        TRANSCRIPT_META=$(jq -nc \
+          --arg issue "$ISSUE_NUMBER" \
+          --arg pr "$PR_NUMBER" \
+          --arg branch "$BRANCH" \
+          --arg workflow "$WORKFLOW" \
+          --arg run_url "$RUN_URL" \
+          '{
+            issue: ($issue | if . == "" then null else (tonumber? // null) end),
+            pr: ($pr | if . == "" then null else (tonumber? // null) end),
+            branch: ($branch | if . == "" then null else . end),
+            workflow: $workflow,
+            run_url: $run_url
+          }') \
+        node "$GITHUB_WORKSPACE/.github/scripts/render-transcript.mjs" \
+          ./.transcript-staging/raw.json \
+          > ./.transcript-staging/transcript.txt
+
+    - name: Push transcript to claude-transcripts branch
+      id: push
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+        ISSUE_NUMBER: ${{ inputs.issue-number }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        WORKFLOW: ${{ inputs.workflow-name }}
+        RUN_ID: ${{ github.run_id }}
+        REPO: ${{ github.repository }}
+        SERVER_URL: ${{ github.server_url }}
+      run: |
+        set -euo pipefail
+
+        if [ -n "$ISSUE_NUMBER" ]; then
+          DIR="issue-${ISSUE_NUMBER}"
+        elif [ -n "$PR_NUMBER" ]; then
+          DIR="pr-${PR_NUMBER}"
+        else
+          DIR="orphan-runs"
+        fi
+
+        FILE_BASE="${WORKFLOW}-${RUN_ID}"
+
+        TRANSCRIPT_REPO_DIR="$(mktemp -d)/transcripts"
+        git clone --no-tags --depth 1 \
+          "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" \
+          "$TRANSCRIPT_REPO_DIR" >/dev/null 2>&1
+
+        pushd "$TRANSCRIPT_REPO_DIR" >/dev/null
+        git config user.name "claude-transcripts-bot"
+        git config user.email "claude-transcripts-bot@users.noreply.github.com"
+
+        if git ls-remote --exit-code --heads origin claude-transcripts >/dev/null 2>&1; then
+          # `git clone --depth 1` above implies --single-branch, which sets the
+          # remote fetch refspec to only the default branch. A bare
+          # `git fetch origin claude-transcripts` then writes the fetched ref
+          # to FETCH_HEAD only, not to refs/remotes/origin/claude-transcripts,
+          # so the subsequent checkout fails with "pathspec did not match".
+          # The explicit <src>:<dst> refspec creates a local branch directly.
+          git fetch origin claude-transcripts:claude-transcripts --depth=1
+          git checkout claude-transcripts
+        else
+          git checkout --orphan claude-transcripts
+          git rm -rf . >/dev/null 2>&1 || true
+          {
+            echo "# Claude transcripts"
+            echo
+            echo "Auto-generated run transcripts from the Claude PR automation chain."
+            echo "See AUTOMATION.md on the default branch for details."
+          } > README.md
+          git add README.md
+          git commit -m "Initialize claude-transcripts branch"
+        fi
+
+        mkdir -p "$DIR"
+        cp "${GITHUB_WORKSPACE}/.transcript-staging/transcript.txt" "${DIR}/${FILE_BASE}.txt"
+        cp "${GITHUB_WORKSPACE}/.transcript-staging/raw.json"       "${DIR}/${FILE_BASE}.json"
+
+        git add "${DIR}/${FILE_BASE}.txt" "${DIR}/${FILE_BASE}.json"
+        if git diff --cached --quiet; then
+          echo "::warning::no transcript changes to commit"
+        else
+          git commit -m "transcript: ${WORKFLOW} run ${RUN_ID} (${DIR})"
+        fi
+
+        for attempt in 1 2 3 4 5; do
+          if git push origin claude-transcripts; then
+            break
+          fi
+          if [ "$attempt" -eq 5 ]; then
+            echo "::error::failed to push transcript after 5 attempts"
+            exit 1
+          fi
+          git pull --rebase origin claude-transcripts
+          sleep $((attempt * 2))
+        done
+
+        popd >/dev/null
+
+        TX_URL="${SERVER_URL}/${REPO}/blob/claude-transcripts/${DIR}/${FILE_BASE}.txt"
+        JSON_URL="${SERVER_URL}/${REPO}/blob/claude-transcripts/${DIR}/${FILE_BASE}.json"
+        echo "transcript_url=${TX_URL}" >> "$GITHUB_OUTPUT"
+        echo "raw_json_url=${JSON_URL}" >> "$GITHUB_OUTPUT"

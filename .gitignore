@@ -62,3 +62,12 @@ next-env.d.ts
 # admin storageState — minted out-of-band via scripts/db-mint-admin-session.cjs,
 # contains a session cookie + JWT for the bootstrap admin; never commit.
 tests/e2e/.admin-storage-state.json
+
+# Claude PR-bot workflow scratch files (consumed by CI runs, never artifacts)
+/plan.md
+/debug-notes.md
+/review-context.json
+/review-report.json
+/verify-report.json
+/critic-verdict.json
+/pr-diff.patch

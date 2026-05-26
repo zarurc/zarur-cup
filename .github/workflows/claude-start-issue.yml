@@ -1,0 +1,163 @@
+name: Claude start work on issue
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  # Cheap idempotency guard in front of the expensive Opus run. The trigger
+  # label can be re-applied by upstream automation (project board webhook,
+  # manual relabel) even after work is already in flight, which would
+  # otherwise spawn a fresh start-issue run on a throwaway branch each time.
+  # This precheck strips the label and exits 0 when the issue has already
+  # been handed off to review (claude:pr-ready / claude:done) or already
+  # has an open PR referencing it via `closes #N` / `fixes #N` / `resolves #N`.
+  precheck:
+    if: github.event.label.name == 'claude:in-progress'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    env:
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Decide whether work is already in flight
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          LABELS=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json labels --jq '.labels[].name')
+          REASON=""
+          OPEN_PR=""
+
+          if echo "$LABELS" | grep -qx "claude:pr-ready"; then
+            REASON="issue already carries claude:pr-ready"
+          elif echo "$LABELS" | grep -qx "claude:done"; then
+            REASON="issue already carries claude:done"
+          else
+            # --limit caps gh's default of 30. Repos rarely have >200 open
+            # PRs, but the cost of widening is one paginated REST call.
+            OPEN_PR=$(gh pr list --repo "$REPO" --state open --limit 200 --json number,body \
+              --jq '.[] | select(.body | test("(?i)(close[sd]?|fix(es|ed)?|resolve[sd]?)[[:space:]]+#'"$ISSUE_NUMBER"'\\b")) | .number' \
+              | head -n 1)
+            if [ -n "$OPEN_PR" ]; then
+              REASON="open PR #$OPEN_PR already references issue #$ISSUE_NUMBER"
+            fi
+          fi
+
+          if [ -n "$REASON" ]; then
+            echo "Skipping start-issue: $REASON"
+            {
+              echo "skip=true"
+              echo "reason=$REASON"
+              echo "open_pr=$OPEN_PR"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Strip stale claude:in-progress and post one-time notice
+        if: steps.check.outputs.skip == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+          REASON: ${{ steps.check.outputs.reason }}
+          OPEN_PR: ${{ steps.check.outputs.open_pr }}
+        run: |
+          set -euo pipefail
+
+          gh issue edit "$ISSUE_NUMBER" --repo "$REPO" --remove-label "claude:in-progress" >/dev/null \
+            || echo "::warning::could not remove claude:in-progress from issue #$ISSUE_NUMBER"
+
+          # Only comment once per loop so a misbehaving upstream re-stamper
+          # cannot turn this guard into a comment spammer. Skip the notice
+          # if any of the most recent 5 comments is already the same notice.
+          # Identify by body prefix (not author) since the PAT-authored
+          # comment shows up under the repo owner's login, not a bot login.
+          if gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments?per_page=5" \
+              --jq '.[].body' 2>/dev/null \
+              | grep -qF "Skipped claude-start-issue:"; then
+            echo "Notice already posted in the last 5 comments; staying silent."
+            exit 0
+          fi
+
+          NOTICE="Skipped claude-start-issue: ${REASON}. Removed claude:in-progress to break the re-trigger loop."
+          if [ -n "$OPEN_PR" ]; then
+            NOTICE="$NOTICE See PR #${OPEN_PR} for the in-flight work."
+          fi
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "$NOTICE" \
+            || echo "::warning::could not comment on issue #$ISSUE_NUMBER"
+
+  start:
+    needs: precheck
+    # Belt-and-suspenders: the label check guarantees we never run on a
+    # different label even if the precheck job was skipped (in which case
+    # `needs.precheck.outputs.skip` is the empty string, which !=
+    # 'true' evaluates to TRUE).
+    if: github.event.label.name == 'claude:in-progress' && needs.precheck.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Load start-issue prompt
+        id: prompt
+        run: |
+          {
+            echo 'value<<PROMPT_EOF'
+            cat .claude/workflows/start-issue.md
+            printf '\n'
+            echo 'PROMPT_EOF'
+          } >> "$GITHUB_OUTPUT"
+      - uses: anthropics/claude-code-action@v1
+        id: claude
+        env:
+          # Activates .claude/hooks/require-plan.mjs. The hook blocks any
+          # Edit/Write/MultiEdit until ./plan.md exists at the repo root.
+          # Test edits are NOT gated in this workflow, the TDD RED step
+          # legitimately writes new tests before any production code.
+          CLAUDE_REQUIRE_PLAN: "1"
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          label_trigger: "claude:in-progress"
+          base_branch: main
+          branch_prefix: "claude/issue-"
+          track_progress: true
+          prompt: ${{ steps.prompt.outputs.value }}
+          claude_args: >-
+            --model claude-opus-4-7
+            --allowed-tools "Bash(git *),Bash(gh *),Bash(npm *),Bash(npx *),Edit,Write,Read,Glob,Grep"
+
+      - name: Publish transcript to claude-transcripts branch
+        if: always() && steps.claude.outputs.execution_file
+        id: transcript
+        uses: ./.github/actions/publish-transcript
+        with:
+          execution-file: ${{ steps.claude.outputs.execution_file }}
+          workflow-name: start-issue
+          issue-number: ${{ github.event.issue.number }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          gh-token: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+
+      - name: Comment transcript link on issue
+        if: always() && steps.transcript.outputs.transcript-url
+        env:
+          GH_TOKEN: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          TX_URL: ${{ steps.transcript.outputs.transcript-url }}
+          JSON_URL: ${{ steps.transcript.outputs.raw-json-url }}
+        run: |
+          set -euo pipefail
+          gh issue comment "$ISSUE_NUMBER" \
+            --body "Claude transcript (start-issue): [view]($TX_URL) · [raw JSON]($JSON_URL)" \
+            || echo "::warning::could not comment on issue #$ISSUE_NUMBER"

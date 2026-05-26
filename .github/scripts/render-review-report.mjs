@@ -1,0 +1,161 @@
+#!/usr/bin/env node
+// Renders review-report.json (produced by .claude/workflows/apply-review-fixes.md)
+// as Markdown for posting as a PR comment. Reads path from argv[2], writes to stdout.
+//
+// Contract: any missing field renders as a placeholder, the script never
+// throws on partial input. Schema lives in .claude/workflows/apply-review-fixes.md.
+
+import { readFileSync } from "node:fs";
+
+const path = process.argv[2];
+if (!path) {
+  console.error("usage: render-review-report.mjs <path-to-review-report.json>");
+  process.exit(2);
+}
+
+const raw = readFileSync(path, "utf8");
+const report = JSON.parse(raw);
+
+const SUBSCORES = [
+  ["correctness", "Correctness", 40],
+  ["test_coverage", "Test coverage", 20],
+  ["standards", "Standards", 15],
+  ["scope", "Scope", 10],
+  ["risk", "Risk", 10],
+  ["documentation", "Documentation", 5],
+];
+
+const pre = report?.grades?.pre_review ?? null;
+const post = report?.grades?.post_fix ?? null;
+
+function cell(value) {
+  if (value === null || value === undefined || value === "") return "n/a";
+  return String(value);
+}
+
+function gradeRow(key, label, max) {
+  const preScore = pre?.subscores?.[key];
+  const postScore = post?.subscores?.[key];
+  const delta =
+    typeof preScore === "number" && typeof postScore === "number"
+      ? postScore - preScore
+      : null;
+  const deltaCell =
+    delta === null ? "n/a" : delta > 0 ? `+${delta}` : `${delta}`;
+  return `| ${label} (max ${max}) | ${cell(preScore)} | ${cell(postScore)} | ${deltaCell} |`;
+}
+
+const totalDelta =
+  typeof pre?.total === "number" && typeof post?.total === "number"
+    ? post.total - pre.total
+    : null;
+const totalDeltaCell =
+  totalDelta === null
+    ? "n/a"
+    : totalDelta > 0
+      ? `+${totalDelta}`
+      : `${totalDelta}`;
+
+const lines = [];
+
+lines.push(`# Claude run summary, issue #${cell(report.issue_number)}`);
+lines.push("");
+lines.push(`PR: #${cell(report.pr_number)}`);
+lines.push("");
+lines.push("## Grades");
+lines.push("");
+lines.push("| Subscore | Pre-review | Post-fix | Delta |");
+lines.push("|---|---:|---:|---:|");
+for (const [key, label, max] of SUBSCORES) {
+  lines.push(gradeRow(key, label, max));
+}
+lines.push(
+  `| **Total** | **${cell(pre?.total)}** | **${cell(post?.total)}** | **${totalDeltaCell}** |`,
+);
+lines.push("");
+
+if (post?.delta_explanation) {
+  lines.push("**What moved the needle:** " + post.delta_explanation);
+  lines.push("");
+}
+
+const critic = report?.critic_verdict ?? null;
+if (critic) {
+  const unresolved = Array.isArray(critic.unresolved_comment_ids)
+    ? critic.unresolved_comment_ids
+    : [];
+  const confidence = cell(critic.overall_confidence);
+  const banner =
+    unresolved.length === 0
+      ? `Critic (confidence: ${confidence}): all comments confirmed resolved.`
+      : `Critic (confidence: ${confidence}): ${unresolved.length} comment(s) flagged unresolved: ${unresolved.join(", ")}.`;
+  lines.push("> " + banner);
+  if (critic.overall_summary) {
+    lines.push(">");
+    lines.push("> " + String(critic.overall_summary).replace(/\n/g, " "));
+  }
+  lines.push("");
+}
+
+lines.push("<details><summary>Subscore rationales</summary>");
+lines.push("");
+for (const [key, label] of SUBSCORES) {
+  lines.push(`#### ${label}`);
+  lines.push("");
+  lines.push(`*Pre-review:* ${cell(pre?.rationale_by_subscore?.[key])}`);
+  lines.push("");
+  lines.push(`*Post-fix:* ${cell(post?.rationale_by_subscore?.[key])}`);
+  lines.push("");
+}
+lines.push("</details>");
+lines.push("");
+
+lines.push("## Implementation summary");
+lines.push("");
+lines.push(cell(report.implementation_summary));
+lines.push("");
+
+lines.push("## Key decisions");
+lines.push("");
+const decisions = Array.isArray(report.key_decisions) ? report.key_decisions : [];
+if (decisions.length === 0) {
+  lines.push("_None recorded._");
+} else {
+  for (const d of decisions) {
+    lines.push(`- **${cell(d?.decision)}**: ${cell(d?.rationale)}`);
+  }
+}
+lines.push("");
+
+lines.push("## Responses to review comments");
+lines.push("");
+const responses = Array.isArray(report.review_responses) ? report.review_responses : [];
+if (responses.length === 0) {
+  lines.push("_No review comments to address._");
+} else {
+  lines.push("| Comment | Action | Commit | Explanation |");
+  lines.push("|---|---|---|---|");
+  for (const r of responses) {
+    const excerpt = (r?.comment_excerpt ?? "").replace(/\|/g, "\\|").replace(/\n/g, " ");
+    const explanation = (r?.explanation ?? "").replace(/\|/g, "\\|").replace(/\n/g, " ");
+    const sha = r?.commit_sha ? `\`${r.commit_sha}\`` : "n/a";
+    lines.push(`| ${cell(r?.comment_id)}: ${excerpt} | ${cell(r?.action)} | ${sha} | ${explanation} |`);
+  }
+}
+lines.push("");
+
+const followUps = Array.isArray(report.follow_ups) ? report.follow_ups : [];
+if (followUps.length > 0) {
+  lines.push("## Follow-ups");
+  lines.push("");
+  for (const f of followUps) {
+    lines.push(`- ${cell(f)}`);
+  }
+  lines.push("");
+}
+
+lines.push("---");
+lines.push("");
+lines.push("_Generated by `.github/workflows/claude-apply-review-fixes.yml`._");
+
+process.stdout.write(lines.join("\n"));

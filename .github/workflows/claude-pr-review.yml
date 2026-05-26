@@ -1,0 +1,194 @@
+# Runs the engineering plugin code-review on a PR.
+#
+# Triggered when the start-issue workflow (or a human) applies the
+# `claude:ready-for-review` label. On completion, flips to `claude:review-complete`
+# which fans out to claude-apply-review-fixes.yml.
+#
+# Manual escape hatch: comment `/claude-review` on any PR. That comment is
+# handled by claude-review-comment-trigger.yml, which applies the
+# `claude:ready-for-review` label so this workflow fires via the labeled
+# event and the full pipeline runs end to end.
+#
+# Dependencies (one-time repo setup):
+#   - Labels: claude:ready-for-review, claude:review-complete must exist.
+#   - Secret: CLAUDE_AUTOMATION_PAT (repo + workflow scopes). GITHUB_TOKEN
+#     cannot be used for the label flip because label events created by
+#     GITHUB_TOKEN do not trigger downstream `pull_request: labeled` workflows.
+
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [labeled]
+
+concurrency:
+  group: claude-pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  claude-review:
+    if: github.event.label.name == 'claude:ready-for-review'
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Checkout PR head
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr checkout "$PR_NUMBER"
+
+      - name: Run Claude Code Review
+        id: claude-review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "claude"
+          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
+          plugins: 'code-review@claude-code-plugins'
+          prompt: |
+            Run `/code-review:code-review ${{ github.repository }}/pull/${{ env.PR_NUMBER }}` to analyze this PR.
+
+            CRITICAL: A freeform analysis is not enough. The downstream `apply-review-fixes` workflow reads `gh pr view <PR#> --json reviews,comments` and acts only on inline review comments. If you do not post structured review comments, your findings are invisible to the rest of the pipeline.
+
+            For every actionable finding (bug, regression risk, missing test, standards violation, security/perf issue), you MUST post an inline review comment on the exact file and line via the GitHub API. Cosmetic-only suggestions can be folded into the summary instead.
+
+            **Inline-comment budget: post at most 10 inline review comments.** A focused review is more useful than an exhaustive one, and the apply-fixes worker has finite turns to address them. If you identify more than 10 actionable issues, choose the 10 highest-severity by this ranking:
+
+              1. correctness / data-loss / security
+              2. regression risk in touched code paths
+              3. missing test for changed behavior
+              4. standards violations documented in the repo's contributing guide (dead code, scope creep, unused imports, type-safety bypasses)
+              5. performance and accessibility
+              6. style / naming / nits
+
+            Drop ties by file: prefer one comment per file before stacking a second on the same file.
+
+            **Every inline comment AND the summary review body MUST start with a single-line severity header so the reader sees the urgency at a glance.** Use one of exactly three markers, picked from the ranking above:
+
+              - `🔴 **[HIGH]** ` for ranks 1, 2, and 3 (correctness, security, data loss, regression risk, missing tests for changed behavior). These are blockers.
+              - `🟡 **[MEDIUM]** ` for rank 4 (standards violations, dead code, scope creep) and rank 5 (performance, accessibility). These should be fixed before merge but are not correctness blockers.
+              - `🟢 **[LOW]** ` for rank 6 (style, naming, nits). These are suggestions.
+
+            The header is the entire first line of the comment body, followed by a blank line, then the comment content. Example:
+
+              ```
+              🔴 **[HIGH]** Missing null-guard before dereference
+
+              `user.email` is dereferenced on line 42 but `user` can be null per the schema on line 18. This will throw at runtime for unauthenticated callers. Add `if (!user) return null` before the access, or narrow the type at the call boundary.
+              ```
+
+            The summary review body (the `--body` content on `gh pr review`) starts with the marker matching the highest severity of any inline comment posted (or `🟢 **[LOW]**` if you submit APPROVE with only style nits, or no marker is needed for APPROVE with zero findings).
+
+            For findings that did NOT make the top 10, add a `## Lower-priority follow-ups` section at the bottom of the review summary (the `gh pr review --body` content). One bullet per finding: `path/to/file.ext:LINE - one-line summary`. The apply-fixes worker reads this section and files each bullet as a new GitHub issue so nothing is dropped silently.
+
+            Steps after running the review:
+
+            1. For each finding with a concrete file + line, create a pending review comment (max 10 inline comments total):
+
+               ```
+               gh api repos/${{ github.repository }}/pulls/${{ env.PR_NUMBER }}/comments \
+                 -f body="<one finding, markdown ok>" \
+                 -f commit_id="<PR head SHA from `gh pr view ${{ env.PR_NUMBER }} --json headRefOid -q .headRefOid`>" \
+                 -f path="<repo-relative path>" \
+                 -F line=<line number> \
+                 -f side=RIGHT
+               ```
+
+               One API call per finding. Do not batch unrelated findings into one comment.
+
+            2. After all inline comments are posted, submit a single review with a short summary and the appropriate event:
+
+               - `REQUEST_CHANGES` if any finding is a correctness, security, or test-coverage blocker.
+               - `COMMENT` if findings are all minor/nits.
+               - `APPROVE` only if there are zero actionable findings.
+
+               ```
+               gh pr review ${{ env.PR_NUMBER }} \
+                 --request-changes \
+                 --body "<2-4 sentence summary; reference the inline comments>"
+               ```
+
+            3. If you find nothing actionable, still submit an `APPROVE` review with a short explanation so the downstream workflow sees a non-empty `reviews` array.
+
+            Never finish without either inline comments + a submitted review, or an approving review. A run that only produces a transcript is a failed run.
+          claude_args: >-
+            --model claude-sonnet-4-6
+            --max-turns 80
+            --allowed-tools "Bash(gh *),Bash(git *),Bash(jq *),Read,Glob,Grep"
+
+      - name: Resolve issue and branch for transcript
+        id: resolve
+        if: always() && steps.claude-review.outputs.execution_file
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ISSUE_NUMBER=$(gh pr view "$PR_NUMBER" --json body --jq '.body' \
+            | grep -oiE '(close[sd]?|fix(es|ed)?|resolve[sd]?)[[:space:]]+#[0-9]+' \
+            | head -n 1 \
+            | grep -oE '[0-9]+' || true)
+          BRANCH=$(gh pr view "$PR_NUMBER" --json headRefName --jq '.headRefName')
+          echo "issue_number=${ISSUE_NUMBER:-}" >> "$GITHUB_OUTPUT"
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish transcript to claude-transcripts branch
+        if: always() && steps.claude-review.outputs.execution_file
+        id: transcript
+        uses: ./.github/actions/publish-transcript
+        with:
+          execution-file: ${{ steps.claude-review.outputs.execution_file }}
+          workflow-name: pr-review
+          issue-number: ${{ steps.resolve.outputs.issue_number }}
+          pr-number: ${{ env.PR_NUMBER }}
+          branch: ${{ steps.resolve.outputs.branch }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          gh-token: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+
+      - name: Comment transcript link on PR and issue
+        if: always() && steps.transcript.outputs.transcript-url
+        env:
+          GH_TOKEN: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+          ISSUE_NUMBER: ${{ steps.resolve.outputs.issue_number }}
+          TX_URL: ${{ steps.transcript.outputs.transcript-url }}
+          JSON_URL: ${{ steps.transcript.outputs.raw-json-url }}
+        run: |
+          set -euo pipefail
+          BODY="Claude transcript (pr-review): [view]($TX_URL) · [raw JSON]($JSON_URL)"
+
+          gh pr comment "$PR_NUMBER" --body "$BODY" \
+            || echo "::warning::could not comment on PR #$PR_NUMBER"
+
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue comment "$ISSUE_NUMBER" --body "$BODY" \
+              || echo "::warning::could not comment on issue #$ISSUE_NUMBER"
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body ":warning: Claude PR review failed. Logs: $RUN_URL" || true
+
+      - name: Flip labels
+        env:
+          GH_TOKEN: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+        run: |
+          set -euo pipefail
+          gh pr edit "$PR_NUMBER" \
+            --remove-label "claude:ready-for-review" \
+            --add-label "claude:review-complete"

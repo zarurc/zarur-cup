@@ -1,0 +1,68 @@
+# Triggered when a PR merges. If the PR closes a linked issue that's currently
+# labeled `claude:in-progress` or `claude:pr-ready`, swap it for `claude:done`
+# so issue labels stay truthful.
+#
+# Scoped to merged PRs only (closed-without-merge does nothing). The
+# Claude-label precheck (either `claude:in-progress` or `claude:pr-ready`)
+# prevents this workflow from mutating non-Claude issues. Both are accepted
+# because `claude-apply-review-fixes.yml` swaps `in-progress` for `pr-ready`
+# when the PR is ready for human review, so the issue may carry either label
+# at merge time.
+#
+# Dependencies (one-time repo setup):
+#   - Labels `claude:in-progress`, `claude:pr-ready`, and `claude:done` must
+#     exist (already required by claude-start-issue.yml and
+#     claude-apply-review-fixes.yml).
+#   - Secret CLAUDE_AUTOMATION_PAT, same as other claude-*.yml workflows, so
+#     downstream issue-labeled workflows could re-trigger if ever added.
+
+name: Claude PR Merged Issue Done
+
+on:
+  pull_request:
+    types: [closed]
+
+concurrency:
+  group: claude-pr-merged-issue-done-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  flip-issue:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      GH_TOKEN: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Resolve linked issue
+        id: resolve
+        run: |
+          set -euo pipefail
+          ISSUE_NUMBER=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json body --jq '.body' \
+            | grep -oiE '(close[sd]?|fix(es|ed)?|resolve[sd]?)[[:space:]]+#[0-9]+' \
+            | head -n 1 \
+            | grep -oE '[0-9]+' || true)
+          echo "issue_number=${ISSUE_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Flip issue labels if Claude-managed
+        if: steps.resolve.outputs.issue_number != ''
+        env:
+          ISSUE_NUMBER: ${{ steps.resolve.outputs.issue_number }}
+        run: |
+          set -euo pipefail
+          HAS_CLAUDE_LABEL=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" \
+            --json labels --jq '.labels[].name' \
+            | grep -Ex 'claude:(in-progress|pr-ready)' || true)
+          if [ -z "$HAS_CLAUDE_LABEL" ]; then
+            echo "Issue #$ISSUE_NUMBER has neither claude:in-progress nor claude:pr-ready; nothing to do."
+            exit 0
+          fi
+          gh issue edit "$ISSUE_NUMBER" --repo "$REPO" \
+            --remove-label "claude:in-progress" \
+            --remove-label "claude:pr-ready" \
+            --add-label "claude:done"

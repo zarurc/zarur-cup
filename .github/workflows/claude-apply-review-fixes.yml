@@ -1,0 +1,636 @@
+# Applies fixes for review comments on a PR, then posts a structured report.
+#
+# Triggered when claude-pr-review.yml flips the PR to `claude:review-complete`.
+# Reads review comments + diff, hands them to Claude with the apply-review-fixes
+# prompt, parses the resulting ./review-report.json, and posts:
+#   - Full report as a PR comment.
+#   - Short summary comment on the originating issue (extracted from PR body).
+#
+# When apply-fixes resolves every blocker (no `rejected` entries in
+# review_responses), it (a) dismisses the stale CHANGES_REQUESTED reviews
+# from the claude bot so `reviewDecision` no longer pins the PR, then
+# (b) runs a narrow verification pass (sonnet, 30 turns, read-only) that
+# checks each claimed fix against its named commit. If every claim
+# verifies, the bot submits an APPROVE review so `reviewDecision` becomes
+# APPROVED and the merge button unblocks. If any claim fails verification,
+# a warning comment is posted listing the unverified items and approval
+# is skipped, leaving the PR at REVIEW_REQUIRED for human attention.
+#
+# Dependencies (one-time repo setup):
+#   - Labels: claude:review-complete, claude:done.
+#   - Secret: CLAUDE_AUTOMATION_PAT (repo + workflow scopes), same as
+#     claude-pr-review.yml. Used for the final label flip, review dismissal,
+#     and the bot-submitted APPROVE.
+#   - Secret (optional): PROJECT_BRIDGE_PAT with project:read+write. Only
+#     needed if the repo uses GitHub Projects v2 boards with an "In review"
+#     column. The "Move project card off In progress" step is a no-op
+#     warning when the secret or the column is absent.
+
+name: Claude Apply Review Fixes
+
+on:
+  pull_request:
+    types: [labeled]
+
+concurrency:
+  group: claude-apply-review-fixes-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  apply-fixes:
+    if: github.event.label.name == 'claude:review-complete'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout PR head
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr checkout "$PR_NUMBER"
+
+      - name: Gather review context
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Review context: reviews, top-level PR comments, decision, branch info.
+          gh pr view "$PR_NUMBER" \
+            --json reviews,comments,reviewDecision,number,title,body,headRefName,baseRefName \
+            > ./review-context.json
+
+          # Inline review thread comments (separate API), merged into a sibling key
+          # so the prompt can address each comment by id.
+          gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/comments" \
+            > ./review-inline-comments.json
+          jq -s '.[0] + {inline_comments: .[1]}' \
+            ./review-context.json ./review-inline-comments.json \
+            > ./review-context.merged.json
+          mv ./review-context.merged.json ./review-context.json
+          rm ./review-inline-comments.json
+
+          # Unified diff vs the PR's base branch. This is the PR as the reviewer
+          # saw it (before any fix commits land in this run). The apply-review-fixes
+          # prompt grades this diff for the pre-review score before editing
+          # anything, then re-grades the post-fix diff at the end.
+          BASE=$(jq -r '.baseRefName' ./review-context.json)
+          git fetch origin "$BASE" --depth=200
+          git diff "origin/${BASE}...HEAD" > ./pr-diff.patch
+
+      - name: Load apply-review-fixes prompt
+        id: prompt
+        run: |
+          {
+            echo 'value<<PROMPT_EOF'
+            cat .claude/workflows/apply-review-fixes.md
+            printf '\n'
+            echo 'PROMPT_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run Claude apply fixes
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        env:
+          # Activates .claude/hooks/require-plan.mjs and
+          # .claude/hooks/no-flail-on-test-edits.mjs.
+          # The first blocks Edit/Write until ./plan.md exists. The second
+          # blocks edits to existing test files until ./debug-notes.md exists,
+          # killing the "make the failing test pass by editing the test"
+          # anti-pattern. Both are documented in .claude/workflows/apply-review-fixes.md.
+          CLAUDE_REQUIRE_PLAN: "1"
+          CLAUDE_GUARD_TEST_EDITS: "1"
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "claude"
+          prompt: ${{ steps.prompt.outputs.value }}
+          claude_args: >-
+            --model claude-opus-4-7
+            --max-turns 250
+            --allowed-tools "Bash(git *),Bash(gh *),Bash(npm *),Bash(npx *),Bash(jq *),Edit,Write,Read,Glob,Grep"
+
+      - name: Render and post report
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if ! jq -e . ./review-report.json >/dev/null 2>&1; then
+            echo "review-report.json missing or malformed; posting fallback comment."
+            {
+              echo "## Claude apply-review-fixes report (fallback)"
+              echo
+              echo "Claude finished but did not produce a parseable \`review-report.json\`."
+              echo "The PR branch may still contain useful commits; please review manually."
+            } > ./report.md
+            gh pr comment "$PR_NUMBER" --body-file ./report.md
+            exit 0
+          fi
+
+          node .github/scripts/render-review-report.mjs ./review-report.json > ./report.md
+
+          gh pr comment "$PR_NUMBER" --body-file ./report.md
+
+          # Short summary on the originating issue, if we can find it.
+          ISSUE_NUMBER=$(jq -r '.issue_number // empty' ./review-report.json)
+          POST_FIX_TOTAL=$(jq -r '.grades.post_fix.total // empty' ./review-report.json)
+          PRE_REVIEW_TOTAL=$(jq -r '.grades.pre_review.total // empty' ./review-report.json)
+          if [ -n "$ISSUE_NUMBER" ]; then
+            PR_URL="https://github.com/${{ github.repository }}/pull/${PR_NUMBER}"
+            REPO="${{ github.repository }}"
+            COMMENT_BODY="Claude finished work on this issue. Pre-review grade: **${PRE_REVIEW_TOTAL}/100**. Post-fix grade: **${POST_FIX_TOTAL}/100**. Full report: ${PR_URL}#issuecomment-latest (see PR comments)."
+            gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "$COMMENT_BODY" || \
+              echo "Could not comment on issue #$ISSUE_NUMBER; continuing."
+          fi
+
+      - name: Reply to each review comment thread
+        # Threads every review comment with the fix worker's response so the
+        # reviewer sees comment + reply inline on the PR Files tab. Reads
+        # review_responses[] from review-report.json (numeric REST comment_id,
+        # action, commit_sha, explanation) and POSTs to
+        # /pulls/{pr}/comments/{id}/replies. Best-effort: a failed reply
+        # (deleted thread, malformed entry) warns and continues.
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if ! jq -e '.review_responses | type == "array"' ./review-report.json >/dev/null 2>&1; then
+            echo "review-report.json missing or has no review_responses array; skipping replies."
+            exit 0
+          fi
+
+          COUNT=$(jq '.review_responses | length' ./review-report.json)
+          echo "Posting replies for ${COUNT} review_responses entry(ies)."
+
+          # `jq -c` emits one JSON object per line. Pipe through `while` so we
+          # can call `gh api` once per entry. Each entry contributes one reply
+          # on the originating inline-comment thread.
+          jq -c '.review_responses[]?' ./review-report.json | while IFS= read -r entry; do
+            COMMENT_ID=$(echo "$entry" | jq -r '.comment_id // empty')
+            ACTION=$(echo "$entry" | jq -r '.action // empty')
+            SHA=$(echo "$entry" | jq -r '.commit_sha // ""')
+            EXPLANATION=$(echo "$entry" | jq -r '.explanation // ""')
+
+            if [ -z "$COMMENT_ID" ] || [ "$COMMENT_ID" = "null" ]; then
+              echo "::warning::review_responses entry missing comment_id; skipping. Entry: $entry"
+              continue
+            fi
+
+            case "$ACTION" in
+              fixed)
+                SHORT_SHA=$(printf '%s' "$SHA" | cut -c1-7)
+                if [ -n "$SHORT_SHA" ]; then
+                  BODY=$(printf '**Fixed** in `%s`.\n\n%s' "$SHORT_SHA" "$EXPLANATION")
+                else
+                  BODY=$(printf '**Fixed.**\n\n%s' "$EXPLANATION")
+                fi
+                ;;
+              deferred)
+                BODY=$(printf '**Deferred** as a follow-up.\n\n%s' "$EXPLANATION")
+                ;;
+              rejected)
+                BODY=$(printf '**Not actioned.**\n\n%s' "$EXPLANATION")
+                ;;
+              *)
+                echo "::warning::unknown action '$ACTION' for comment $COMMENT_ID; skipping reply."
+                continue
+                ;;
+            esac
+
+            if ! gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments/${COMMENT_ID}/replies" \
+                -f body="$BODY" >/dev/null; then
+              echo "::warning::could not post reply on comment ${COMMENT_ID} (deleted, wrong id, or rate-limited)."
+            fi
+          done
+
+      - name: Resolve issue and branch for transcript
+        id: resolve
+        if: always() && steps.claude.outputs.execution_file
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ISSUE_NUMBER=""
+          if jq -e . ./review-report.json >/dev/null 2>&1; then
+            ISSUE_NUMBER=$(jq -r '.issue_number // empty' ./review-report.json)
+          fi
+          if [ -z "$ISSUE_NUMBER" ]; then
+            ISSUE_NUMBER=$(gh pr view "$PR_NUMBER" --json body --jq '.body' \
+              | grep -oiE '(close[sd]?|fix(es|ed)?|resolve[sd]?)[[:space:]]+#[0-9]+' \
+              | head -n 1 \
+              | grep -oE '[0-9]+' || true)
+          fi
+          BRANCH=$(gh pr view "$PR_NUMBER" --json headRefName --jq '.headRefName')
+          echo "issue_number=${ISSUE_NUMBER:-}" >> "$GITHUB_OUTPUT"
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish transcript to claude-transcripts branch
+        if: always() && steps.claude.outputs.execution_file
+        id: transcript
+        uses: ./.github/actions/publish-transcript
+        with:
+          execution-file: ${{ steps.claude.outputs.execution_file }}
+          workflow-name: apply-review-fixes
+          issue-number: ${{ steps.resolve.outputs.issue_number }}
+          pr-number: ${{ env.PR_NUMBER }}
+          branch: ${{ steps.resolve.outputs.branch }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          gh-token: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+
+      - name: Comment transcript link on PR and issue
+        if: always() && steps.transcript.outputs.transcript-url
+        env:
+          GH_TOKEN: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+          ISSUE_NUMBER: ${{ steps.resolve.outputs.issue_number }}
+          TX_URL: ${{ steps.transcript.outputs.transcript-url }}
+          JSON_URL: ${{ steps.transcript.outputs.raw-json-url }}
+        run: |
+          set -euo pipefail
+          BODY="Claude transcript (apply-review-fixes): [view]($TX_URL) · [raw JSON]($JSON_URL)"
+
+          gh pr comment "$PR_NUMBER" --body "$BODY" \
+            || echo "::warning::could not comment on PR #$PR_NUMBER"
+
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue comment "$ISSUE_NUMBER" --body "$BODY" \
+              || echo "::warning::could not comment on issue #$ISSUE_NUMBER"
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body ":warning: Claude apply-review-fixes failed. Logs: $RUN_URL" || true
+
+      - name: Dismiss stale CHANGES_REQUESTED reviews
+        # When apply-fixes resolves every blocker (no `rejected` entries in
+        # review_responses[]), the prior CHANGES_REQUESTED reviews from the
+        # claude bot are stale. GitHub keeps `reviewDecision` pinned to
+        # CHANGES_REQUESTED until those reviews are explicitly dismissed or
+        # superseded by an APPROVE, which is what blocks the merge button
+        # under branch protection. We dismiss any open CHANGES_REQUESTED
+        # reviews authored by the same bot account so the human reviewer
+        # (or auto-merge) can act on the fixed PR.
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if ! jq -e '.review_responses | type == "array"' ./review-report.json >/dev/null 2>&1; then
+            echo "No review_responses array; skipping dismissal."
+            exit 0
+          fi
+
+          REJECTED=$(jq '[.review_responses[] | select(.action == "rejected")] | length' ./review-report.json)
+          if [ "$REJECTED" -gt 0 ]; then
+            echo "${REJECTED} review_responses entry(ies) marked 'rejected'; leaving prior reviews in place so reviewDecision stays CHANGES_REQUESTED."
+            exit 0
+          fi
+
+          FIX_COMMITS=$(jq -r '[.review_responses[] | .commit_sha // empty] | unique | map(.[0:7]) | join(", ")' ./review-report.json)
+          if [ -z "$FIX_COMMITS" ]; then
+            FIX_COMMITS="apply-review-fixes run"
+          fi
+
+          BOT_LOGIN=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" --jq '[.[] | select(.state == "CHANGES_REQUESTED")] | last | .user.login // empty')
+          if [ -z "$BOT_LOGIN" ]; then
+            echo "No CHANGES_REQUESTED reviews on PR #${PR_NUMBER}; nothing to dismiss."
+            exit 0
+          fi
+
+          DISMISS_MSG="Superseded by fixes in ${FIX_COMMITS}. Each blocker was addressed inline; see the apply-review-fixes report comment for the per-thread responses."
+
+          gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" \
+            --jq '.[] | select(.state == "CHANGES_REQUESTED") | select(.user.login == "'"$BOT_LOGIN"'") | .id' \
+            | while IFS= read -r REVIEW_ID; do
+              if [ -z "$REVIEW_ID" ]; then continue; fi
+              echo "Dismissing CHANGES_REQUESTED review ${REVIEW_ID} by ${BOT_LOGIN}."
+              gh api \
+                --method PUT \
+                "repos/${REPO}/pulls/${PR_NUMBER}/reviews/${REVIEW_ID}/dismissals" \
+                -f message="$DISMISS_MSG" \
+                -f event="DISMISS" \
+                >/dev/null \
+                || echo "::warning::could not dismiss review ${REVIEW_ID} (may already be dismissed or insufficient permissions)."
+            done
+
+      - name: Verify claimed fixes
+        # Narrow follow-up to apply-fixes: for each review_responses entry
+        # marked 'fixed', diff the named commit against the file/line of the
+        # original inline comment and decide whether the change actually
+        # addresses that comment's concern. Cheapest possible second-pass
+        # that catches the "bot lied about a fix" failure mode without
+        # rerunning the full code-review prompt. Constrained: sonnet,
+        # 30-turn cap, no Edit, read-only on the working tree.
+        # Output is ./verify-report.json with verified[] and unverified[].
+        # If verify-report.json is missing or malformed, the downstream
+        # APPROVE-vs-comment step treats every claim as unverified and
+        # skips approval so we fail closed, not open.
+        if: steps.claude.outcome == 'success'
+        id: verify
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "claude"
+          prompt: |
+            You are verifying that the apply-review-fixes worker actually addressed each review comment it claimed to fix on PR #${{ env.PR_NUMBER }}. This is a verification pass, NOT a fresh code review. Do not look for new issues, do not re-evaluate severity, do not comment on style.
+
+            Inputs on disk:
+              - ./review-report.json contains a `review_responses[]` array of {comment_id, action, commit_sha, explanation}.
+              - ./review-inline-comments.json may not exist; if not, fetch via `gh api repos/${{ github.repository }}/pulls/${{ env.PR_NUMBER }}/comments`.
+
+            For each entry in review_responses where action == "fixed":
+              1. Read the original inline comment (path + line + body) via gh api.
+              2. Read the commit named by commit_sha: `git show <sha> -- <path>`.
+              3. Decide: does the diff in that commit plausibly address the concern raised in the comment? Be lenient: partial fixes count if they meaningfully reduce the concern. Strict failure cases: the file/area was not touched at all, the change is unrelated, or the change makes the concern worse.
+
+            Skip entries with action == "deferred" or "rejected". Those are NOT claims of being fixed and never count against verification.
+
+            Write `./verify-report.json` with exact shape:
+
+              {
+                "verified": [<comment_id>, ...],
+                "unverified": [{"comment_id": <id>, "reason": "<one-sentence>"}, ...],
+                "summary": "<one-line overall summary, e.g. '5 of 5 claimed fixes verified against their commits'>"
+              }
+
+            Hard limits: do not edit or write any file other than `./verify-report.json`. Do not push commits. Do not post comments. Do not submit reviews. The next workflow step handles posting based on your JSON.
+          claude_args: >-
+            --model claude-sonnet-4-6
+            --max-turns 30
+            --allowed-tools "Bash(git *),Bash(gh *),Bash(jq *),Read,Glob,Grep,Write"
+
+      - name: Post APPROVE or warning based on verification
+        # Reads ./verify-report.json. All verified, submit a bot APPROVE
+        # review so reviewDecision becomes APPROVED and the merge button
+        # unblocks. Any unverified, post a warning comment listing the
+        # unverified claims and leave reviewDecision wherever it landed
+        # (the dismiss-step already nuked the stale CHANGES_REQUESTED, so
+        # the PR sits at REVIEW_REQUIRED and waits for human approval).
+        if: always() && steps.verify.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if ! jq -e '.verified | type == "array"' ./verify-report.json >/dev/null 2>&1; then
+            echo "::warning::verify-report.json missing or malformed; treating as unverified and skipping APPROVE."
+            gh pr comment "$PR_NUMBER" \
+              --body ":warning: Fix verification produced no usable report. Treating all claimed fixes as unverified; the PR needs human review of the fix commits before merge."
+            exit 0
+          fi
+
+          VERIFIED_COUNT=$(jq '.verified | length' ./verify-report.json)
+          UNVERIFIED_COUNT=$(jq '.unverified | length' ./verify-report.json)
+          SUMMARY=$(jq -r '.summary // ""' ./verify-report.json)
+
+          if [ "$UNVERIFIED_COUNT" -gt 0 ]; then
+            UNVERIFIED_LIST=$(jq -r '.unverified[] | "- comment #\(.comment_id): \(.reason)"' ./verify-report.json)
+            BODY=$(printf ':warning: **Fix verification flagged %s of %s claimed fixes as unverified.**\n\n%s\n\nThe stale CHANGES_REQUESTED reviews were dismissed, but the bot is NOT auto-approving. A human reviewer should look at the listed items before merge.\n\n_%s_' \
+              "$UNVERIFIED_COUNT" \
+              "$((VERIFIED_COUNT + UNVERIFIED_COUNT))" \
+              "$UNVERIFIED_LIST" \
+              "$SUMMARY")
+            gh pr comment "$PR_NUMBER" --body "$BODY"
+            exit 0
+          fi
+
+          APPROVE_BODY=$(printf 'All %s claimed fix(es) verified against their commits.\n\n_%s_\n\nThis approval is automated by claude-apply-review-fixes after a constrained verification pass (sonnet, 30 turns, read-only). It does NOT replace human judgment for non-trivial changes.' \
+            "$VERIFIED_COUNT" \
+            "$SUMMARY")
+
+          gh pr review "$PR_NUMBER" \
+            --approve \
+            --body "$APPROVE_BODY"
+
+      - name: Flip labels
+        env:
+          GH_TOKEN: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+        run: |
+          set -euo pipefail
+          gh pr edit "$PR_NUMBER" \
+            --remove-label "claude:review-complete" \
+            --add-label "claude:done"
+
+      - name: Move project card off "In progress"
+        # Runs BEFORE the label swap below. When the repo uses GitHub Projects
+        # v2, a board-automation rule may re-stamp claude:in-progress whenever
+        # the linked issue's card is in the "In progress" column. If we flip
+        # labels first and move the card second, the upstream tick can race
+        # the swap and re-apply claude:in-progress alongside claude:pr-ready,
+        # re-triggering start-issue.yml. Moving the card first removes the
+        # trigger condition before the labels change.
+        #
+        # Best-effort: warns but does not fail. Idempotent: no-op if the card
+        # is already in "In review" or if the board has no "In review" option
+        # (warns once so the misconfig is visible). No-op when the issue is
+        # not on any Projects v2 board.
+        #
+        # Auth: PROJECT_BRIDGE_PAT must carry project:read+write.
+        # GITHUB_TOKEN does not have user or org Projects v2 access by
+        # default, and CLAUDE_AUTOMATION_PAT is repo-scoped only. Omit the
+        # secret if you do not use Projects v2; the step will warn and skip.
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_BRIDGE_PAT }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "PROJECT_BRIDGE_PAT not set; skipping project card move (no-op when Projects v2 is not in use)."
+            exit 0
+          fi
+
+          ISSUE_NUMBER=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json body --jq '.body' \
+            | grep -oiE '(close[sd]?|fix(es|ed)?|resolve[sd]?)[[:space:]]+#[0-9]+' \
+            | head -n 1 \
+            | grep -oE '[0-9]+' || true)
+          if [ -z "$ISSUE_NUMBER" ]; then
+            echo "No linked issue resolved from PR body; skipping project card move."
+            exit 0
+          fi
+
+          OWNER="${REPO%%/*}"
+          REPO_NAME="${REPO#*/}"
+
+          # Look up every Projects v2 board the issue is on, along with each
+          # board's Status field id, its options, and the card's current
+          # Status. We pick the first board whose Status field has an "In
+          # review" option.
+          read -r -d '' QUERY <<'GQL' || true
+          query($owner: String!, $repo: String!, $issue: Int!) {
+            repository(owner: $owner, name: $repo) {
+              issue(number: $issue) {
+                projectItems(first: 10) {
+                  nodes {
+                    id
+                    project { id title }
+                    fieldValueByName(name: "Status") {
+                      ... on ProjectV2ItemFieldSingleSelectValue {
+                        name
+                        field {
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            options { id name }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          GQL
+
+          DATA=$(gh api graphql \
+            -f query="$QUERY" \
+            -F owner="$OWNER" -F repo="$REPO_NAME" -F issue="$ISSUE_NUMBER" \
+            --jq '.data.repository.issue.projectItems.nodes // []' \
+            2>/dev/null || echo "[]")
+
+          if [ "$DATA" = "[]" ] || [ -z "$DATA" ]; then
+            echo "Issue #$ISSUE_NUMBER has no project board memberships; skipping card move."
+            exit 0
+          fi
+
+          SELECTION=$(echo "$DATA" | jq -c '
+            [ .[]
+              | . as $node
+              | ($node.fieldValueByName.field.options // [])[]
+              | select(.name == "In review")
+              | {
+                  itemId: $node.id,
+                  projectId: $node.project.id,
+                  projectTitle: $node.project.title,
+                  fieldId: $node.fieldValueByName.field.id,
+                  optionId: .id,
+                  currentStatus: ($node.fieldValueByName.name // "(unset)")
+                }
+            ] | first // null
+          ')
+
+          if [ "$SELECTION" = "null" ] || [ -z "$SELECTION" ]; then
+            echo "::warning::No project board with an 'In review' Status option found for issue #$ISSUE_NUMBER. Add the column to break the claude:in-progress relabel loop."
+            exit 0
+          fi
+
+          ITEM_ID=$(echo "$SELECTION" | jq -r '.itemId')
+          PROJECT_ID=$(echo "$SELECTION" | jq -r '.projectId')
+          PROJECT_TITLE=$(echo "$SELECTION" | jq -r '.projectTitle')
+          FIELD_ID=$(echo "$SELECTION" | jq -r '.fieldId')
+          OPTION_ID=$(echo "$SELECTION" | jq -r '.optionId')
+          CURRENT_STATUS=$(echo "$SELECTION" | jq -r '.currentStatus')
+
+          if [ "$CURRENT_STATUS" = "In review" ]; then
+            echo "Project card for issue #$ISSUE_NUMBER on '$PROJECT_TITLE' is already in 'In review'; nothing to do."
+            exit 0
+          fi
+
+          read -r -d '' MUTATION <<'GQL' || true
+          mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+            updateProjectV2ItemFieldValue(
+              input: {
+                projectId: $projectId
+                itemId: $itemId
+                fieldId: $fieldId
+                value: { singleSelectOptionId: $optionId }
+              }
+            ) {
+              projectV2Item { id }
+            }
+          }
+          GQL
+
+          if ! gh api graphql \
+              -f query="$MUTATION" \
+              -F projectId="$PROJECT_ID" \
+              -F itemId="$ITEM_ID" \
+              -F fieldId="$FIELD_ID" \
+              -F optionId="$OPTION_ID" >/dev/null; then
+            echo "::warning::Failed to move project card for issue #$ISSUE_NUMBER from '$CURRENT_STATUS' to 'In review' on '$PROJECT_TITLE'. PROJECT_BRIDGE_PAT may need project:write scope."
+            exit 0
+          fi
+
+          echo "Moved project card for issue #$ISSUE_NUMBER on '$PROJECT_TITLE' from '$CURRENT_STATUS' to 'In review'."
+
+      - name: Swap issue label to pr-ready
+        # Runs AFTER the project card has been moved off "In progress" by the
+        # step above. Add claude:pr-ready and remove claude:in-progress on
+        # the linked issue. Split into two separate gh calls so a failure on
+        # either half surfaces a distinct warning. After the swap, verify
+        # the post-condition: if claude:in-progress is still on the issue
+        # (e.g. an upstream racer slipped between the card move and this
+        # swap), retry the removal once.
+        env:
+          GH_TOKEN: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          ISSUE_NUMBER=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json body --jq '.body' \
+            | grep -oiE '(close[sd]?|fix(es|ed)?|resolve[sd]?)[[:space:]]+#[0-9]+' \
+            | head -n 1 \
+            | grep -oE '[0-9]+' || true)
+          if [ -z "$ISSUE_NUMBER" ]; then
+            echo "No linked issue found in PR body; skipping claude:pr-ready label."
+            exit 0
+          fi
+
+          if ! gh issue edit "$ISSUE_NUMBER" --repo "$REPO" --add-label "claude:pr-ready" >/dev/null; then
+            echo "::warning::could not add claude:pr-ready on issue #$ISSUE_NUMBER (label may not exist in repo or insufficient perms)"
+          fi
+          if ! gh issue edit "$ISSUE_NUMBER" --repo "$REPO" --remove-label "claude:in-progress" >/dev/null; then
+            echo "::warning::could not remove claude:in-progress on issue #$ISSUE_NUMBER (may already be absent or insufficient perms)"
+          fi
+
+          if gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json labels --jq '.labels[].name' | grep -qx "claude:in-progress"; then
+            echo "::warning::claude:in-progress still present on issue #$ISSUE_NUMBER after swap; retrying removal."
+            sleep 3
+            gh issue edit "$ISSUE_NUMBER" --repo "$REPO" --remove-label "claude:in-progress" >/dev/null \
+              || echo "::warning::retry to remove claude:in-progress on issue #$ISSUE_NUMBER also failed; issue may carry both labels"
+          fi
+
+      - name: Request human reviewer
+        # Pings the human reviewer AFTER claude:done is set, so the GitHub
+        # review-request notification only fires once the bot cycle has
+        # genuinely finished. Best-effort: a failed request (author ==
+        # reviewer, already requested, rate-limit) warns and exits 0.
+        if: steps.claude.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.CLAUDE_AUTOMATION_PAT }}
+          REPO: ${{ github.repository }}
+          REVIEWER: ${{ vars.CLAUDE_REVIEW_REQUESTER || github.repository_owner }}
+        run: |
+          set -euo pipefail
+          if [ -z "$REVIEWER" ]; then
+            echo "::warning::No reviewer resolved (CLAUDE_REVIEW_REQUESTER unset and github.repository_owner empty). Skipping."
+            exit 0
+          fi
+          PR_AUTHOR=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json author --jq '.author.login')
+          if [ "$REVIEWER" = "$PR_AUTHOR" ]; then
+            echo "::warning::Reviewer ($REVIEWER) is the PR author; GitHub rejects self-review requests. Skipping."
+            exit 0
+          fi
+          if ! gh api \
+              --method POST \
+              "repos/${REPO}/pulls/${PR_NUMBER}/requested_reviewers" \
+              -f "reviewers[]=$REVIEWER" >/dev/null; then
+            echo "::warning::Could not request review from $REVIEWER (already requested, not a collaborator, or rate-limited)."
+          fi
