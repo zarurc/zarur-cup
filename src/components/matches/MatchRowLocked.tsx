@@ -17,6 +17,7 @@ import { getTranslations } from 'next-intl/server';
 type Team = { code: string; name_en: string; name_he: string };
 
 export async function MatchRowLocked({
+  fixtureId,
   locale,
   homeTeam,
   awayTeam,
@@ -24,6 +25,7 @@ export async function MatchRowLocked({
   userHome,
   userAway,
 }: {
+  fixtureId: string;
   locale: 'he' | 'en';
   homeTeam: Team;
   awayTeam: Team;
@@ -40,7 +42,10 @@ export async function MatchRowLocked({
     timeZoneName: 'short',
   }).format(new Date(kickoffAt));
   return (
-    <div className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-3 pbe-3 mbs-3 min-bs-16 flex items-center gap-4">
+    <div
+      data-testid={`match-row-${fixtureId}`}
+      className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-3 pbe-3 mbs-3 min-bs-16 flex items-center gap-4"
+    >
       <div className="flex items-center gap-2 min-is-0 flex-1">
         <span className="text-xl" aria-hidden>
           🏴

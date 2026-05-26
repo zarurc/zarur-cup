@@ -248,6 +248,7 @@ export default async function MatchesPage({ params }: Props) {
                 return (
                   <MatchRowResulted
                     key={f.id}
+                    fixtureId={f.id}
                     locale={safeLocale}
                     homeTeam={homeTeam}
                     awayTeam={awayTeam}
@@ -263,6 +264,7 @@ export default async function MatchesPage({ params }: Props) {
                 return (
                   <MatchRowLocked
                     key={f.id}
+                    fixtureId={f.id}
                     locale={safeLocale}
                     homeTeam={homeTeam}
                     awayTeam={awayTeam}

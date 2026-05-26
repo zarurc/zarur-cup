@@ -23,6 +23,7 @@ type PlayerPick = {
 };
 
 export async function MatchRowResulted({
+  fixtureId,
   locale,
   homeTeam,
   awayTeam,
@@ -30,6 +31,7 @@ export async function MatchRowResulted({
   resultAway,
   picks,
 }: {
+  fixtureId: string;
   locale: 'he' | 'en';
   homeTeam: Team;
   awayTeam: Team;
@@ -47,7 +49,10 @@ export async function MatchRowResulted({
       b.points - a.points || collator.compare(a.display_name, b.display_name),
   );
   return (
-    <div className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-3 pbe-3 mbs-3">
+    <div
+      data-testid={`match-row-${fixtureId}`}
+      className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-3 pbe-3 mbs-3"
+    >
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 min-is-0 flex-1">
           <span className="text-xl" aria-hidden>

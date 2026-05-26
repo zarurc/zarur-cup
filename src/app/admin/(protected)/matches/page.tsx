@@ -238,6 +238,7 @@ export default async function AdminMatchesPage({ searchParams }: Props) {
               return (
                 <MatchRowResulted
                   key={f.id}
+                  fixtureId={f.id}
                   locale="en"
                   homeTeam={homeTeam}
                   awayTeam={awayTeam}
@@ -253,6 +254,7 @@ export default async function AdminMatchesPage({ searchParams }: Props) {
               return (
                 <MatchRowLocked
                   key={f.id}
+                  fixtureId={f.id}
                   locale="en"
                   homeTeam={homeTeam}
                   awayTeam={awayTeam}
