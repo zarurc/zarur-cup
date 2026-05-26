@@ -3,7 +3,7 @@
     "type": "system",
     "subtype": "init",
     "cwd": "/home/runner/work/zarur-cup/zarur-cup",
-    "session_id": "5915d7d5-5a5a-4d6d-b11b-8c786d770f6c",
+    "session_id": "33b4b1c0-005a-41bf-9e5c-433d6f39e524",
     "tools": [
       "Task",
       "AskUserQuestion",
@@ -94,7 +94,7 @@
     "plugins": [],
     "analytics_disabled": false,
     "product_feedback_disabled": true,
-    "uuid": "e2c8fe95-189c-44a1-8948-9a15773606f9",
+    "uuid": "6ca138b3-26b6-442c-9a92-698d43601549",
     "memory_paths": {
       "auto": "/home/runner/.claude/projects/-home-runner-work-zarur-cup-zarur-cup/memory/"
     },
@@ -105,27 +105,27 @@
     "subtype": "api_retry",
     "attempt": 1,
     "max_retries": 10,
-    "retry_delay_ms": 521.8440724008263,
+    "retry_delay_ms": 555.6358189190275,
     "error_status": 401,
     "error": "authentication_failed",
-    "session_id": "5915d7d5-5a5a-4d6d-b11b-8c786d770f6c",
-    "uuid": "8e7f80e5-d886-4039-a741-e6bd641c9053"
+    "session_id": "33b4b1c0-005a-41bf-9e5c-433d6f39e524",
+    "uuid": "fd215add-4499-4757-9f08-2c1d5fb7463a"
   },
   {
     "type": "system",
     "subtype": "api_retry",
     "attempt": 2,
     "max_retries": 10,
-    "retry_delay_ms": 1164.7446020142706,
+    "retry_delay_ms": 1016.5320098020416,
     "error_status": 401,
     "error": "authentication_failed",
-    "session_id": "5915d7d5-5a5a-4d6d-b11b-8c786d770f6c",
-    "uuid": "91a5cedb-71b1-4448-ad5c-e9e08712ed44"
+    "session_id": "33b4b1c0-005a-41bf-9e5c-433d6f39e524",
+    "uuid": "db8b9c4d-d248-4032-af67-9a0f0ee640f5"
   },
   {
     "type": "assistant",
     "message": {
-      "id": "dc719c16-5e1e-4abb-9917-d2b6105d35c6",
+      "id": "9d9a2aaa-1e3e-4d70-82ab-0a6aaaebf0ca",
       "container": null,
       "model": "<synthetic>",
       "role": "assistant",
@@ -160,22 +160,22 @@
       "context_management": null
     },
     "parent_tool_use_id": null,
-    "session_id": "5915d7d5-5a5a-4d6d-b11b-8c786d770f6c",
-    "uuid": "60b5a047-70e8-4552-8217-19a31dbc0bda",
+    "session_id": "33b4b1c0-005a-41bf-9e5c-433d6f39e524",
+    "uuid": "5308fa07-39e5-4609-a615-d2fbcb5e786d",
     "error": "authentication_failed",
-    "request_id": "req_011CbQRGxBQCK1xwTicnnUKG"
+    "request_id": "req_011CbQRkvWipPDdYmzx2grZ7"
   },
   {
     "type": "result",
     "subtype": "success",
     "is_error": true,
     "api_error_status": 401,
-    "duration_ms": 1832,
+    "duration_ms": 1826,
     "duration_api_ms": 0,
     "num_turns": 1,
     "result": "Failed to authenticate. API Error: 401 Invalid bearer token",
     "stop_reason": "stop_sequence",
-    "session_id": "5915d7d5-5a5a-4d6d-b11b-8c786d770f6c",
+    "session_id": "33b4b1c0-005a-41bf-9e5c-433d6f39e524",
     "total_cost_usd": 0,
     "usage": {
       "input_tokens": 0,
@@ -199,6 +199,6 @@
     "permission_denials": [],
     "terminal_reason": "completed",
     "fast_mode_state": "off",
-    "uuid": "876929fc-6101-408d-816a-3fcc2c709729"
+    "uuid": "521e7a69-1f8c-4669-958e-d6892997e72e"
   }
 ]
