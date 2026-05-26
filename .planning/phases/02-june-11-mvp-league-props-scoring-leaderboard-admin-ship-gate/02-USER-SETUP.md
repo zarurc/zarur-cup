@@ -70,7 +70,7 @@ DELETE FROM profiles WHERE display_name LIKE 'SmokeUser%';
 The test-only route `src/app/api/test/save-prediction/route.ts` is hard-gated:
 - In production (`NODE_ENV === 'production'`) it returns HTTP 403 UNLESS `PLAYWRIGHT_INVITE_CODE` is also set.
 - Vercel production env MUST NOT set `PLAYWRIGHT_INVITE_CODE` (it's a CI-only secret).
-- Verify after every deploy: `curl https://zarur-cup.vercel.app/api/test/save-prediction` MUST return `403` with body `{"ok":false,"error":"unauthenticated"}`.
+- Verify after every deploy: `curl -X POST -i https://zarur-cup.vercel.app/api/test/save-prediction` MUST return `HTTP/2 403` with body `{"ok":false,"error":"unauthenticated"}`. (Plain `curl` defaults to GET — the route is POST-only and would return 405; `-X POST` is required to actually exercise the production gate.)
 
 ## Family invite distribution (QA-04)
 

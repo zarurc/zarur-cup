@@ -12,8 +12,9 @@
 // Hard gate (T-02-08-07): in production, this route MUST return 403 unless
 // PLAYWRIGHT_INVITE_CODE is set on the server. Production Vercel deploys
 // MUST NOT set PLAYWRIGHT_INVITE_CODE (it's a CI-only secret per
-// 02-USER-SETUP.md). Verification: `curl https://zarur-cup.vercel.app/api/test/save-prediction`
-// MUST return 403 with no body.
+// 02-USER-SETUP.md). Verification: `curl -X POST -i https://zarur-cup.vercel.app/api/test/save-prediction`
+// MUST return HTTP 403 with body `{"ok":false,"error":"unauthenticated"}`. `-X POST` is required —
+// the route is POST-only; plain `curl` defaults to GET and returns 405, NOT exercising the gate.
 //
 // Why this route exists: the savePrediction Server Action's wire protocol
 // (Next.js multipart with an opaque action ID) is not stable across builds,
@@ -62,6 +63,13 @@ export async function POST(req: NextRequest) {
   }
   if (!result.ok && result.error === 'validation') {
     return NextResponse.json(result, { status: 400 });
+  }
+  // `error: 'network'` from savePrediction means a non-42501 Postgres error
+  // (the upsert failed for a reason other than the RLS lock — e.g., FK
+  // violation, connection drop, etc.). HTTP 500 keeps the route's contract
+  // internally consistent: 2xx implies success body, 4xx/5xx implies failure.
+  if (!result.ok && result.error === 'network') {
+    return NextResponse.json(result, { status: 500 });
   }
   return NextResponse.json(result);
 }

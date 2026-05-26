@@ -22,12 +22,12 @@ provides:
   - "data/test-fixtures.sql + data/test-fixtures-clean.sql for SMOKE_PRE_LOCK (9001) + SMOKE_POST_LOCK (9002)"
   - "tests/e2e/fixtures/{db,api,auth}.ts helpers; tests/e2e/global-teardown.ts"
   - "tests/e2e/smoke.spec.ts — single multi-context E2E with canonical RLS-rejection assertion (D-30 + ROADMAP §SC-5)"
-  - "src/app/api/_test/save-prediction/route.ts — production-gated test wrapper (NODE_ENV='production' && !PLAYWRIGHT_INVITE_CODE -> 403)"
+  - "src/app/api/test/save-prediction/route.ts — production-gated test wrapper (NODE_ENV='production' && !PLAYWRIGHT_INVITE_CODE -> 403)"
   - ".github/workflows/lint.yml — e2e job with portable have_secrets step-output gate; build BEFORE Playwright launches; cleanup if always()"
   - ".planning/phases/02-.../02-USER-SETUP.md + 02-LAUNCH-CHECKLIST.md (QA-01..04 single-file ship gate)"
 affects:
   - "Phase 2 ship: closing QA-01 requires the human-action smoke run (Task 3) against live Supabase; QA-02/03/04 require human sign-off (Task 5)"
-  - "Production safety: /api/_test/save-prediction is hard-gated against production; must verify with `curl https://zarur-cup.vercel.app/api/_test/save-prediction` returns 403 after each deploy"
+  - "Production safety: /api/test/save-prediction is hard-gated against production; must verify with `curl https://zarur-cup.vercel.app/api/test/save-prediction` returns 403 after each deploy"
 
 # Tech tracking
 tech-stack:
@@ -37,7 +37,7 @@ tech-stack:
     - "Pattern 39 (Phase 2): data-testid contract on interactive client components. Use template-literal IDs that include the entity UUID (`match-row-${fixtureId}`, `stepper-${side}-${dir}-${fixtureId}`) so smoke selectors are deterministic against full production seeds (no `.first()` heuristics, no text-content fallback). Keep the literal token (`stepper-home-plus-`, etc.) grep-able in source via a helper map so plan verify-greps work."
     - "Pattern 40 (Phase 2): Playwright smoke MUST run against `next build` + `next start`, never `next dev` — the dev server has StrictMode double-render, turbopack diffs, suppressed warnings that hide bugs production users WILL hit. The webServer command in playwright.config.ts is `npm run build && npm run start` with timeout 240_000ms to cover CI cold-cache."
     - "Pattern 41 (Phase 2): Canonical RLS-rejection assertion in smoke. The cosmetic 🔒 emoji check is supportive only; the canonical check is `attemptPredictionAgainstLockedFixture` -> `expect(writeResult.ok).toBe(false)` + `expect(['locked','rls_denied']).toContain(writeResult.error)`. This closes ROADMAP §SC-5 properly: we observe RLS REJECT a post-kickoff write, not just that the UI looks locked."
-    - "Pattern 42 (Phase 2): Test-only API route gated by NODE_ENV + secret env var. The route at `src/app/api/_test/save-prediction/route.ts` returns 403 in production unless `PLAYWRIGHT_INVITE_CODE` is set; production Vercel deploys MUST NOT set this var. Verification curl on every deploy."
+    - "Pattern 42 (Phase 2): Test-only API route gated by NODE_ENV + secret env var. The route at `src/app/api/test/save-prediction/route.ts` returns 403 in production unless `PLAYWRIGHT_INVITE_CODE` is set; production Vercel deploys MUST NOT set this var. Verification curl on every deploy."
     - "Pattern 43 (Phase 2): Admin context in Playwright is NEVER via JoinForm. The env-bootstrapped admin profile already exists; running JoinForm would trigger the Phase 1 D-04 family-trust rebind logic and either rebind the admin or duplicate it. Mint storageState out-of-band via service-role (scripts/db-mint-admin-session.cjs) and load with `browser.newContext({ storageState })`."
     - "Pattern 44 (Phase 2): CI step-output gate `have_secrets` instead of job-level `if: ${{ secrets.X != '' }}`. The job-level form is non-portable (some runners always evaluate true). The step-output form is portable and explicitly enumerates which secrets are required."
 
@@ -51,7 +51,7 @@ key-files:
     - "tests/e2e/fixtures/auth.ts — joinAsPlayer (UI flow); joinAsAdmin (throws-and-documents)"
     - "tests/e2e/smoke.spec.ts — single E2E with canonical RLS-rejection assertion"
     - "tests/e2e/global-teardown.ts — db:test-clean + auth.users sweep via Admin API"
-    - "src/app/api/_test/save-prediction/route.ts — test-only JSON wrapper around savePrediction; production-gated"
+    - "src/app/api/test/save-prediction/route.ts — test-only JSON wrapper around savePrediction; production-gated"
     - ".planning/phases/02-.../02-USER-SETUP.md"
     - ".planning/phases/02-.../02-LAUNCH-CHECKLIST.md"
     - ".planning/phases/02-.../02-08-SUMMARY.md — this file"
@@ -126,10 +126,10 @@ completed: 2026-05-25 (Tasks 0/1/2/4 only; full plan closure requires human-acti
 - `data/test-fixtures-clean.sql`: FK-safe cascade cleanup of score_events → predictions → prop_answers → fixtures → profiles for SMOKE fixtures + SmokeUser%.
 - `tests/e2e/fixtures/db.ts`: service-role `getFixtureIdByExternalNo` + `getAdminUserId`.
 - `tests/e2e/fixtures/auth.ts`: `joinAsPlayer` (UI flow, verbatim `'Join the Pool'` button + `#display_name` / `#invite_code` IDs); `joinAsAdmin` throws-and-documents (storageState minted out-of-band, never via JoinForm — avoids family-trust rebind).
-- `tests/e2e/fixtures/api.ts`: `attemptPredictionAgainstLockedFixture` POSTs to `/api/_test/save-prediction`, observes HTTP 403 OR `{ ok: false, error }`.
+- `tests/e2e/fixtures/api.ts`: `attemptPredictionAgainstLockedFixture` POSTs to `/api/test/save-prediction`, observes HTTP 403 OR `{ ok: false, error }`.
 - `tests/e2e/smoke.spec.ts`: single multi-context E2E with canonical RLS-rejection assertion. Selectors are `getByTestId()` only — no `.first()` heuristics, no text-content fallback.
 - `tests/e2e/global-teardown.ts`: runs `npm run db:test-clean` + sweeps `auth.users` via Admin API for `user_metadata.smoke_test === true`.
-- `src/app/api/_test/save-prediction/route.ts`: test-only JSON wrapper around the `savePrediction` Server Action; **production-gated** (`NODE_ENV === 'production' && !PLAYWRIGHT_INVITE_CODE → 403`); maps `'locked'` → HTTP 403 so the smoke can assert either status or body.
+- `src/app/api/test/save-prediction/route.ts`: test-only JSON wrapper around the `savePrediction` Server Action; **production-gated** (`NODE_ENV === 'production' && !PLAYWRIGHT_INVITE_CODE → 403`); maps `'locked'` → HTTP 403 so the smoke can assert either status or body.
 
 ### Task 4 — CI + docs (`25ca943`)
 - `.github/workflows/lint.yml`: new `e2e` job (depends on `lint`). Reapplies the JFrog→npmjs lockfile rewrite; portable `have_secrets` step-output gate; **builds Next.js as a separate step BEFORE Playwright launches** (Phase 1 P05 contract honored; webServer then re-runs build with warm `.next/`); seeds test fixtures; runs `npm run test:e2e`; cleans up with `if: always()`; uploads `playwright-report` on failure.
@@ -199,7 +199,7 @@ All eight STRIDE threats (T-02-08-01..08) handled per plan `<threat_model>`:
 - **T-02-08-04** (fork PR EoP via secrets): GHA strips secrets on fork PRs; `have_secrets` step-output gate ensures all e2e steps `if:`-skip when secrets are absent.
 - **T-02-08-05** (Playwright trace artifact info leak): cookies are httpOnly; display_name is non-sensitive; upload gated to `if: failure()`.
 - **T-02-08-06** (malicious DML in test-fixtures.sql): file is PR-reviewed; only INSERTs synthetic 9001/9002 rows + SmokeUser cascade.
-- **T-02-08-07** (/api/_test/save-prediction exposed in prod): hard gate `NODE_ENV === 'production' && !PLAYWRIGHT_INVITE_CODE → 403`. Verification curl on every deploy enumerated in 02-USER-SETUP.md.
+- **T-02-08-07** (/api/test/save-prediction exposed in prod): hard gate `NODE_ENV === 'production' && !PLAYWRIGHT_INVITE_CODE → 403`. Verification curl on every deploy enumerated in 02-USER-SETUP.md.
 - **T-02-08-08** (admin storageState committed): `.gitignore` excludes both `playwright/.auth/` AND `tests/e2e/.admin-storage-state.json` explicitly.
 
 ## Threat Flags
@@ -258,7 +258,7 @@ Verified during execution:
 - `tests/e2e/fixtures/auth.ts` exports `joinAsPlayer` + `joinAsAdmin`; contains literal `'Join the Pool'` — FOUND
 - `tests/e2e/smoke.spec.ts` uses `getByTestId`, calls `attemptPredictionAgainstLockedFixture`, asserts `expect(writeResult.ok).toBe(false)`, contains `'rls_denied'` + `PLAYWRIGHT_INVITE_CODE` + `browser.newContext`, references both `stepper-home-plus-` AND `stepper-away-plus-` — FOUND
 - `tests/e2e/global-teardown.ts` invokes `npm run db:test-clean` + Supabase Admin API cleanup — FOUND
-- `src/app/api/_test/save-prediction/route.ts` is gated on `NODE_ENV === 'production' && !PLAYWRIGHT_INVITE_CODE` — FOUND
+- `src/app/api/test/save-prediction/route.ts` is gated on `NODE_ENV === 'production' && !PLAYWRIGHT_INVITE_CODE` — FOUND
 - `.github/workflows/lint.yml` `e2e` job: separate `Build Next.js` step, `have_secrets` step-output gate, `npm run db:test-seed`, `npm run test:e2e`, `npm run db:test-clean` (always), upload-artifact on failure — FOUND
 - `02-USER-SETUP.md` contains `PLAYWRIGHT_INVITE_CODE` (4 occurrences) — FOUND
 - `02-LAUNCH-CHECKLIST.md` contains all four `QA-01..04` rows + canonical RLS-rejection assertion line — FOUND

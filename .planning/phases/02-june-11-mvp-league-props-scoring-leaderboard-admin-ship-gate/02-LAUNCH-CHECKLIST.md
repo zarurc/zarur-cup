@@ -8,7 +8,7 @@ All four checks below must be marked `[x]` before the family invite is distribut
 - [ ] The smoke's **canonical RLS-rejection assertion** (`expect(writeResult.ok).toBe(false)` against SMOKE_POST_LOCK) is recorded as PASSED in the trace — NOT just the cosmetic 🔒 emoji visual check.
 - [x] `.github/workflows/lint.yml` `e2e` job runs and passes on the merge commit (recorded as a CI badge or run ID). — **PASSED on commit `095a828` (1 test, 25.9s, 2026-05-25)**
 - [ ] SmokeUser cleanup confirmed: zero orphaned rows in `profiles` / `predictions` / `score_events` / `auth.users` after the suite.
-- [ ] Production-safety probe: `curl https://zarur-cup.vercel.app/api/test/save-prediction` returns HTTP 403 (T-02-08-07 verification).
+- [ ] Production-safety probe: `curl -X POST -i https://zarur-cup.vercel.app/api/test/save-prediction` returns HTTP 403 with body `{"ok":false,"error":"unauthenticated"}` (T-02-08-07 verification). `-X POST` required — the route is POST-only; plain `curl` returns 405 and does NOT exercise the production gate.
 
 Signed off by: ______________ on ______________
 
