@@ -37,7 +37,6 @@ test.describe.configure({ mode: 'serial' });
 
 test('full prediction → lock → result → leaderboard flow', async ({
   browser,
-  request,
 }) => {
   test.skip(
     !INVITE_CODE || !ADMIN_NAME,
@@ -91,8 +90,11 @@ test('full prediction → lock → result → leaderboard flow', async ({
     // ---- USER: TIER-2 ASSERTION (D-30 + ROADMAP §SC-5) ----
     // CANONICAL lock-contract check: attempt a post-lock write and observe
     // RLS reject it via either HTTP 4xx or the action's discriminated error.
+    // IMPORTANT: pass `userCtx` (NOT the top-level `request` fixture). The
+    // helper dispatches via `userCtx.request` so the joined user's auth
+    // cookies travel with the call — the top-level `request` is an isolated
+    // APIRequestContext and would hit the route with no cookies.
     const writeResult = await attemptPredictionAgainstLockedFixture(
-      request,
       userCtx,
       postLockId,
       1,

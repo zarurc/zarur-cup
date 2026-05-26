@@ -15,7 +15,7 @@
 // Action. The route forwards the action's discriminated result and maps
 // `error: 'locked'` to HTTP 403 so the smoke can assert either form.
 
-import type { APIRequestContext, BrowserContext } from '@playwright/test';
+import type { BrowserContext } from '@playwright/test';
 
 export type PredictionWriteResult =
   | { ok: true }
@@ -27,13 +27,20 @@ export type PredictionWriteResult =
         | 'network'
         | 'unauthenticated'
         | 'rls_denied';
+      /** HTTP status when the failure originated from a non-2xx response. */
+      status?: number;
+      /** Raw response body (truncated) for debugging. Present only on non-403/non-2xx. */
+      body?: string;
     };
 
 /**
  * Attempts a post-lock prediction write via the savePrediction Server Action.
- * Uses the user's existing browser cookies from `ctx` (same origin, same
- * authenticated user); Playwright passes them automatically when the request
- * is dispatched against the same baseURL.
+ *
+ * Cookie wiring: the helper takes a BrowserContext (NOT the top-level test
+ * `request` fixture) and dispatches via `ctx.request`. The top-level fixture
+ * is an isolated APIRequestContext with no cookies — using it here previously
+ * caused the route to see no auth, return 401 → mapped to 'network', and the
+ * lock contract was never actually exercised.
  *
  * The smoke MUST observe one of:
  *   - HTTP 4xx (RLS rejection surfaces as 403 from the test route)
@@ -43,27 +50,29 @@ export type PredictionWriteResult =
  * §Success Criterion 5 are violated, and the smoke FAILS.
  */
 export async function attemptPredictionAgainstLockedFixture(
-  request: APIRequestContext,
-  _ctx: BrowserContext,
+  ctx: BrowserContext,
   fixtureId: string,
   home: number,
   away: number,
 ): Promise<PredictionWriteResult> {
-  const response = await request.post('/api/_test/save-prediction', {
+  const response = await ctx.request.post('/api/_test/save-prediction', {
     data: { fixture_id: fixtureId, home_score: home, away_score: away },
-    // Playwright reuses the context's cookies by default when the request
-    // is created from the page/context's APIRequestContext. When using the
-    // top-level `request` fixture instead, we attach cookies via the context
-    // it was created from (Playwright handles this transparently for same-
-    // origin requests within a single test).
   });
 
   if (!response.ok()) {
-    // HTTP 4xx — RLS rejected. Treat 403 as rls_denied; anything else as network.
-    return {
-      ok: false,
-      error: response.status() === 403 ? 'rls_denied' : 'network',
-    };
+    const status = response.status();
+    // HTTP 4xx — RLS rejected. Treat 403 as rls_denied; everything else as
+    // 'network' BUT surface the status + body so the next debugger doesn't
+    // have to re-derive what 401 / 400 / 500 means from a generic label.
+    if (status === 403) {
+      return { ok: false, error: 'rls_denied', status };
+    }
+    const body = await response.text().catch(() => '');
+    // Visible in `npm run test:e2e` stdout and Playwright CI report.
+    console.error(
+      `[attemptPredictionAgainstLockedFixture] non-403 failure: status=${status} body=${body.slice(0, 500)}`,
+    );
+    return { ok: false, error: 'network', status, body: body.slice(0, 500) };
   }
   const body = (await response.json()) as PredictionWriteResult;
   return body;
