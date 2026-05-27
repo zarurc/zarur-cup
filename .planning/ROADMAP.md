@@ -13,21 +13,22 @@
 
 Phase 2 is the "if everything else fails, this must work" bundle. League predictions + admin result entry + scoring + leaderboard ship together for opening kickoff. Props are bundled into Phase 2 because they lock at first kickoff anyway. Bracket Mode is **explicitly deferred to Phase 3** with a soft deadline of June 27 (start of knockouts).
 
-## Bracket Mode Scope Decision
+## Bracket Scope Decision (revised 2026-05-26)
 
-**Bracket Mode is NOT in the June 11 MVP.** It ships in Phase 3, targeting completion before the first knockout match (~June 27).
+**Bracket Mode as a prediction game is cancelled.** Phase 3 originally planned per-slot R32/R16/QF/SF/F/Champion picks with escalating 2/4/8/16/32 scoring; this is dropped per Phase 2 D-34 (2026-05-26).
+
+Replacement: a **read-only bracket view** at `/[locale]/bracket` (replacing the Phase 1 EmptyStateCard) — server-rendered column-of-rounds RSC that fills in live as admin enters knockout results. No user predictions, no bracket scoring, no `source='bracket'` rows in `score_events`. Implemented in Phase 2 (Plan 02-11) by the original June 11 deadline, not a separate Phase 3.
 
 Rationale:
-- Family can still submit League predictions and Props by June 11 without Bracket Mode.
-- Bracket Mode's slot-based pre-tournament champion/finalist picks remain valid pre-knockout — the bracket UI can lag the group stage without breaking pool dynamics.
-- Compressing Bracket into the June 11 deadline risks shipping the rest broken; deferring it buys ~16 days of polish room.
-- Trade-off accepted: family loses ~2 weeks of pre-tournament champion-pick anticipation. Soft-mitigated by Props (which include "winner" as a tournament-level prop, locked at first kickoff).
+- Lower scope than a prediction game; ships within Phase 2's existing 16-day window.
+- Family still gets the "tree fill in live" excitement during the knockouts without the engineering burden of bracket scoring + reveal granularity + per-slot pick UX.
+- The `bracket_picks` schema (Phase 1 0001_init.sql) remains as a harmless empty table — append-only convention forbids dropping a pushed migration.
 
 ## Phases
 
 - [x] **Phase 1: Foundation, Schema, Auth & RLS** — Bilingual Next.js shell + Supabase schema + invite-code auth + RLS lock/reveal policies + WC 2026 data seed (COMPLETE 2026-05-24; live at https://zarur-cup.vercel.app)
-- [ ] **Phase 2: June 11 MVP — League + Props + Scoring + Leaderboard + Admin + Ship Gate** — End-to-end predict-lock-score-reveal-leaderboard flow; props; admin result entry; Playwright smoke; family invite distributed
-- [ ] **Phase 3: Bracket Mode (Pre-Knockout Ship)** — Slot-based knockout picks + bracket scoring rolled into unified leaderboard, locked at first knockout
+- [ ] **Phase 2: June 11 MVP — League + Props + Scoring + Leaderboard + Admin + Ship Gate + Scope Expansion** — End-to-end predict-lock-score-reveal-leaderboard flow; private props nested under /me; admin result entry + auto-fetch via Supabase pg_cron; read-only bracket view; Playwright smoke; family invite distributed
+- ~~**Phase 3: Bracket Mode (Pre-Knockout Ship)**~~ — **CANCELLED 2026-05-26** per Phase 2 D-34. Replaced by read-only bracket view in Phase 2 Plan 02-11.
 
 ## Phase Details
 
@@ -87,7 +88,7 @@ Rationale:
 4. Every family member can view the unified leaderboard ranked by total points with the tiebreaker chain (total → exact scores → correct results → locale-aware alphabetical), click any player, and see that player's per-mode breakdown (League / Props subtotals; Bracket subtotal is present but zero until Phase 3 ships). Each family member also has a visible "your scoring transparency" view on any of their own predictions.
 5. By June 11 kickoff, the deployed URL has been distributed to the family with the shared invite code; a Hebrew native speaker has reviewed all user-visible copy and seeded prop content; a manual mobile QA pass on a real phone (in both Hebrew and English) has been signed off; and one end-to-end Playwright smoke test passes (`invite → predict → lock at fake-now → admin enters result → score appears on leaderboard`).
 
-**Plans:** 8 plans across 7 waves
+**Plans:** 12 plans across 9 waves
 
 - [x] 02-01-PLAN.md — Wave 1: Schema extensions (migrations 0007 score_events + 0008 v_leaderboard + 0009 result_full + 0010 prop_questions_aliases) + types regen + lint:tailwind-v4 wiring
 - [x] 02-02-PLAN.md — Wave 1: Pure scoring engine (`scoreMatch` + `scoreProp`), `sweepAndUpsert` server-only helper, `adminReadClient`, 4 Zod schemas (prediction / result / propAnswer / propAuthoring)
@@ -97,8 +98,14 @@ Rationale:
 - [x] 02-06-PLAN.md — Wave 5: Admin tournament-tree + props authoring/grading + roster merge + IntegrityWidget (LGE-06 lock-breach audit) + admin home nav
 - [x] 02-07-PLAN.md — Wave 6: Unified leaderboard — RSC reads `v_leaderboard`, TS-side LB-04 tiebreaker via `Intl.Collator`, inline-expand per-mode breakdown, /me total readout
 - [ ] 02-08-PLAN.md — Wave 7: Playwright smoke + test fixtures + CI wiring + 02-USER-SETUP.md + 02-LAUNCH-CHECKLIST.md (QA-01..04 ship gate)
+- [ ] 02-09-PLAN.md — Wave 7 (scope expansion): PROJECT.md + ROADMAP.md + REQUIREMENTS.md updates — cut Bracket prediction game, reverse OOS on external API, document scope-expansion REQ IDs (doc-only)
+- [ ] 02-10-PLAN.md — Wave 7 (scope expansion): Props strictly private + relocate to /me/props — new migration 0013_prop_answers_private.sql tightens RLS, page moved to nested route, /[locale]/props redirects, Me page gains Props card
+- [ ] 02-11-PLAN.md — Wave 8 (scope expansion): Read-only bracket view at /[locale]/bracket — column-of-rounds RSC replaces EmptyStateCard, saveResult Server Action gains bracket revalidatePath + resolved_team_id writeback
+- [ ] 02-12-PLAN.md — Wave 9 (scope expansion): Auto-fetch match scores — migration 0012_pg_cron_score_fetch.sql + 0014_fixtures_auto_fetched_at.sql, /api/score-fetch POST route with Bearer auth, football-data.org v4 client, Wave-0 fixture-mapping unit test
 
 ---
+
+> **CANCELLED 2026-05-26 per Phase 2 D-34.** Bracket-as-prediction-game displaced by read-only bracket view in Phase 2 Plan 02-11. Original requirements BRK-01..04, VIS-03, SCR-03 are moved to Out-of-Scope (see "Out-of-Scope" section below). Section retained for historical reference; no implementation work targets this phase.
 
 ### Phase 3: Bracket Mode (Pre-Knockout Ship)
 
@@ -125,8 +132,8 @@ Rationale:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation, Schema, Auth & RLS | 5/5 | Complete | 2026-05-24 |
-| 2. June 11 MVP (League + Props + Scoring + Leaderboard + Admin + Ship Gate) | 0/8 | Not started | - |
-| 3. Bracket Mode (Pre-Knockout Ship) | 0/TBD | Not started | - |
+| 2. June 11 MVP (League + Props + Scoring + Leaderboard + Admin + Ship Gate) | 0/12 | In progress (scope expanded 2026-05-26; plans 02-01..02-07 shipped; 02-08 partial; 02-09..02-12 new) | - |
+| 3. Bracket Mode (Pre-Knockout Ship) | — | Cancelled 2026-05-26 | - |
 
 ## Coverage Audit
 
@@ -135,9 +142,9 @@ Rationale:
 | Phase | Requirements Mapped |
 |-------|---------------------|
 | Phase 1 | 26 (FND × 6, I18N × 7, AUTH × 7, DATA × 5, VIS-06 × 1) |
-| Phase 2 | 34 (LGE × 6, PRP × 4, VIS-01/02/04/05 × 4, ADM × 6, SCR-01/02/04/05/06/07 × 6, LB × 4, QA × 4) |
-| Phase 3 | 6 (BRK × 4, VIS-03, SCR-03) |
-| **Total** | **66** |
+| Phase 2 | 34 original + scope-expansion families (AUTO-*, BRK-VIEW-*, PRIVATE-*, PROJECT-UPD-*) — see REQUIREMENTS.md |
+| Phase 3 (cancelled) | 6 originals (BRK-01..04, VIS-03, SCR-03) → moved to Out-of-Scope 2026-05-26 |
+| **Total** | 60 active v1 requirements + scope-expansion families; 6 moved to OOS |
 
 No orphaned requirements. No duplicate assignments.
 
@@ -176,8 +183,11 @@ Per REQUIREMENTS.md "v2 Requirements" and "Out of Scope" sections — explicitly
 - Personalized stats (STAT-01), H2H (H2H-01) — defer
 - Polish: dark mode (POL-01), charts (POL-02), badges (POL-03) — defer
 - Multi-tournament (TOUR-01), configurable scoring (CFG-01) — v2
-- Real money, OAuth, public signup, external sports API, multi-admin, native mobile, in-app chat, bracket cascade mode, per-round props, client-state libs, date libraries, Vitest, tailwindcss-rtl — see REQUIREMENTS.md "Out of Scope" table
+- Real money, OAuth, public signup, multi-admin, native mobile, in-app chat, bracket cascade mode, per-round props, client-state libs, date libraries, Vitest, tailwindcss-rtl — see REQUIREMENTS.md "Out of Scope" table
+- **Bracket Mode (as a prediction game with R32..Champion picks and 2/4/8/16/32 scoring)** — cancelled 2026-05-26 per Phase 2 D-34; displaced by read-only bracket view in Phase 2 Plan 02-11. Originally Phase 3 requirements BRK-01..04, VIS-03, SCR-03.
+- **Auto-grade props** — cancelled 2026-05-26 per Phase 2 D-35; admin grades 7 props manually after July 19 tournament-end awards announcement.
 
 ---
 *Roadmap created: 2026-05-23 by gsd-roadmapper*
+*Phase 2 scope expansion + Phase 3 cancellation: 2026-05-26*
 *Next: `/gsd:plan-phase 1`*
