@@ -88,7 +88,7 @@ Rationale:
 4. Every family member can view the unified leaderboard ranked by total points with the tiebreaker chain (total → exact scores → correct results → locale-aware alphabetical), click any player, and see that player's per-mode breakdown (League / Props subtotals; Bracket subtotal is present but zero until Phase 3 ships). Each family member also has a visible "your scoring transparency" view on any of their own predictions.
 5. By June 11 kickoff, the deployed URL has been distributed to the family with the shared invite code; a Hebrew native speaker has reviewed all user-visible copy and seeded prop content; a manual mobile QA pass on a real phone (in both Hebrew and English) has been signed off; and one end-to-end Playwright smoke test passes (`invite → predict → lock at fake-now → admin enters result → score appears on leaderboard`).
 
-**Plans:** 10/12 plans executed
+**Plans:** 11/12 plans executed
 
 - [x] 02-01-PLAN.md — Wave 1: Schema extensions (migrations 0007 score_events + 0008 v_leaderboard + 0009 result_full + 0010 prop_questions_aliases) + types regen + lint:tailwind-v4 wiring
 - [x] 02-02-PLAN.md — Wave 1: Pure scoring engine (`scoreMatch` + `scoreProp`), `sweepAndUpsert` server-only helper, `adminReadClient`, 4 Zod schemas (prediction / result / propAnswer / propAuthoring)
@@ -100,7 +100,7 @@ Rationale:
 - [x] 02-08-PLAN.md — Wave 7: Playwright smoke + test fixtures + CI wiring + 02-USER-SETUP.md + 02-LAUNCH-CHECKLIST.md (QA-01..04 ship gate)
 - [x] 02-09-PLAN.md — Wave 7 (scope expansion): PROJECT.md + ROADMAP.md + REQUIREMENTS.md updates — cut Bracket prediction game, reverse OOS on external API, document scope-expansion REQ IDs (doc-only)
 - [x] 02-10-PLAN.md — Wave 7 (scope expansion): Props strictly private + relocate to /me/props — new migration 0013_prop_answers_private.sql tightens RLS, page moved to nested route, /[locale]/props redirects, Me page gains Props card
-- [ ] 02-11-PLAN.md — Wave 8 (scope expansion): Read-only bracket view at /[locale]/bracket — column-of-rounds RSC replaces EmptyStateCard, saveResult Server Action gains bracket revalidatePath + resolved_team_id writeback
+- [x] 02-11-PLAN.md — Wave 8 (scope expansion): Read-only bracket view at /[locale]/bracket — column-of-rounds RSC replaces EmptyStateCard, saveResult Server Action gains bracket revalidatePath + resolved_team_id writeback
 - [ ] 02-12-PLAN.md — Wave 9 (scope expansion): Auto-fetch match scores — migration 0012_pg_cron_score_fetch.sql + 0014_fixtures_auto_fetched_at.sql, /api/score-fetch POST route with Bearer auth, football-data.org v4 client, Wave-0 fixture-mapping unit test
 
 ---
@@ -132,7 +132,7 @@ Rationale:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation, Schema, Auth & RLS | 5/5 | Complete | 2026-05-24 |
-| 2. June 11 MVP (League + Props + Scoring + Leaderboard + Admin + Ship Gate) | 10/12 | In Progress|  |
+| 2. June 11 MVP (League + Props + Scoring + Leaderboard + Admin + Ship Gate) | 11/12 | In Progress|  |
 | 3. Bracket Mode (Pre-Knockout Ship) | — | Cancelled 2026-05-26 | - |
 
 ## Coverage Audit
