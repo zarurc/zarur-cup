@@ -33,11 +33,11 @@ export default async function MePage({ params }: Props) {
   const total = lbRow?.total ?? 0;
 
   // Tournament lock for the Props card status pill.
+  // WR-01 fix (2026-05-27): pin to code='WC2026'.
   const { data: tournament } = await supabase
     .from('tournament')
     .select('starts_at')
-    .order('starts_at', { ascending: true })
-    .limit(1)
+    .eq('code', 'WC2026')
     .maybeSingle();
   const propsLocked = tournament
     ? new Date(tournament.starts_at).getTime() <= Date.now()

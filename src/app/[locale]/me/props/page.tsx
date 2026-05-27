@@ -28,11 +28,11 @@ export default async function MePropsPage({ params }: Props) {
   const t = await getTranslations('props');
   const supabase = await createClient();
 
+  // WR-01 fix (2026-05-27): pin to code='WC2026'.
   const { data: tournament } = await supabase
     .from('tournament')
     .select('id, starts_at')
-    .order('starts_at', { ascending: true })
-    .limit(1)
+    .eq('code', 'WC2026')
     .maybeSingle();
 
   if (!tournament) {
