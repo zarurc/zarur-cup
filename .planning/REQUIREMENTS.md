@@ -57,10 +57,10 @@ Requirements for initial release. Each maps to a roadmap phase below.
 
 ### Bracket Mode (Knockout Predictions)
 
-- [ ] **BRK-01**: User can fill out bracket picks for the knockout stage (R32 → Final + Champion) by `slot_id`, regardless of whether the team identity is currently a placeholder
-- [ ] **BRK-02**: Bracket picks made pre-tournament survive group-stage placeholder resolution — user keeps the same pick even after `WINNER_GROUP_A` resolves to a real team
-- [ ] **BRK-03**: Server-side lock — RLS rejects any change to a bracket pick where the corresponding slot's earliest possible match has kicked off (per the agreed-upon reveal granularity)
-- [ ] **BRK-04**: Bracket UI is RTL-safe (the bracket tree flips for Hebrew without breaking visual hierarchy)
+- [ ] ~~**BRK-01**: User can fill out bracket picks for the knockout stage (R32 → Final + Champion) by `slot_id`, regardless of whether the team identity is currently a placeholder~~ — ❌ CANCELLED 2026-05-26 per Phase 2 D-34 (read-only bracket view replaces prediction game; see BRK-VIEW-01..05)
+- [ ] ~~**BRK-02**: Bracket picks made pre-tournament survive group-stage placeholder resolution — user keeps the same pick even after `WINNER_GROUP_A` resolves to a real team~~ — ❌ CANCELLED 2026-05-26 per Phase 2 D-34 (read-only bracket view replaces prediction game; see BRK-VIEW-01..05)
+- [ ] ~~**BRK-03**: Server-side lock — RLS rejects any change to a bracket pick where the corresponding slot's earliest possible match has kicked off (per the agreed-upon reveal granularity)~~ — ❌ CANCELLED 2026-05-26 per Phase 2 D-34 (read-only bracket view replaces prediction game; see BRK-VIEW-01..05)
+- [ ] ~~**BRK-04**: Bracket UI is RTL-safe (the bracket tree flips for Hebrew without breaking visual hierarchy)~~ — ❌ CANCELLED 2026-05-26 per Phase 2 D-34 (read-only bracket view replaces prediction game; see BRK-VIEW-01..05)
 
 ### Props / Wildcards (Tournament-Level)
 
@@ -73,7 +73,7 @@ Requirements for initial release. Each maps to a roadmap phase below.
 
 - [ ] **VIS-01**: User can see their own predictions, bracket picks, and prop answers at any time
 - [ ] **VIS-02**: User cannot see another player's prediction for a fixture until that fixture has kicked off (RLS-enforced; not just UI-hidden)
-- [ ] **VIS-03**: User cannot see another player's bracket picks until the agreed-upon bracket reveal moment
+- [ ] ~~**VIS-03**: User cannot see another player's bracket picks until the agreed-upon bracket reveal moment~~ — ❌ CANCELLED 2026-05-26 per Phase 2 D-34 (read-only bracket view replaces prediction game; see BRK-VIEW-01..05)
 - [ ] **VIS-04**: User cannot see another player's prop answers until the tournament's first kickoff
 - [ ] **VIS-05**: Once a match/round is locked, all players can see all picks for that match/round
 - [x] **VIS-06**: RLS policies use `(select auth.uid())` (not bare `auth.uid()`) for performance, and visibility is verified via a Supabase REST request from an unauthenticated curl call (must return zero rows for unlocked predictions) (verified live in Plan 01-02 via `scripts/verify-rls-no-leak.sh` -- ALL RLS CHECKS PASSED; all 19 `auth.uid()` references in 0002_rls.sql are wrapped `(select auth.uid())`)
@@ -91,7 +91,7 @@ Requirements for initial release. Each maps to a roadmap phase below.
 
 - [ ] **SCR-01**: League scoring — exact score = 4 pts, correct goal difference (non-zero, e.g. predict 2-1, actual 3-2) = 3 pts, correct winner / draw = 2 pts, otherwise 0
 - [ ] **SCR-02**: League scoring resolves on the 90-minute result only (extra time / penalties do not change league points)
-- [ ] **SCR-03**: Bracket scoring escalates per round: R32 = 2 (if used), R16 = 2, QF = 4, SF = 8, F = 16, Champion = 32; based on advancement, not score
+- [ ] ~~**SCR-03**: Bracket scoring escalates per round: R32 = 2 (if used), R16 = 2, QF = 4, SF = 8, F = 16, Champion = 32; based on advancement, not score~~ — ❌ CANCELLED 2026-05-26 per Phase 2 D-34 (read-only bracket view replaces prediction game; see BRK-VIEW-01..05)
 - [ ] **SCR-04**: Prop scoring — per-question point value set by admin at question creation; user gets the points if their answer matches the graded answer, otherwise 0
 - [ ] **SCR-05**: All scoring math is integer-only in SQL — no floats anywhere
 - [ ] **SCR-06**: Points are a derived view (`v_leaderboard`), not a running total. Admin corrections re-compute on next select; `score_events` upserts on `(user_id, source, ref_id)` to stay idempotent
@@ -110,6 +110,41 @@ Requirements for initial release. Each maps to a roadmap phase below.
 - [ ] **QA-02**: Manual mobile QA pass on a real phone (not just devtools), in both Hebrew and English, signed off before family invite code is distributed
 - [ ] **QA-03**: Hebrew native speaker reviews all user-visible copy and seeded team/prop content
 - [ ] **QA-04**: Custom domain / Vercel deployment URL distributed to the family with the shared invite code by **June 11, 2026** kickoff
+
+### Scope Expansion (added 2026-05-26)
+
+Scope-expansion requirements derived from `.planning/phases/02-june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate/02-CONTEXT.md` `<scope_expansion_addendum>` (D-34..D-47, 2026-05-26). These ship in Phase 2 Plans 02-09..02-12 by the original June 11 hard deadline.
+
+#### Project documentation updates (PROJECT-UPD)
+
+- [ ] **PROJECT-UPD-01**: PROJECT.md "Out of Scope" line for "Live external sports API integration" REMOVED (per D-36)
+- [ ] **PROJECT-UPD-02**: PROJECT.md "Out of Scope" gains "Bracket Mode as a prediction game" + "Auto-grade props from public sources" (per D-34 + D-35); Key Decisions table marks D-34 / D-36 / D-38 outcomes; ROADMAP.md Phase 3 banner-marked as CANCELLED
+- [ ] **PROJECT-UPD-03**: REQUIREMENTS.md traceability table updates for cut/moved IDs (BRK-01..04, VIS-03, SCR-03 → Out-of-Scope; PRP-01..04 + VIS-04 traceability annotations updated for D-38 privacy)
+
+#### Props strictly private + relocation (PRIVATE)
+
+- [ ] **PRIVATE-01**: `prop_answers_read` RLS policy tightened to `user_id = (select auth.uid())` only — no post-kickoff exists-clause; verified via `bash scripts/verify-rls-no-leak.sh` returning ALL TABLES PASS (per D-38)
+- [ ] **PRIVATE-02**: Props page relocates from `/[locale]/props` to `/[locale]/me/props`; old route returns 301 redirect to the new path (per D-37 + nav D-37)
+- [ ] **PRIVATE-03**: `/[locale]/me/props` page simplified to remove `isRevealed` branch — user always sees own answers only, pre-lock editable / post-lock read-only receipt (per D-38 + D-39)
+- [ ] **PRIVATE-04**: `/[locale]/me` page gains a "Props" card linking to `/[locale]/me/props` with a status pill indicating editable/locked state, plus a body line referencing the June 11 19:00 UTC deadline (per D-37 + D-39). [Revision iteration 2 (2026-05-26): pill copy relaxed from "Editable until June 11 19:00 UTC" to short-form "Editable"/"Locked" so the pill fits at 360px without wrapping in both locales; the long-form deadline lives in the body line. The pill is a status indicator, not a deadline indicator.]
+
+#### Read-only bracket view (BRK-VIEW)
+
+- [ ] **BRK-VIEW-01**: `/[locale]/bracket` server-renders the WC 2026 knockout tree as a column-of-rounds RSC reading `bracket_slots` joined to `fixtures` + `teams` in a single Supabase query (per D-40 + D-47)
+- [ ] **BRK-VIEW-02**: Bracket view live-fills via existing admin `saveResult` Server Action: each KO match result triggers `revalidatePath('/he/bracket')` + `revalidatePath('/en/bracket')`; admin re-entry recomputes immediately (per D-40 + D-47)
+- [ ] **BRK-VIEW-03**: `bracket_slots.resolved_team_id` writeback added to `saveResult` for non-group fixtures — winner ID computed from `result_home_90min`/`result_away_90min` 90-minute decision; tied KO matches at 90 min leave `resolved_team_id` NULL until Phase 3 ET handling (per D-47)
+- [ ] **BRK-VIEW-04**: Champion slot (`slot_code = 'CHAMPION'`) populated by propagating the FINAL match winner to `CHAMPION.resolved_team_id` as part of the same `saveResult` writeback path (per Research Addendum D-40 "Open risks #1")
+- [ ] **BRK-VIEW-05**: Bracket view renders correctly at 360px in both `/he/` (RTL) and `/en/` (LTR) using Tailwind v4 logical-property utilities only (no `pl-*`/`pr-*`/`left-*`/`right-*`/`flex-row-reverse`) per Phase 1 FND-03 lint convention
+
+#### Auto-fetch match scores (AUTO)
+
+- [ ] **AUTO-01**: New migration `0014_fixtures_auto_fetched_at.sql` adds `fixtures.auto_fetched_at timestamptz NULL` column with comment documenting the admin-overwrite invariant (per D-45 + D-47 + Research Addendum)
+- [ ] **AUTO-02**: New `/api/score-fetch` POST route handler with Bearer-token auth (env var `SCORE_FETCH_SECRET`) — rejects 401 without valid Bearer; fetches football-data.org v4 `/competitions/{code}/matches`; resolves fixtures by `(kickoff_at ±5min, home_team.code, away_team.code)` tuple; performs SELECT-then-UPDATE with admin-lock check in JavaScript (no `.or()` filter ambiguity); sweeps predictions via existing `sweepAndUpsert` helper (per D-45 + D-46)
+- [ ] **AUTO-03**: New migration `0012_pg_cron_score_fetch.sql` enables `pg_cron` + `pg_net` Postgres extensions and schedules a job that POSTs to `/api/score-fetch` every 15 minutes during the tournament window (per D-45)
+- [ ] **AUTO-04**: Admin `saveResult` Server Action sets `auto_fetched_at = NULL` on every UPDATE so a manual admin entry blocks future cron overwrites (per D-45 + D-47 admin-overwrite invariant)
+- [ ] **AUTO-05**: Wave-0 unit test asserts all 104 fixtures from `data/wc2026/fixtures.csv` map cleanly against a synthesized football-data.org response shape — catches vendor TLA mismatches before they bite live (per D-46 + Research Addendum "identifier mapping problem")
+- [ ] **AUTO-06**: Tournament-window gate inside `/api/score-fetch` short-circuits with `{ok: true, skipped: 'outside-tournament-window'}` when `now()` is outside `tournament.starts_at - 1h` .. `tournament.ends_at + 1d` (per Research Addendum D-44 "Cron schedule choice")
+- [ ] **AUTO-07**: STRIDE threat model documented in Plan 02-12: rejection of non-`[\p{L}\d \-.,]` chars in team-name upsert path (stored-XSS defense); Bearer-secret check (auth-bypass defense); SELECT-then-UPDATE admin-lock check (admin-overwrite race defense)
 
 ## v2 Requirements
 
@@ -197,13 +232,13 @@ Populated by `gsd-roadmapper` on 2026-05-23. 100% v1 coverage (66 / 66 mapped).
 | LGE-04 | Phase 2 | Pending |
 | LGE-05 | Phase 2 | Pending |
 | LGE-06 | Phase 2 | Pending |
-| PRP-01 | Phase 2 | Pending |
-| PRP-02 | Phase 2 | Pending |
-| PRP-03 | Phase 2 | Pending |
-| PRP-04 | Phase 2 | Pending |
+| PRP-01 | Phase 2 | Pending — reinterpreted by D-38 (private; see PRIVATE-01..04) |
+| PRP-02 | Phase 2 | Pending — reinterpreted by D-38 (private; see PRIVATE-01..04) |
+| PRP-03 | Phase 2 | Pending — reinterpreted by D-38 (private; see PRIVATE-01..04) |
+| PRP-04 | Phase 2 | Pending — reinterpreted by D-38 (private; see PRIVATE-01..04) |
 | VIS-01 | Phase 2 | Pending |
 | VIS-02 | Phase 2 | Pending |
-| VIS-04 | Phase 2 | Pending |
+| VIS-04 | Phase 2 | Pending — reinterpreted by D-38 (private; see PRIVATE-01..04) |
 | VIS-05 | Phase 2 | Pending |
 | ADM-01 | Phase 2 | Pending |
 | ADM-02 | Phase 2 | Pending |
@@ -225,12 +260,31 @@ Populated by `gsd-roadmapper` on 2026-05-23. 100% v1 coverage (66 / 66 mapped).
 | QA-02 | Phase 2 | Pending |
 | QA-03 | Phase 2 | Pending |
 | QA-04 | Phase 2 | Pending |
-| BRK-01 | Phase 3 | Pending |
-| BRK-02 | Phase 3 | Pending |
-| BRK-03 | Phase 3 | Pending |
-| BRK-04 | Phase 3 | Pending |
-| VIS-03 | Phase 3 | Pending |
-| SCR-03 | Phase 3 | Pending |
+| BRK-01 | Out-of-Scope | Cancelled 2026-05-26 (D-34) |
+| BRK-02 | Out-of-Scope | Cancelled 2026-05-26 (D-34) |
+| BRK-03 | Out-of-Scope | Cancelled 2026-05-26 (D-34) |
+| BRK-04 | Out-of-Scope | Cancelled 2026-05-26 (D-34) |
+| VIS-03 | Out-of-Scope | Cancelled 2026-05-26 (D-34) |
+| SCR-03 | Out-of-Scope | Cancelled 2026-05-26 (D-34) |
+| PROJECT-UPD-01 | Phase 2 (Plan 02-09) | Pending |
+| PROJECT-UPD-02 | Phase 2 (Plan 02-09) | Pending |
+| PROJECT-UPD-03 | Phase 2 (Plan 02-09) | Pending |
+| PRIVATE-01 | Phase 2 (Plan 02-10) | Pending |
+| PRIVATE-02 | Phase 2 (Plan 02-10) | Pending |
+| PRIVATE-03 | Phase 2 (Plan 02-10) | Pending |
+| PRIVATE-04 | Phase 2 (Plan 02-10) | Pending |
+| BRK-VIEW-01 | Phase 2 (Plan 02-11) | Pending |
+| BRK-VIEW-02 | Phase 2 (Plan 02-11) | Pending |
+| BRK-VIEW-03 | Phase 2 (Plan 02-11) | Pending |
+| BRK-VIEW-04 | Phase 2 (Plan 02-11) | Pending |
+| BRK-VIEW-05 | Phase 2 (Plan 02-11) | Pending |
+| AUTO-01 | Phase 2 (Plan 02-12) | Pending |
+| AUTO-02 | Phase 2 (Plan 02-12) | Pending |
+| AUTO-03 | Phase 2 (Plan 02-12) | Pending |
+| AUTO-04 | Phase 2 (Plan 02-12) | Pending |
+| AUTO-05 | Phase 2 (Plan 02-12) | Pending |
+| AUTO-06 | Phase 2 (Plan 02-12) | Pending |
+| AUTO-07 | Phase 2 (Plan 02-12) | Pending |
 
 **Coverage:**
 - v1 requirements: 66 total (note: REQUIREMENTS.md previously stated "67 total" — recount audit during roadmap mapping reconciled to 66 distinct REQ-IDs)
@@ -248,3 +302,4 @@ Populated by `gsd-roadmapper` on 2026-05-23. 100% v1 coverage (66 / 66 mapped).
 ---
 *Requirements defined: 2026-05-23*
 *Last updated: 2026-05-24 — Phase 1 complete (all 26 Phase 1 requirements addressed; FND-03 + FND-05 + FND-06 marked complete by Plan 01-05)*
+*Scope expansion (PROJECT-UPD, PRIVATE, BRK-VIEW, AUTO families): 2026-05-26 — derived from Phase 2 CONTEXT addendum D-34..D-47*
