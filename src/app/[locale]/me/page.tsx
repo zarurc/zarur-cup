@@ -2,22 +2,21 @@ import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { requireMember } from '@/lib/auth/session';
 import { signOutCurrent } from '@/app/actions/signout';
 import { createClient } from '@/lib/supabase/server';
+import { Link } from '@/lib/i18n/routing';
 
 type Props = { params: Promise<{ locale: string }> };
 
 /**
- * /[locale]/me - thin-live page (active in Phase 1, not a placeholder).
- *   - Header is the member's display_name (h2, not h1 - the page-level h1 is
- *     reserved for future actions in Phase 2 per UI-SPEC heading-hierarchy
- *     rule)
- *   - Below the name: localized joined-at date via native Intl.DateTimeFormat
- *     (I18N-07 - no date library needed for format-only)
- *   - And the active locale label
- *   - At the bottom: Logout button (fix-up plan 01-04, Bug 1a). Clicking it
- *     submits a form that calls signOutCurrent() then redirects to /.
+ * /[locale]/me — Phase 1 live page extended with the Phase 2 scope-expansion
+ * Props card (D-37 + PRIVATE-04). Props are now nested under /me/props.
+ *   - Header: member display_name (h2)
+ *   - Joined-at date (localized via Intl.DateTimeFormat — I18N-07)
+ *   - Active locale label
+ *   - Total points readout (from v_leaderboard)
+ *   - **NEW**: Props card linking to /me/props with status pill (Editable / Locked)
+ *   - Logout button (Phase 1 fix-up plan 01-04)
  *
- * The locale TOGGLE itself lives in the header pill; this page just shows the
- * CURRENT locale's display string.
+ * The locale toggle lives in the header pill; this page just shows current locale.
  */
 export default async function MePage({ params }: Props) {
   const { locale } = await params;
@@ -32,6 +31,17 @@ export default async function MePage({ params }: Props) {
     .eq('user_id', member.user_id)
     .maybeSingle();
   const total = lbRow?.total ?? 0;
+
+  // Tournament lock for the Props card status pill.
+  const { data: tournament } = await supabase
+    .from('tournament')
+    .select('starts_at')
+    .order('starts_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  const propsLocked = tournament
+    ? new Date(tournament.starts_at).getTime() <= Date.now()
+    : false;
 
   const joinedAtLocal = new Intl.DateTimeFormat(
     locale === 'he' ? 'he-IL' : 'en-US',
@@ -60,6 +70,31 @@ export default async function MePage({ params }: Props) {
           {total}
         </span>
       </p>
+
+      <Link
+        href="/me/props"
+        className="flex items-center justify-between gap-3 mbs-4 pbs-3 pbe-3 ps-3 pe-3 border border-[var(--zc-border)] rounded-xl hover:bg-[var(--zc-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)]"
+      >
+        <span className="flex flex-col">
+          <span className="text-base font-bold text-[var(--zc-primary)]">
+            {t('propsCardHeading')}
+          </span>
+          <span className="text-sm text-[var(--zc-muted-foreground)]">
+            {t('propsCardBody')}
+          </span>
+        </span>
+        <span
+          className={
+            propsLocked
+              ? 'text-xs font-bold pi-2 pbs-1 pbe-1 rounded-full bg-[var(--zc-muted)] text-[var(--zc-muted-foreground)]'
+              : 'text-xs font-bold pi-2 pbs-1 pbe-1 rounded-full bg-[var(--zc-accent)] text-[var(--zc-primary-foreground)]'
+          }
+          aria-label={propsLocked ? t('propsStatusLockedAria') : t('propsStatusEditableAria')}
+        >
+          {propsLocked ? t('propsStatusLocked') : t('propsStatusEditable')}
+        </span>
+      </Link>
+
       <form action={signOutCurrent} className="mbs-6">
         <button
           type="submit"

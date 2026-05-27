@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Executing Phase 02
-last_updated: "2026-05-25T13:52:14.280Z"
+last_updated: "2026-05-27T03:34:05.552Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 13
-  completed_plans: 5
-  percent: 38
+  total_plans: 17
+  completed_plans: 13
+  percent: 33
 ---
 
 # STATE: Zarur-Cup / משחקי זערור
@@ -26,8 +26,8 @@ progress:
 
 ## Current Position
 
-Phase: 02 (june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate) — EXECUTING (ship-gate checkpoint pending)
-Plan: 8 of 8 partial — Tasks 0/1/2/4 + SUMMARY shipped; QA-01 CI iterating; QA-02/03/04 await human
+Phase: 02 (june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate) — EXECUTING
+Plan: 1 of 12
 | Field | Value |
 |-------|-------|
 | Phase | 2 (June 11 MVP) — Wave 7 partial; QA-01 CI in flight, QA-02/03/04 manual gates pending |
