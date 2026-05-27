@@ -94,6 +94,61 @@ export async function saveResult(input: unknown): Promise<SaveResultResponse> {
     .eq('id', fixture_id);
   if (e1) return { ok: false, error: `fixture_update:${e1.message}` };
 
+  // 1b. Bracket slot resolution (BRK-VIEW-03 + BRK-VIEW-04, Plan 02-11).
+  //
+  // For non-group fixtures with a clear 90-min winner, write the winning
+  // team_id to bracket_slots.resolved_team_id WHERE fixture_id = this
+  // fixture. This is the live-fill mechanism for /[locale]/bracket — the
+  // RSC reads resolved_team via the relational join and renders the team
+  // name once this row is populated.
+  //
+  // Tied-at-90 KO matches leave resolved_team_id NULL (D-12 ET handling
+  // is Phase 3). Tied group-stage matches are ignored — group stage is
+  // never written to bracket_slots.
+  //
+  // If the Final (slot_code = 'F') is being decided, also propagate the
+  // winner to the CHAMPION slot in the same transaction (BRK-VIEW-04).
+  //
+  // Failure of this writeback does NOT fail the overall saveResult — the
+  // primary scoring path must run. Errors logged for forensic audit.
+  try {
+    if (result_home_90min !== result_away_90min) {
+      const { data: fixtureMeta } = await svc
+        .from('fixtures')
+        .select('stage, home_team_id, away_team_id')
+        .eq('id', fixture_id)
+        .maybeSingle();
+
+      if (fixtureMeta && fixtureMeta.stage !== 'group') {
+        const winnerId =
+          result_home_90min > result_away_90min
+            ? fixtureMeta.home_team_id
+            : fixtureMeta.away_team_id;
+
+        if (winnerId) {
+          // Update the slot whose fixture_id matches; capture the
+          // slot_code so we can detect the Final → Champion cascade.
+          const { data: slotsUpdated } = await svc
+            .from('bracket_slots')
+            .update({ resolved_team_id: winnerId })
+            .eq('fixture_id', fixture_id)
+            .select('slot_code');
+
+          // If we just updated the Final slot, propagate to CHAMPION.
+          if (slotsUpdated && slotsUpdated.some((s) => s.slot_code === 'F')) {
+            await svc
+              .from('bracket_slots')
+              .update({ resolved_team_id: winnerId })
+              .eq('slot_code', 'CHAMPION');
+          }
+        }
+      }
+    }
+  } catch (bracketErr) {
+    // eslint-disable-next-line no-console
+    console.warn('saveResult: bracket writeback failed (non-fatal)', bracketErr);
+  }
+
   // 2. Read every prediction for this fixture (service-role bypasses RLS
   //    — Pitfall 10. The anon client would only return the admin's own
   //    prediction here, which would make the score sweep score one user.)
