@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Executing Phase 02
-last_updated: "2026-05-27T03:34:05.552Z"
+status: ready_to_plan
+last_updated: 2026-05-27T23:03:01.452Z
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 17
-  completed_plans: 13
+  completed_plans: 17
   percent: 33
+stopped_at: Phase 02 complete (12/12) — ready to discuss Phase 3
 ---
 
 # STATE: Zarur-Cup / משחקי זערור
@@ -22,12 +23,12 @@ progress:
 **Core value:** Predictions submitted before kickoff get scored automatically against a unified leaderboard that the whole family can see. If the leaderboard is broken, nothing else matters.
 **Hard deadline:** June 11, 2026 (WC 2026 opening match) — Phases 1 + 2
 **Soft deadline:** June 27, 2026 (first knockout match) — Phase 3
-**Current focus:** Phase 02 — june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate
+**Current focus:** Phase 3 — bracket mode (pre knockout ship)
 
 ## Current Position
 
-Phase: 02 (june-11-mvp-league-props-scoring-leaderboard-admin-ship-gate) — EXECUTING
-Plan: 1 of 12
+Phase: 3
+Plan: Not started
 | Field | Value |
 |-------|-------|
 | Phase | 2 (June 11 MVP) — Wave 7 partial; QA-01 CI in flight, QA-02/03/04 manual gates pending |
