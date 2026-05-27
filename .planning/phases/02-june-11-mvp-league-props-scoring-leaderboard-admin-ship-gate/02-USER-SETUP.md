@@ -78,3 +78,73 @@ Once the four ship gates close (see 02-LAUNCH-CHECKLIST.md):
 - Family WhatsApp message format:
   > Predict the WC: https://zarur-cup.vercel.app — invite code: `{INVITE_CODE}`
 - Send by **June 11, 2026, before 19:00 UTC** kickoff (binary ship gate per D-32).
+
+## Plan 02-12: auto-fetch match scores (D-45 + D-46)
+
+These steps must be completed BEFORE `supabase db push` applies migration 0012, and BEFORE deploying the `/api/score-fetch` route to Vercel. Skipping any step results in 401s, missing data, or cron failures.
+
+### 1. football-data.org account + token
+
+1.1. Visit https://www.football-data.org/client/register and register a free account (email + name; no payment).
+1.2. Confirm email; log in; navigate to dashboard.
+1.3. Copy the API token (32-char string) from the dashboard.
+1.4. Verify free-tier coverage with:
+     ```
+     curl -H "X-Auth-Token: <token>" https://api.football-data.org/v4/competitions/?plan=TIER_ONE | jq '.competitions[] | select(.code == "WC") | {code, name, area}'
+     ```
+     Expected output: a JSON object with `"code": "WC"` and `"name": "FIFA World Cup"`. If `code` is not `WC`, override via the `competitionCode` param in `src/lib/score-fetch/footballData.ts`.
+
+### 2. SCORE_FETCH_SECRET generation
+
+2.1. Generate a 32+ char random secret:
+     ```
+     openssl rand -hex 32
+     ```
+2.2. Save the value — required in both Vercel env and Supabase GUC.
+
+### 3. Vercel env vars
+
+3.1. Vercel dashboard → zarur-cup project → Settings → Environment Variables.
+3.2. Add `FOOTBALL_DATA_TOKEN` (Production + Preview scopes) — value from step 1.3.
+3.3. Add `SCORE_FETCH_SECRET` (Production + Preview scopes) — value from step 2.1.
+3.4. Redeploy production (or trigger a new commit that pushes to main) so the env vars are loaded.
+
+### 4. Supabase GUC for pg_cron
+
+4.1. Supabase Dashboard → SQL Editor → New Query.
+4.2. Run:
+     ```sql
+     ALTER DATABASE postgres SET app.score_fetch_secret TO '<value from step 2.1>';
+     ```
+     (The exact same SCORE_FETCH_SECRET value. pg_cron's `current_setting('app.score_fetch_secret', true)` reads from here when constructing the Bearer header.)
+4.3. Verify:
+     ```sql
+     SELECT current_setting('app.score_fetch_secret', true);
+     ```
+     Should return the value.
+
+### 5. Push migrations
+
+5.1. Run `npm run db:push` — applies 0012, 0013 (Plan 02-10), 0014 in sequence.
+5.2. Each migration's DO-block smoke validates its own invariants; if any raise, fix the migration body before retrying.
+
+### 6. Verify pg_cron schedule
+
+6.1. Supabase Dashboard → Database → Cron.
+6.2. Confirm `zarur-score-fetch` job appears with schedule `*/15 * * * *`.
+6.3. (Optional) Manually trigger the cron by clicking the job's "Run now" button (or via SQL: `SELECT cron.schedule(...)` repeats; or wait 15 min).
+6.4. Tail Vercel function logs for `/api/score-fetch` — expect a 200 response and log lines `score-fetch ok` (or `outside-tournament-window` pre-June 11).
+
+### 7. End-to-end smoke
+
+7.1. Pre-June 11: cron polls return `{ok:true, skipped:'outside-tournament-window'}` — verify in Vercel function logs.
+7.2. Post-June 11: cron polls fetch real scores; the integrity widget on `/admin/*` shows `Unscored Completed Matches` decreasing as each match finishes.
+7.3. If admin enters a manual result via `/admin/matches`, the next cron tick MUST NOT overwrite it — verify by checking the fixture row's `auto_fetched_at` column is NULL after admin save.
+
+### 8. Failure recovery
+
+If the cron stops working:
+- Check `cron.job_run_details` for failure rows.
+- Check Vercel function logs for 401s (Bearer mismatch) or 5xx (route error).
+- Re-run step 4.2 if the GUC was lost in a DB restore.
+- As a last resort, admin enters every remaining match score manually at `/admin/matches` — same path that's the canonical fallback.

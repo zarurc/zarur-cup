@@ -85,11 +85,17 @@ export async function saveResult(input: unknown): Promise<SaveResultResponse> {
   const svc = createServiceClient();
 
   // 1. Persist the result. D-12: Phase 2 admin UI populates ONLY _90min.
+  // AUTO-04 (Plan 02-12): set auto_fetched_at = null so the score-fetch
+  // cron does not overwrite admin's manual entry on its next tick. The
+  // cron's admin-lock check is `result_home_90min IS NOT NULL AND
+  // auto_fetched_at IS NULL` (skip), so a NULL here permanently locks
+  // this row to admin's value until another admin write clears it again.
   const { error: e1 } = await svc
     .from('fixtures')
     .update({
       result_home_90min,
       result_away_90min,
+      auto_fetched_at: null,
     })
     .eq('id', fixture_id);
   if (e1) return { ok: false, error: `fixture_update:${e1.message}` };
