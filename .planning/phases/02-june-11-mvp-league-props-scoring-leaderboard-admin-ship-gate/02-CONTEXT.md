@@ -290,11 +290,70 @@ Planner must add a sub-task to update PROJECT.md as part of the new plan set:
 - **Active Requirements:** Update the "Bracket Mode" bullet to "Read-only bracket view" with the new scope.
 - **Validated section:** Phase 1's invite-code login, RLS lock, bilingual chrome should be moved here (still ✓ Pending; should have flipped during /gsd-transition that didn't happen — separate task).
 
-## Research Gaps (D-43..D-44)
+## Research Gaps (D-43..D-44) — RESOLVED 2026-05-26
 
 **D-43:** **Sports API source selection — RESEARCH QUESTION.** Candidate sources to compare: `football-data.org` (free tier, official-flavor), `API-Football` (free tier 100 req/day), `ESPN unofficial` (no auth, fragile), `SofaScore unofficial` (no auth, fragile). Required: WC 2026 coverage commitment, free-tier rate limits in the polling-every-15-min cadence (= ~96 req/day worst case), auth model (API key or open), failure recovery semantics. Output: gsd-phase-researcher writes a comparison + recommended source with explicit fallback chain. Lock-in risk: wrong choice = blown June 11 deadline on integration work.
 
+**RESOLVED by D-46 below + 02-RESEARCH-ADDENDUM.md.**
+
 **D-44:** **Cron consolidation pattern details — RESEARCH QUESTION.** Required: best-practice pattern for fanning out a single Vercel cron route handler across multiple responsibilities (heartbeat + score-fetch) without cross-contaminating failure modes. Specifically: how to make the heartbeat (3-day ping) survive even if score-fetch fails. Should the scores fetch be `await`ed or `void`-ed? Should the route return 200 even when scores fail? Edge case: what if the route timeout (10s on Vercel Hobby Free) is hit during a long score-fetch — does heartbeat get skipped?
+
+**RESOLVED by D-45 below + 02-RESEARCH-ADDENDUM.md. Note: the D-41 strategy (consolidate inside `/api/heartbeat` with `*/15` schedule) is INVALID — Vercel Hobby cron is hard-limited to once-per-day max frequency. D-45 supersedes D-41's frequency + location claims.**
+
+## D-45: Score-fetch cron strategy — Supabase pg_cron + pg_net (SUPERSEDES D-41)
+
+**Research finding:** Vercel Hobby cron jobs are hard-limited to once-per-day maximum frequency (verified against vercel.com/docs/cron-jobs/usage-and-pricing). The D-41 `*/15 * * * *` schedule fails at deployment with explicit error. Slot count was misstated in D-41 — Hobby allows up to 100 cron slots, but every slot is once-per-day max. Workarounds: (A) Vercel Pro $20/mo, (B) Supabase pg_cron + pg_net calling our route, (C) GitHub Actions schedule.
+
+**Decision: Use Supabase pg_cron + pg_net.** Free. Keeps app logic in TypeScript. New migration enables `pg_cron` and `pg_net` Postgres extensions and creates a scheduled job that POSTs to a new `/api/score-fetch` Next.js route every 15 minutes. The existing `/api/heartbeat` cron on Vercel Hobby stays as-is (`0 12 */3 * *`, FND-05 anti-pause); it no longer carries score-fetch responsibility.
+
+**Implementation outline (planner refines):**
+
+1. **New migration:** `0012_pg_cron_score_fetch.sql` — `create extension if not exists pg_cron with schema extensions;` + `create extension if not exists pg_net with schema extensions;` + `select cron.schedule('zarur-score-fetch', '*/15 * * * *', $$ select net.http_post(url := 'https://zarur-cup.vercel.app/api/score-fetch', headers := jsonb_build_object('Authorization', 'Bearer ' || current_setting('app.score_fetch_secret')), body := '{}'::jsonb) $$);` — and a `current_setting('app.score_fetch_secret')` defined via `alter database ... set app.score_fetch_secret = '...';` (planner picks secret-storage mechanism — Supabase Vault is the canonical option).
+2. **New route:** `src/app/api/score-fetch/route.ts` — POST-only, Bearer-auth via `SCORE_FETCH_SECRET` env var on Vercel + matching value stored in Supabase Vault. Body: fetch football-data.org WC 2026 fixtures, filter to recent completions, map to internal `fixtures.id` via `(kickoff_at ±5min, home/away team.code)`, upsert `result_home_90min / result_away_90min` only where current value IS NULL. Idempotent.
+3. **Schema addition (D-47 below):** `fixtures.auto_fetched_at timestamptz` column, populated by /api/score-fetch on successful write; nulled by admin manual entry at /admin/matches so cron won't re-overwrite admin-entered scores.
+
+**Failure isolation:** /api/score-fetch failures (rate limit, source down, mapping mismatch) log to Vercel function logs and return 500 to pg_net, which Supabase records but does not propagate. Heartbeat stays on its own Vercel cron path — uncoupled. Admin manual entry at `/admin/matches` remains the canonical fallback.
+
+**Cron schedule window:** `*/15 * * * *` continuously, OR `*/15 12-23 6,7 *` (tournament-window-gated). Planner picks; recommend tournament-window-gating to reduce wasted API calls during the long pre/post-tournament periods. Tournament runs June 11 – July 19, 2026; planner can compute the exact cron range.
+
+## D-46: Sports API source — football-data.org v4 (RESOLVES D-43)
+
+**Research finding:** Of the candidates, football-data.org v4 is the only free-forever tier with explicit WC 2026 coverage commitment. 10 req/min rate limit on free tier; `*/15` schedule = ~96 req/day, well within budget. Auth: single API key in `X-Auth-Token` header, free signup at football-data.org/client/register. Coverage: 104 fixtures (group + KO) confirmed for FIFA WC 2026 in their `/v4/competitions/WC/matches` endpoint.
+
+**Decision: football-data.org v4 is the primary source.** Fallback chain on read failure:
+1. If 429 / rate-limit: skip this cron tick, retry on next.
+2. If 5xx / network: skip this cron tick, log, retry on next.
+3. If response shape changes / mapping mismatch: log to Vercel function logs + integrity widget at `/admin/*` already surfaces unscored fixtures.
+4. Manual: admin types result at `/admin/matches`. This is the canonical fallback and works any time.
+
+**Identifier mapping problem (researcher-flagged):** Free APIs do not expose FIFA's 1-104 `external_match_no`. Mapping uses tuple `(kickoff_at ±5min, home_team.code, away_team.code)` against our seeded teams CSV (`teams.code` is ISO-3 alpha — TLA codes like `BRA`, `ARG`, `MEX`). Planner adds a Wave-0 unit test that asserts all 104 fixtures map cleanly against football-data.org's response shape, BEFORE writing the cron job. If mapping fails for any fixture (CSV drift, vendor renaming), the test catches it; manual override remains.
+
+**API key handling:** Single `FOOTBALL_DATA_API_TOKEN` env var. Stored on Vercel (server-only, no NEXT_PUBLIC prefix). Used in /api/score-fetch fetch headers. Rotate-able if abused.
+
+## D-47: Read-only bracket view RSC + column-of-rounds layout (LOCKS D-40 implementation)
+
+**Research finding:** Best layout for 360px viewport in both RTL (HE) and LTR (EN) is a **column-of-rounds** vertical layout — each round (R32, R16, QF, SF, F, 3rd, Champion) becomes a horizontal section with its matches as cards stacked below. Avoids SVG positioning gymnastics that traditional left-right tree layouts require. All Tailwind v4 logical-property utilities (Phase 1 P05 pattern).
+
+**Decision:** /[locale]/bracket renders a single RSC that fires ONE Supabase query joining `bracket_slots` → `fixtures` → `teams` (×3 embeds for home/away/winner). Sorted by round order. Each match card shows: `{home_team.code} {home_score?} vs {away_team.code} {away_score?}` with the winner highlighted post-result. Pre-result cards show team codes only (or placeholder symbolics like "1A" for "Winner Group A" if group stage still in progress).
+
+**Live-fill mechanism:** The existing admin `/admin/matches` save-result Server Action gains a 2-line addition: `revalidatePath('/he/bracket')` + `revalidatePath('/en/bracket')` after each result write. Optionally also write `bracket_slots.resolved_team_id` (another 2 lines) — planner picks whether to derive from `fixtures.result_*` joins or denormalize into `bracket_slots`. Recommend join for simplicity unless query is slow at 32 rows (it won't be).
+
+**New schema column:** `fixtures.auto_fetched_at timestamptz NULL` — set by D-45 /api/score-fetch on each successful auto-write. Admin manual entry at /admin/matches CLEARS this column (sets to NULL) so cron won't overwrite the admin's value on the next tick. This is the D-41 admin-overwrite invariant, now backed by a real column.
+
+## Updated Claude's Discretion (additions from research)
+
+- Exact tournament-window cron range for D-45 (recommend `*/15 12-23 6-7 * *` gated to June 11 – July 19 UTC; planner verifies exact bounds).
+- Whether to store the football-data.org API key in Supabase Vault or just Vercel env (recommend Vercel env — simpler, no migration needed).
+- Whether bracket_slots.resolved_team_id is denormalized (D-47) or derived via join (recommend derived for simplicity; denormalize only if query is slow at scale).
+- Whether the Wave-0 mapping test for D-46 runs in CI on every push or just locally pre-commit (recommend CI — catches vendor drift).
+- Pre-result bracket card visual — placeholder symbolic ("1A" for "Winner Group A") vs blank vs locked icon. Recommend symbolic so family understands the tree structure pre-tournament.
+
+## Updated Deferred (additions from research)
+
+- **Direct Supabase Vault for football-data.org API key** — defer to Phase 2.x. Vercel env is sufficient for v1.
+- **Tournament-window-aware cron auto-disable** (turn off pg_cron job July 20 + 1d) — defer. Manual `cron.unschedule()` is fine post-tournament.
+- **Multi-source fallback chain** (try football-data.org → fallback to API-Football → fallback to manual). Defer. Single-source + admin manual is sufficient for v1.
+- **Webhook from sports source** instead of polling — most free-tier APIs don't expose webhooks. Defer to v2.
 
 ## Updated Claude's Discretion (additions to original list)
 
