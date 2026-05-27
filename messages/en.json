@@ -68,8 +68,14 @@
       "heading": "Props coming soon",
       "body": "Tournament-level questions appear here before the first kickoff."
     },
-    "yourAnswerLabel": "Your answer",
-    "correctAnswerLabel": "Correct"
+    "yourAnswerLabel": "Your pick",
+    "correctAnswerLabel": "Correct answer",
+    "headingPrivate": "Your props",
+    "ctaPrivate": "Pre-tournament props — editable until June 11 19:00 UTC. Only you can see your picks.",
+    "lockedNotePrivate": "Props are locked. Only you can see your picks.",
+    "notAnsweredLabel": "— (not answered)",
+    "awaitingGradeLabel": "Awaiting admin grading",
+    "ptsMaxSuffix": "pts max"
   },
   "countdown": {
     "next": "Next:",
@@ -171,7 +177,13 @@
     "localeLabel": "Language",
     "logout": "Log out",
     "logoutAria": "Sign out of the current account",
-    "totalLabel": "Your total"
+    "totalLabel": "Your total",
+    "propsCardHeading": "Pre-tournament props",
+    "propsCardBody": "Your private picks — answer before June 11 19:00 UTC",
+    "propsStatusEditable": "Editable",
+    "propsStatusLocked": "Locked",
+    "propsStatusEditableAria": "Props are editable until first kickoff",
+    "propsStatusLockedAria": "Props are locked"
   },
   "notFound": {
     "heading": "Page not found",

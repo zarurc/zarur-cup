@@ -68,8 +68,14 @@
       "heading": "שאלות הטורניר בקרוב",
       "body": "כאן יופיעו שאלות הטורניר לפני שריקת הפתיחה."
     },
-    "yourAnswerLabel": "התשובה שלך",
-    "correctAnswerLabel": "תשובה נכונה"
+    "yourAnswerLabel": "הבחירה שלך",
+    "correctAnswerLabel": "התשובה הנכונה",
+    "headingPrivate": "השאלות שלך",
+    "ctaPrivate": "שאלות לפני הטורניר — ניתנות לעריכה עד 11 ביוני 19:00 UTC. רק אתה רואה את הבחירות שלך.",
+    "lockedNotePrivate": "השאלות נעולות. רק אתה רואה את הבחירות שלך.",
+    "notAnsweredLabel": "— (לא נענה)",
+    "awaitingGradeLabel": "ממתין לציון מנהל",
+    "ptsMaxSuffix": "נקודות מקסימום"
   },
   "countdown": {
     "next": "הקרוב:",
@@ -115,7 +121,13 @@
     "localeLabel": "שפה",
     "logout": "יציאה",
     "logoutAria": "התנתקות מהחשבון הנוכחי",
-    "totalLabel": "הסך שלך"
+    "totalLabel": "הסך שלך",
+    "propsCardHeading": "שאלות לפני הטורניר",
+    "propsCardBody": "הבחירות הפרטיות שלך — ענה לפני 11 ביוני 19:00 UTC",
+    "propsStatusEditable": "ניתן לעריכה",
+    "propsStatusLocked": "נעול",
+    "propsStatusEditableAria": "השאלות ניתנות לעריכה עד הבעיטה הראשונה",
+    "propsStatusLockedAria": "השאלות נעולות"
   },
   "notFound": {
     "heading": "הדף לא נמצא",
