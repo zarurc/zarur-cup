@@ -219,7 +219,105 @@ A signed-in family member on a mobile phone can: (a) scroll a chronological matc
 
 </deferred>
 
+<scope_expansion_addendum>
+
+---
+
+# ADDENDUM: Phase 2 Scope Expansion (2026-05-26)
+
+**Trigger:** During QA-02 (Plan 02-08 ship gate), the operator (zekez) audited the live build and decided to (a) cut the Phase 3 Bracket prediction game in favor of a read-only bracket display, (b) make Props strictly private (supersedes D-25), (c) move Props out of its own route and nest under `/me`, (d) reverse PROJECT.md's "external API integration — out of scope" decision to enable auto-fetching of match scores. **Phase 2 is reopened with new plans 02-09..02-1X to ship by the original June 11 hard deadline.** Phase 3 (originally "Bracket Mode") collapses; this addendum supersedes it.
+
+## D-34: Cut Bracket-as-prediction-game
+
+The original ROADMAP "Phase 3: Bracket Mode (Pre-Knockout Ship)" — predict R32/R16/QF/SF/F winners with escalating 2/4/8/16/32 scoring — **is cancelled**. The `bracket_picks` table remains in the schema (no migration deletion needed; harmless empty table) but the prediction UI, bracket scoring engine, and the `source='bracket'` aggregation rows in `score_events` are dropped. Leaderboard's "Bracket: 0 — opens June 27" sublabel (D-28) is removed entirely — total points no longer have a "bracket" mode. PROJECT.md "Bracket scoring escalates per round (2/4/8/16/32)" key decision moves to Out of Scope with reason "displaced by read-only bracket view in v1".
+
+## D-35: Cut auto-grade-props
+
+Tournament awards (Top Scorer, Golden Boot, Golden Ball) are not published in any consumable in-tournament feed; they're announced after the final on July 19. Manual grading of the 7 props at tournament end takes ~10 minutes once. Auto-grading is removed from scope as a low-value automation target. The existing `/admin/props` grading flow stays exactly as built.
+
+## D-36: External sports API integration — REVERSES PROJECT.md Out of Scope
+
+PROJECT.md previously listed *"Live external sports API integration — admin enters results manually; pre-seeded fixtures are sufficient for one tournament, less infra to break"* as Out of Scope. This reversal is necessary because the operator wants automatic match-score ingestion to remove the 104×manual-entry burden over the 30-day tournament window.
+
+The reversal terms: external API is now IN scope **for match-score fetching only**. Admin manual entry at `/admin/matches` remains the canonical write path and the fallback when the API source is unreachable. Source selection is a research question (see Research Gaps below).
+
+## D-37: Final navigation layout
+
+End-of-Phase-2 chrome is **4 bottom tabs**: `Matches | Bracket | Leaderboard | Me`. The Bracket tab — currently a coming-soon `EmptyStateCard` — is repurposed to point at the new read-only bracket view. Props are NOT a top-level tab. **Props live at `/[locale]/me/props`** as a sub-route of Me. The Me page (currently total points + locale + logout) gains a card/link "Pre-tournament props — editable until June 11 19:00 UTC" that routes to the props sub-page.
+
+## D-38: Props are STRICTLY PRIVATE — SUPERSEDES D-25
+
+Each family member sees only their own prop answers. Pre-tournament: editable. Post-tournament-kickoff: read-only receipt of the user's own picks (the user can verify what they submitted; no one else's picks are visible to them at any time, ever). The earlier D-25 "lock reveal pattern" that opened `prop_answers` SELECT to all members post-`tournament.starts_at` is **reversed**. This cascades:
+
+- **RLS policy change required.** `supabase/migrations/0002_rls.sql:155-163` `prop_answers_read` policy currently grants SELECT under `user_id = auth.uid() OR (post-kickoff exists-clause)`. A new migration must tighten this to `user_id = (select auth.uid())` only — drop the post-kickoff branch entirely.
+- **`/[locale]/props/page.tsx` simplification required.** Remove the `isRevealed` branch (currently lines 61, 130-146, 191-256). The page only ever renders the user's own answers: editable cards pre-lock, read-only "receipt" cards post-lock.
+- **Leaderboard `props_total` aggregate unaffected.** `score_events` exposes points totals, not answer strings — family sees rank + points, never *what* others picked.
+- **Admin still has full visibility** via `/admin/props` (service-role client bypasses RLS); admin grading flow unchanged.
+
+## D-39: Props lifecycle
+
+- **Lock anchor:** `tournament.starts_at` (June 11 19:00 UTC), exactly as the existing `prop_answers_insert` RLS WITH CHECK already enforces. No change.
+- **Pre-lock UX:** Editable cards at `/[locale]/me/props` — 4 flag-grid props (Winner / Runner-up / Biggest Upset / Dark Horse SF) + 3 free-text props (Top Scorer / Golden Boot / Golden Ball). Existing component patterns from `PropCard.client.tsx` + `FlagGrid.client.tsx` reused as-is.
+- **Post-lock UX:** Read-only "receipt" rendering of the user's own picks. Show: prompt, their selection (team name from `teams` table or free-text string), points-when-correct value, and (once admin grades) the correct answer + their actual `+pts` badge. No other family members' rows.
+- **Grading:** Admin grades manually via `/admin/props` at tournament end (~10 min for 7 props). Unchanged from current build.
+
+## D-40: Read-only bracket view at `/[locale]/bracket`
+
+The Bracket tab (currently `EmptyStateCard "coming June 27"`) is replaced with a server-rendered tree view of the WC 2026 knockout bracket: 32 slots from R32 through Champion, FIFA non-sequential R32→R16 wiring already seeded in Phase 1 (Plan 01-03). The view reads `bracket_slots` + `fixtures` and renders team names as slots resolve.
+
+**Fill granularity: per-match.** Each KO match resolves its slot immediately as admin enters the result through the existing `/admin/matches` flow — no separate admin "resolve bracket" workflow needed for the view (the existing `/admin/tournament-tree` admin tab already handles placeholder→team-id resolution per D-11). When result is entered, `revalidatePath('/[locale]/bracket')` from the save action ticks the view forward. Family sees the tree fill in real time during the knockout stage.
+
+**Read-only.** Family cannot pick winners or submit predictions on this page. No `bracket_picks` writes from any UI surface. The `bracket_picks` table stays empty for v1 (and probably forever for this tournament).
+
+**No scoring impact.** Bracket points are zero across all rows — already cut per D-34.
+
+## D-41: Auto-fetch match scores — consolidated cron architecture
+
+Vercel Hobby has 1 cron slot, currently `/api/heartbeat` (Phase 1 FND-05). The scores cron consolidates **inside** the same route handler — no new cron registration. Strategy:
+
+- **`/api/heartbeat` route fans out by responsibility.** Top-level handler does the existing 3-day Supabase ping (`SELECT FROM fixtures`) always. On every invocation, also runs a tournament-window check: if `now()` is within (tournament.starts_at − 1h, tournament.ends_at + 1d) AND there are recently-completed fixtures (`kickoff_at < now() - interval '110 minutes' AND result_home_90min IS NULL`), trigger a scores-fetch subroutine.
+- **Cron schedule increase.** Existing `0 12 */3 * *` (every 3 days at 12:00 UTC) is insufficient for live score fetching. Switch to a tighter schedule (e.g., `*/15 * * * *` — every 15 minutes). Vercel Hobby supports any cron expression; the 1-slot limit is on *number of distinct crons*, not frequency.
+- **Manual admin override always available.** `/admin/matches` direct result entry remains the canonical write path. If the API source is unreachable, slow, or wrong, admin types the score; that write also flips the fixture's `auto_fetched_at` to NULL so the cron won't re-overwrite it.
+- **Idempotency.** Score-fetch upserts on `(fixture_id)` and checks `result_home_90min IS NULL` before writing; never overwrites an admin-entered or already-fetched result.
+- **Failure mode:** If fetch fails (HTTP error, rate limit, schema drift, source down), log to Vercel function logs, return 200 from the cron (so it keeps firing), and silently fall through — admin enters manually. **No alerting in v1**; the integrity widget on `/admin/*` already surfaces unscored fixtures (D-15).
+
+## D-42: PROJECT.md updates required
+
+Planner must add a sub-task to update PROJECT.md as part of the new plan set:
+
+- **Out of Scope section:** Remove the "Live external sports API integration" line (D-36 reverses it). Add a new "Bracket Mode as a prediction game" line with reason "displaced by read-only bracket view in v1 per D-34" (D-34 cuts it).
+- **Key Decisions table:** Mark "Bracket scoring escalates per round (2/4/8/16/32)" as ❌ Cut. Mark "Admin enters fixtures + results manually (pre-seed the WC 2026 schedule once)" as ✓ Partially — auto-fetch added per D-36; admin manual entry remains the fallback. Add a new row for D-36 reversal.
+- **Active Requirements:** Update the "Bracket Mode" bullet to "Read-only bracket view" with the new scope.
+- **Validated section:** Phase 1's invite-code login, RLS lock, bilingual chrome should be moved here (still ✓ Pending; should have flipped during /gsd-transition that didn't happen — separate task).
+
+## Research Gaps (D-43..D-44)
+
+**D-43:** **Sports API source selection — RESEARCH QUESTION.** Candidate sources to compare: `football-data.org` (free tier, official-flavor), `API-Football` (free tier 100 req/day), `ESPN unofficial` (no auth, fragile), `SofaScore unofficial` (no auth, fragile). Required: WC 2026 coverage commitment, free-tier rate limits in the polling-every-15-min cadence (= ~96 req/day worst case), auth model (API key or open), failure recovery semantics. Output: gsd-phase-researcher writes a comparison + recommended source with explicit fallback chain. Lock-in risk: wrong choice = blown June 11 deadline on integration work.
+
+**D-44:** **Cron consolidation pattern details — RESEARCH QUESTION.** Required: best-practice pattern for fanning out a single Vercel cron route handler across multiple responsibilities (heartbeat + score-fetch) without cross-contaminating failure modes. Specifically: how to make the heartbeat (3-day ping) survive even if score-fetch fails. Should the scores fetch be `await`ed or `void`-ed? Should the route return 200 even when scores fail? Edge case: what if the route timeout (10s on Vercel Hobby Free) is hit during a long score-fetch — does heartbeat get skipped?
+
+## Updated Claude's Discretion (additions to original list)
+
+- Bracket-view component layout (column-of-rounds vs traditional left-right tree at 360px — RTL flip required for `/he/bracket`).
+- Whether `/[locale]/props` 301-redirects to `/[locale]/me/props` or just gets deleted (recommend redirect for ~2 weeks then delete).
+- Exact heartbeat cron schedule (recommend `*/15 * * * *`; planner may tune based on API source rate limits from D-43 research).
+- Whether to remove the now-unused `bracket_picks` table in a future cleanup migration or leave it forever (recommend leave — append-only convention from Phase 1 P02).
+- Whether the Me-page "Props" card shows a countdown to lock or just an "Editable" / "Locked" pill (recommend pill — countdown lives in the global banner on `/matches`).
+- Whether props-receipt rendering re-uses the existing `PropCard.client.tsx` with a `readonly` prop, or a new `PropReceipt.tsx` server component (recommend new server component — simpler, no client JS needed post-lock).
+
+## Updated Deferred (additions)
+
+- **`bracket_picks` table cleanup.** Phase-3-or-later. Leave for now (append-only).
+- **`/[locale]/props` route teardown.** After redirect period, delete the page file. Defer to Phase 2.x cleanup.
+- **Webhook-based score push** (vs polling). Research D-43 will note this as a v2 path; free-tier API sources rarely offer webhooks.
+- **Alerting on fetch-failure streak.** If 3 consecutive cron runs fail, ping admin. v2 concern; manual integrity widget covers v1.
+- **Real-time tree-fill animation** on `/bracket` as results land (vs page revalidation). v2 polish.
+- **Roster table cleanup** if anyone leaves the family. v2 concern (`/admin/roster` merge tool covers it for now per D-14).
+
+</scope_expansion_addendum>
+
 ---
 
 *Phase: 2-June-11-MVP-League-Props-Scoring-Leaderboard-Admin-Ship-Gate*
 *Context gathered: 2026-05-24*
+*Scope expansion addendum: 2026-05-26 (cut Bracket prediction game; cut auto-grade props; Props private + nested under /me; auto-fetch scores via consolidated heartbeat cron; research gaps on API source + cron pattern)*

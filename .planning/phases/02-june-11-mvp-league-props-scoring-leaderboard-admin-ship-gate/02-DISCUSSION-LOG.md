@@ -173,3 +173,113 @@ User explicitly delegated to planner / Claude:
 - **Cron consolidation inside /api/heartbeat** — only if Phase 2.x needs it
 - **Materialized leaderboard view** — v2
 - **Staged rollout / preview-env invite distribution** — single ship-gate flip
+
+---
+
+# ADDENDUM: Phase 2 Scope Expansion Discussion (2026-05-26)
+
+**Trigger:** Mid-QA-02 walkthrough, operator (zekez) decided to rethink game types after walking through `/he/props` and finding it had no nav entry. Conversation pivoted from "fix the props nav" to a broader product call on what game types ship in v1.
+
+**Areas reopened:**
+- Game types in scope (which prediction surfaces ship)
+- Bracket Mode prediction game vs read-only view
+- Props lifecycle + privacy
+- External sports API integration (PROJECT.md OOS reversal)
+- Final navigation layout
+
+---
+
+## Game Types in Scope
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Keep all three (League + Bracket prediction + Props) as originally rOADMAPped | Full original Phase 2 + Phase 3 plan | |
+| **Cut Bracket prediction; keep League + Props + add read-only bracket VIEW** | Bracket is display-only, not a prediction game; League full; Props kept | **✓** |
+| Cut Props entirely; League + Bracket prediction only | Skips props, doubles down on bracket | |
+| League-only; cut everything else | Simplest path | |
+
+**Rationale:** Operator felt Bracket-as-prediction-game was too complex for the 16-day window and the 15-person family scale. Read-only bracket view that "fills as games end" delivers the visual satisfaction without the prediction infrastructure.
+
+---
+
+## Auto-grade Props
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Keep manual grading at /admin/props (~10 min total at tournament end) | No automation; operator clicks through 7 props once | **✓** |
+| Build auto-grade for tournament-award props (Golden Boot/Golden Ball/Top Scorer) | Adds 4-6h; awards published post-July 19 only | |
+
+**Rationale:** Tournament awards aren't published in any live feed mid-tournament; auto-grading saves ~10 minutes once. Lowest-value automation; cut to free up scope for higher-value work (score fetching).
+
+---
+
+## External Sports API Integration
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Honor PROJECT.md Out of Scope ("admin enters results manually") | No external dependencies; 104 manual entries over 30 days | |
+| **Reverse OOS; auto-fetch match scores; manual entry stays as fallback** | Net automation savings ~10 minutes/day during tournament | **✓** |
+| Hybrid: admin clicks "fetch" button per fixture | Less infra, but no autonomy benefit | |
+
+**Rationale:** Operator wants to remove the manual-entry burden across 104 fixtures. Free-tier sports APIs (football-data.org, API-Football, etc.) cover WC 2026. Trade-off: adds external-dependency failure surface, but admin manual entry remains the canonical write path and works when API is down.
+
+---
+
+## Props Privacy Model
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Original D-25: open prop_answers SELECT to all members at tournament.starts_at (reveal at first kickoff) | Drives social engagement; family sees who picked who | |
+| **STRICT PRIVATE — user sees own picks only, always** | RLS tightened to `user_id = auth.uid()` only; no reveal branch | **✓** |
+| Reveal at tournament-end only | Compromise; family sees picks after final | |
+
+**Rationale:** Operator clarification — props are long-term commitments (who wins the cup; top scorer) submitted before the tournament starts. Unlike per-match predictions (which reveal at kickoff to drive social engagement), pre-tournament props feel personal. Reveal would expose ~30 days of opinion before any of it could be verified. **Supersedes D-25.**
+
+---
+
+## Final Navigation Layout
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| 5 tabs: Matches, Bracket (view), Props, Leaderboard, Me | Cleanest semantic mapping; risk of crowding at 360px HE | |
+| 4 tabs + Props under header link | Lowest discoverability for Props | |
+| 4 tabs + Props nested at /me/props | Props is private + personal; lives under Me where private things belong | |
+| **4 tabs (Matches, Bracket-view, Leaderboard, Me); Props embedded at `/[locale]/me/props`** | Bracket placeholder repurposed to read-only view tab; Props live as a Me-sub-page | **✓** |
+
+**Rationale:** Operator's words: *"put props under me. it will only be editable until kickoff, right? so no need to have it be in it's own tab. also, others cant see other players chices."* Privacy-first reasoning (D-38) drove the nav placement (D-37). Props are personal long-term commitments, not social engagement surfaces.
+
+---
+
+## Bracket View Fill Granularity
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| **Per-match — slots resolve immediately as admin enters each KO result** | Live tree-fill as tournament plays out | **✓** |
+| Per-stage — only update at round boundaries (all R32 done → R16 fills) | Cleaner snapshots; less dynamic UX | |
+
+**Rationale:** Per-match maximizes the "watch the tree fill" satisfaction. Existing `/admin/matches` save action already revalidates affected paths; adding `revalidatePath('/[locale]/bracket')` is one line.
+
+---
+
+## Research Gaps Punted to Researcher
+
+| Question | Why deferred |
+|---|---|
+| Sports API source selection — football-data.org vs API-Football vs ESPN unofficial vs SofaScore unofficial | Free-tier coverage, rate limits, auth model, failure semantics for WC 2026 specifically. Lock-in risk = blown June 11 deadline. Researcher writes comparison + recommendation. |
+| Cron consolidation pattern inside `/api/heartbeat` | Best practice for fanning out one Vercel cron across heartbeat + scores without cross-contaminating failure modes. 10s timeout edge cases. Researcher surfaces canonical patterns. |
+
+---
+
+## Deferred Ideas (this session)
+
+- **Tournament-award auto-grading** — not worth the scope cost at 16 days
+- **Webhook-based score push** — most free-tier APIs don't offer; defer to v2
+- **Real-time bracket-fill animation** — v2 polish; revalidation-on-result is sufficient for v1
+- **`bracket_picks` table cleanup** — leave (append-only convention)
+- **`/[locale]/props` route teardown** — redirect to `/me/props` for ~2 weeks, then delete
+- **Alerting on score-fetch failure streak** — integrity widget covers v1
+- **Real-time tree-fill animation** on `/bracket` — v2
+
+---
+
+*Addendum gathered: 2026-05-26 during /gsd-discuss-phase 2 (re-entry)*
