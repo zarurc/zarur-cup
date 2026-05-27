@@ -14,7 +14,7 @@ progress:
 
 # STATE: Zarur-Cup / משחקי זערור
 
-**Last updated:** 2026-05-25 (Plan 02-08 QA-01 GREEN — Playwright e2e smoke passing on CI `095a828`. RLS lock contract verified end-to-end. Remaining: QA-02/03/04 manual gates + post-execution audits.)
+**Last updated:** 2026-05-26 (Phase 2 reopened mid-QA-02 for scope expansion. Added 02-CONTEXT.md addendum D-34..D-44: cut Bracket prediction game; cut auto-grade props; Props strictly private + nested at /me/props (supersedes D-25); auto-fetch scores via consolidated heartbeat cron; PROJECT.md OOS reversal on external APIs. Phase 3 cancelled. Two research questions deferred to gsd-phase-researcher.)
 
 ## Project Reference
 
@@ -170,6 +170,26 @@ Plan: 8 of 8 partial — Tasks 0/1/2/4 + SUMMARY shipped; QA-01 CI iterating; QA
 (None yet.)
 
 ## Session Continuity
+
+**Active scope-expansion thread (2026-05-26):**
+
+Phase 2 reopened mid-QA-02. Operator decided to: (a) cut Bracket-as-prediction-game (Phase 3 cancelled), (b) build read-only bracket view in its place (replaces /[locale]/bracket EmptyStateCard), (c) make Props strictly private — user sees only own picks, always — supersedes D-25, requires new migration tightening prop_answers_read RLS + simplification of /[locale]/props/page.tsx, (d) move Props to /[locale]/me/props nested under Me, (e) reverse PROJECT.md "external API integration — OOS" to enable auto-fetching match scores via consolidated /api/heartbeat cron, (f) cut auto-grade props (low value; awards published post-July 19 only).
+
+**Final nav at end of Phase 2:** 4 bottom tabs — Matches | Bracket (read-only view) | Leaderboard | Me (with props sub-page).
+
+**Pending:** /gsd-plan-phase 2 --research-phase dispatches gsd-phase-researcher to investigate D-43 (sports API source) + D-44 (cron consolidation). Then /gsd-plan-phase 2 writes new plans 02-09..02-1X. Then execute.
+
+**Original QA-02 mid-walkthrough status (still relevant — these matches/LB/me surfaces PASSED before the scope pivot):**
+
+- ✅ /he/matches with preview-seed rows (stepper, save, locked, resulted, 3-letter FIFA codes, real flags, no horizontal scroll at 360px)
+- ✅ /he/leaderboard (preview standings, single-expand breakdown)
+- ✅ /he/me (total points + logout)
+- 🔴 /he/props — blocked by nav gap; replaced by new scope (will revisit after scope-expansion ships)
+- 🔴 /en/* — pending
+- 🔴 I18N-06 bidi stress sweep — pending
+- 🔴 QA-03 Hebrew copy review + QA-04 family invite — pending until new scope ships
+
+**Memory flags still open:** SUPABASE_SECRET_KEY + SUPABASE_ACCESS_TOKEN rotation pending.
 
 **For the next session / next agent invocation:**
 
