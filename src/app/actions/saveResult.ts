@@ -134,18 +134,38 @@ export async function saveResult(input: unknown): Promise<SaveResultResponse> {
         if (winnerId) {
           // Update the slot whose fixture_id matches; capture the
           // slot_code so we can detect the Final → Champion cascade.
-          const { data: slotsUpdated } = await svc
+          // WR-03 fix (2026-05-27): capture the error response. Previously
+          // a slot-update DB failure produced data=null which collapsed
+          // into "no Final cascade", masking the underlying DB error and
+          // leaving the CHAMPION slot empty silently.
+          const { data: slotsUpdated, error: slotUpdErr } = await svc
             .from('bracket_slots')
             .update({ resolved_team_id: winnerId })
             .eq('fixture_id', fixture_id)
             .select('slot_code');
 
-          // If we just updated the Final slot, propagate to CHAMPION.
-          if (slotsUpdated && slotsUpdated.some((s) => s.slot_code === 'F')) {
-            await svc
+          if (slotUpdErr) {
+            // eslint-disable-next-line no-console
+            console.warn(
+              'saveResult: bracket slot update failed (non-fatal)',
+              slotUpdErr,
+            );
+          } else if (
+            slotsUpdated &&
+            slotsUpdated.some((s) => s.slot_code === 'F')
+          ) {
+            // If we just updated the Final slot, propagate to CHAMPION.
+            const { error: champUpdErr } = await svc
               .from('bracket_slots')
               .update({ resolved_team_id: winnerId })
               .eq('slot_code', 'CHAMPION');
+            if (champUpdErr) {
+              // eslint-disable-next-line no-console
+              console.warn(
+                'saveResult: CHAMPION cascade failed (non-fatal)',
+                champUpdErr,
+              );
+            }
           }
         }
       }
