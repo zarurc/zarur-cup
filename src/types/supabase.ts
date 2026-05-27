@@ -145,6 +145,7 @@ export type Database = {
       }
       fixtures: {
         Row: {
+          auto_fetched_at: string | null
           away_placeholder: string | null
           away_team_id: string | null
           created_at: string
@@ -166,6 +167,7 @@ export type Database = {
           venue_code: string | null
         }
         Insert: {
+          auto_fetched_at?: string | null
           away_placeholder?: string | null
           away_team_id?: string | null
           created_at?: string
@@ -187,6 +189,7 @@ export type Database = {
           venue_code?: string | null
         }
         Update: {
+          auto_fetched_at?: string | null
           away_placeholder?: string | null
           away_team_id?: string | null
           created_at?: string
