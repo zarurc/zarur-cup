@@ -50,12 +50,14 @@ export async function POST(request: Request) {
   }
 
   // 2. Tournament-window gate.
+  // WR-01 fix (2026-05-27): pin to code='WC2026'. The earliest-starts_at heuristic
+  // would silently pick the wrong tournament if a maintainer ever seeds a
+  // second tournament row in this DB.
   const svc = createServiceClient();
   const { data: tour } = await svc
     .from('tournament')
     .select('starts_at, ends_at')
-    .order('starts_at', { ascending: true })
-    .limit(1)
+    .eq('code', 'WC2026')
     .maybeSingle();
 
   const now = Date.now();
@@ -119,22 +121,16 @@ export async function POST(request: Request) {
           fixture.result_home_90min !== null && fixture.auto_fetched_at === null;
         if (adminEntered) continue;
 
-        // Simple .eq() UPDATE — no .or() ambiguity possible.
-        const { error: upErr } = await svc
-          .from('fixtures')
-          .update({
-            result_home_90min: h,
-            result_away_90min: a,
-            auto_fetched_at: new Date().toISOString(),
-          })
-          .eq('id', fixtureId);
-        if (upErr) {
-          // eslint-disable-next-line no-console
-          console.error('score-fetch update error', upErr);
-          continue;
-        }
+        // CR-01 fix (2026-05-27): sweep BEFORE fixture UPDATE.
+        // Previously the order was: UPDATE fixtures → SELECT preds → sweep.
+        // If sweep failed AFTER UPDATE committed, the row was stuck in
+        // (result NOT NULL, auto_fetched_at NOT NULL) — admin-lock predicate
+        // doesn't detect that state, so the leaderboard could stay silently
+        // wrong on a deterministic sweep failure. New order keeps fixtures
+        // in (result NULL) when scoring fails — next */15 tick retries the
+        // entire path cleanly. Read REVIEW.md CR-01 for full reasoning.
 
-        // SELECT predictions and sweep.
+        // 1. SELECT predictions and compute score_events rows BEFORE mutating fixtures.
         const { data: preds, error: predErr } = await svc
           .from('predictions')
           .select('user_id, home_score, away_score')
@@ -159,6 +155,8 @@ export async function POST(request: Request) {
           };
         });
 
+        // 2. Sweep score_events FIRST. If this fails, fixtures row stays
+        //    (result NULL) so the cron retries cleanly on the next tick.
         const sweepRes = await sweepAndUpsert({
           svc,
           source: 'league',
@@ -168,6 +166,22 @@ export async function POST(request: Request) {
         if (!sweepRes.ok) {
           // eslint-disable-next-line no-console
           console.error('score-fetch sweep error', sweepRes.error);
+          continue;
+        }
+
+        // 3. Only NOW commit the fixture row — scoring has succeeded, so the
+        //    next admin or UI view sees a consistent (result + score_events) pair.
+        const { error: upErr } = await svc
+          .from('fixtures')
+          .update({
+            result_home_90min: h,
+            result_away_90min: a,
+            auto_fetched_at: new Date().toISOString(),
+          })
+          .eq('id', fixtureId);
+        if (upErr) {
+          // eslint-disable-next-line no-console
+          console.error('score-fetch update error', upErr);
           continue;
         }
 
