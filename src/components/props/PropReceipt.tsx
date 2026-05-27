@@ -70,7 +70,12 @@ export function PropReceipt({
     ? displayAnswer(question.correct_answer)
     : null;
 
-  const ptsKind: PtsKind = (score?.kind as PtsKind | undefined) ?? 'miss';
+  // WR-02 fix (2026-05-27): infer kind from points when score row exists but
+  // kind is null. Previously fell back to 'miss' even for positive-points rows,
+  // producing a confusing "missed" badge alongside a non-zero pts value.
+  const ptsKind: PtsKind =
+    (score?.kind as PtsKind | undefined) ??
+    (score && score.points > 0 ? 'correct' : 'miss');
 
   return (
     <article className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-4 pbe-4 mbs-4">
