@@ -109,19 +109,35 @@ These steps must be completed BEFORE `supabase db push` applies migration 0012, 
 3.3. Add `SCORE_FETCH_SECRET` (Production + Preview scopes) — value from step 2.1.
 3.4. Redeploy production (or trigger a new commit that pushes to main) so the env vars are loaded.
 
-### 4. Supabase GUC for pg_cron
+### 4. Supabase Vault secret for pg_cron
+
+Why Vault, not a GUC: managed Supabase blocks `ALTER DATABASE postgres SET <custom_guc>` with `42501 permission denied` — the SQL Editor's `postgres` role is not a true PG superuser, and PG 15+ requires `GRANT SET ON PARAMETER` for non-built-in GUCs (which itself needs superuser). Vault is Supabase's blessed pattern for pg_cron + pg_net secrets.
 
 4.1. Supabase Dashboard → SQL Editor → New Query.
-4.2. Run:
+4.2. Insert the secret into Vault:
      ```sql
-     ALTER DATABASE postgres SET app.score_fetch_secret TO '<value from step 2.1>';
+     select vault.create_secret(
+       '<value from step 2.1>',
+       'score_fetch_secret',
+       'Bearer token for /api/score-fetch — used by pg_cron job zarur-score-fetch'
+     );
      ```
-     (The exact same SCORE_FETCH_SECRET value. pg_cron's `current_setting('app.score_fetch_secret', true)` reads from here when constructing the Bearer header.)
+     (Exact same SCORE_FETCH_SECRET value as Vercel env. pg_cron's `(select decrypted_secret from vault.decrypted_secrets where name = 'score_fetch_secret')` reads from here when constructing the Bearer header.)
 4.3. Verify:
      ```sql
-     SELECT current_setting('app.score_fetch_secret', true);
+     select decrypted_secret from vault.decrypted_secrets where name = 'score_fetch_secret';
      ```
-     Should return the value.
+     Should return the secret value (not NULL, not empty).
+4.4. **Rotation:** to rotate the secret later, run:
+     ```sql
+     select vault.update_secret(
+       (select id from vault.secrets where name = 'score_fetch_secret'),
+       '<new-value>',
+       'score_fetch_secret',
+       'Bearer token for /api/score-fetch — used by pg_cron job zarur-score-fetch'
+     );
+     ```
+     The cron picks up the new value on the next */15 tick — no migration re-push needed. Remember to update the matching `SCORE_FETCH_SECRET` env var in Vercel.
 
 ### 5. Push migrations
 
@@ -146,5 +162,5 @@ These steps must be completed BEFORE `supabase db push` applies migration 0012, 
 If the cron stops working:
 - Check `cron.job_run_details` for failure rows.
 - Check Vercel function logs for 401s (Bearer mismatch) or 5xx (route error).
-- Re-run step 4.2 if the GUC was lost in a DB restore.
+- Re-run step 4.2 if the Vault secret was lost in a DB restore (verify via 4.3 query).
 - As a last resort, admin enters every remaining match score manually at `/admin/matches` — same path that's the canonical fallback.
