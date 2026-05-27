@@ -16,23 +16,26 @@ Built for **FIFA World Cup 2026**, kickoff **June 11, 2026**.
 
 <!-- Shipped and confirmed valuable. -->
 
-(None yet — ship to validate)
+Phase 02 codebase is complete and the production deployment is live at https://zarur-cup.vercel.app as of 2026-05-27. Items below are code-validated; family-validation (QA-02 mobile, QA-03 native-speaker copy, QA-04 invite distribution) lives in `.planning/phases/02-.../02-HUMAN-UAT.md` and signs off after 2026-06-11 kickoff.
+
+- [x] Bilingual UI — Hebrew (RTL) + English (LTR), browser-locale detection on first visit, persistent toggle (Validated in Phase 1)
+- [x] Shared family invite code sign-in — one code, pick a display name, identity persists across sessions (Validated in Phase 1)
+- [x] Pre-seeded WC 2026 fixture schedule (all 64 matches with dates, teams TBD slots) (Validated in Phase 1)
+- [x] Deploy to public URL by **June 11, 2026** so family can use it for opening match (Validated in Phase 1; Phase 2 ships the production app surface — auto-deployed via Vercel)
+- [x] **League Mode**: per-match score predictions for every WC 2026 fixture (group + knockout stages) (Validated in Phase 2: June 11 MVP)
+- [x] **Bracket View** (read-only): server-rendered tree view of the knockout bracket that fills in live as admin enters results; no user predictions, no scoring (Validated in Phase 2: June 11 MVP — Plan 02-11)
+- [x] **Props/Wildcards** (strictly private): tournament-level bonus questions answered before first kickoff; **each user sees only their own answers at all times — pre-lock editable, post-lock read-only receipt — no cross-user reveal** (Validated in Phase 2: June 11 MVP — Plan 02-10 per D-38)
+- [x] Kicktipp 4/3/2 scoring — exact score = 4, correct goal difference = 3, correct winner = 2 (Validated in Phase 2: June 11 MVP — Plan 02-02)
+- [x] Predictions lock at each match's kickoff time; predictions hidden from other users until lock (Validated in Phase 2: June 11 MVP)
+- [x] One unified leaderboard combining League + Bracket + Props points; click a player to see per-mode breakdown (Validated in Phase 2: June 11 MVP — Plan 02-07; Bracket subtotal column reserved for a future per-mode bracket-game milestone if ever re-scoped)
+- [x] Admin dashboard (single admin, just me) — enter match results, manage tournament data, edit user roster (Validated in Phase 2: June 11 MVP — Plans 02-05, 02-06)
+- [x] Live external score auto-fetch (football-data.org v4 + Supabase pg_cron + pg_net; admin manual entry remains canonical fallback) (Validated in Phase 2: June 11 MVP — Plan 02-12 per D-45/D-46)
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] Bilingual UI — Hebrew (RTL) + English (LTR), browser-locale detection on first visit, persistent toggle
-- [ ] Shared family invite code sign-in — one code, pick a display name, identity persists across sessions
-- [ ] **League Mode**: per-match score predictions for every WC 2026 fixture (group + knockout stages)
-- [ ] **Bracket View** (read-only): server-rendered tree view of the knockout bracket that fills in live as admin enters results; no user predictions, no scoring
-- [ ] **Props/Wildcards** (strictly private): tournament-level bonus questions answered before first kickoff; **each user sees only their own answers at all times — pre-lock editable, post-lock read-only receipt — no cross-user reveal** (per D-38)
-- [ ] Kicktipp 4/3/2 scoring — exact score = 4, correct goal difference = 3, correct winner = 2
-- [ ] Predictions lock at each match's kickoff time; predictions hidden from other users until lock
-- [ ] One unified leaderboard combining League + Bracket + Props points; click a player to see per-mode breakdown
-- [ ] Admin dashboard (single admin, just me) — enter match results, manage tournament data, edit user roster
-- [ ] Pre-seeded WC 2026 fixture schedule (all 64 matches with dates, teams TBD slots)
-- [ ] Deploy to public URL by **June 11, 2026** so family can use it for opening match
+(None — Phase 02 closed the original v1 scope plus the 2026-05-26 scope expansion. Family-validation pending in 02-HUMAN-UAT.md; future-milestone items are out of scope below.)
 
 ### Out of Scope
 
@@ -107,4 +110,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-26 after Phase 2 scope expansion (D-34..D-47)*
+*Last updated: 2026-05-27 after Phase 2 close-out (12/12 plans complete; codebase validated; 8 human-gated items tracked in 02-HUMAN-UAT.md)*
