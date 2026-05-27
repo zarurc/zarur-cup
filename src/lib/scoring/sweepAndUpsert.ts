@@ -64,6 +64,8 @@ const REVALIDATE_PATHS = [
   '/en/me',
   '/he/me/props',
   '/en/me/props',
+  '/he/bracket',
+  '/en/bracket',
 ] as const;
 
 export async function sweepAndUpsert(opts: {
