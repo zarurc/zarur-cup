@@ -14,7 +14,7 @@ progress:
 
 # STATE: Zarur-Cup / משחקי זערור
 
-**Last updated:** 2026-05-26 (Phase 2 reopened mid-QA-02 for scope expansion. Added 02-CONTEXT.md addendum D-34..D-44: cut Bracket prediction game; cut auto-grade props; Props strictly private + nested at /me/props (supersedes D-25); auto-fetch scores via consolidated heartbeat cron; PROJECT.md OOS reversal on external APIs. Phase 3 cancelled. Two research questions deferred to gsd-phase-researcher.)
+**Last updated:** 2026-05-26 (Phase 2 scope-expansion plans 02-09..02-12 written + verified via 2-iteration plan-check. Ready to execute. CONTEXT addendum D-34..D-47 final; D-41 cron strategy superseded by D-45 pg_cron after research surfaced Vercel Hobby once-per-day cron limit. football-data.org v4 + column-of-rounds bracket RSC + props strictly-private locked.)
 
 ## Project Reference
 
