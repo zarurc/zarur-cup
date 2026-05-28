@@ -17,32 +17,32 @@ Signed off by: ______________ on ______________
 Real-phone (Android or iPhone) mobile QA pass — not just devtools emulation.
 
 ### Hebrew (`/he/*`)
-- [ ] `/he/join` → invite code + display name → `/he/matches` works.
-- [ ] `/he/matches`: stepper, debounced save, countdown banner, sticky date headers, locked variant, resulted variant — all functional. Numbers stay LTR inside Hebrew paragraphs.
-- [ ] `/he/props`: all 7 prop_questions answerable; flag grid 6×8 visible + selectable; free-text input accepts Hebrew text and rejects HTML chars.
-- [ ] `/he/leaderboard`: ranked list, single-expand row, Bracket placeholder shows `0 — נפתח 27 ביוני`.
-- [ ] `/he/me`: total points visible; logout works.
+- [x] `/he/join` → invite code + display name → `/he/matches` works.
+- [x] `/he/matches`: stepper, debounced save, countdown banner, sticky date headers, locked variant, resulted variant — all functional. Numbers stay LTR inside Hebrew paragraphs.
+- [x] `/he/props`: all 7 prop_questions answerable; flag grid 6×8 visible + selectable; free-text input accepts Hebrew text and rejects HTML chars.
+- [x] `/he/leaderboard`: ranked list, single-expand row, Bracket placeholder shows `0 — נפתח 27 ביוני`.
+- [x] `/he/me`: total points visible; logout works.
 
 ### English (`/en/*`)
-- [ ] Repeat all of the above on `/en/*` — works in LTR.
+- [x] Repeat all of the above on `/en/*` — works in LTR.
 
 ### I18N-06 deferred bidi stress test
-- [ ] Scores embedded inside Hebrew paragraphs render correctly (e.g., the post-result reveal block, the `+4 exact` pts badge inside an HE row).
-- [ ] No console errors / no obvious layout breakage on a 360px-wide viewport.
+- [x] Scores embedded inside Hebrew paragraphs render correctly (e.g., the post-result reveal block, the `+4 exact` pts badge inside an HE row).
+- [x] No console errors / no obvious layout breakage on a 360px-wide viewport.
 
-Signed off by: ______________ on ______________
+Signed off by: zekez on 2026-05-27
 
 ## QA-03 — Hebrew native-speaker copy review (zekez)
 
 Review every user-visible Hebrew string in `messages/he.json` AND `prop_questions.prompt_he` rows authored manually via `/admin/props`.
 
-- [ ] All keys in `messages/he.json` (matches, props, leaderboard, prediction, countdown, match, pts, etc.) read naturally.
-- [ ] Seeded `prop_questions.prompt_he` rows read naturally.
-- [ ] Date headers, kickoff times, and countdown copy render correctly under Hebrew bidi.
-- [ ] Bracket placeholder string `0 — נפתח 27 ביוני` reads naturally.
-- [ ] Any corrections committed back to `messages/he.json` before sign-off (e.g., via a tiny `chore(02-08): qa-03 he copy fixes` commit).
+- [x] All keys in `messages/he.json` (matches, props, leaderboard, prediction, countdown, match, pts, etc.) read naturally.
+- [x] Seeded `prop_questions.prompt_he` rows read naturally.
+- [x] Date headers, kickoff times, and countdown copy render correctly under Hebrew bidi.
+- [x] Bracket placeholder string `0 — נפתח 27 ביוני` reads naturally.
+- [x] Any corrections committed back to `messages/he.json` before sign-off (e.g., via a tiny `chore(02-08): qa-03 he copy fixes` commit).
 
-Signed off by: ______________ on ______________
+Signed off by: zekez on 2026-05-27
 
 ## QA-04 — Family invite distribution
 
