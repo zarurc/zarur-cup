@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { EmptyStateCard } from '@/components/layout/EmptyStateCard';
 import { PropCard, type PropQuestion } from '@/components/props/PropCard.client';
 import { PropReceipt } from '@/components/props/PropReceipt';
-import type { Team } from '@/components/props/FlagGrid.client';
+import type { Team } from '@/lib/teams/flags';
 
 type Props = { params: Promise<{ locale: string }> };
 

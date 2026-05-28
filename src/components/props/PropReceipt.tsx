@@ -1,5 +1,5 @@
 import { PtsBadge, type PtsKind } from '@/components/ui/PtsBadge';
-import type { Team } from '@/components/props/FlagGrid.client';
+import type { Team } from '@/lib/teams/flags';
 
 /**
  * Read-only props receipt (post-lock state for /[locale]/me/props).

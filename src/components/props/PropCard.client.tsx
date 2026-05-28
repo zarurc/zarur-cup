@@ -4,7 +4,8 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { savePropAnswer } from '@/app/actions/savePropAnswer';
 import { SavedIndicator } from '@/components/ui/SavedIndicator.client';
-import { FlagGrid, type Team } from './FlagGrid.client';
+import { FlagDropdown } from './FlagDropdown.client';
+import type { Team } from '@/lib/teams/flags';
 
 const DEBOUNCE_MS = 600;
 // Client-side mirror of the server FREE_TEXT_REGEX from propAnswerSchema
@@ -50,7 +51,7 @@ export function PropCard({ locale, question, initialAnswer, teams }: Props) {
         <h3 className="text-base font-bold text-[var(--zc-primary)] mbe-3">
           {prompt}
         </h3>
-        <FlagGrid
+        <FlagDropdown
           questionId={question.id}
           locale={locale}
           teams={teams}
