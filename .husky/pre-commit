@@ -1,8 +1,10 @@
 #!/usr/bin/env sh
-# Phase 1+2 pre-commit gates (FND-03 + SCR-05 + TS):
+# Phase 1+2 pre-commit gates (FND-03 + SCR-05 + ESLint + TS):
 #   1. lint:rtl — fail on any physical-direction Tailwind utility under src/ or messages/
 #   2. lint:tailwind-v4 — fail on bare [--zc-X] CSS-var shorthand (Phase 1 P05 regression mode)
-#   3. typecheck — fail on TypeScript errors before they land on main
+#   3. lint — fail on ESLint errors before they land on CI (added 2026-05-28 after
+#      4 latent .cjs require() errors slipped through and broke the workflow)
+#   4. typecheck — fail on TypeScript errors before they land on main
 # Husky v9 no longer needs the legacy `. "$(dirname -- "$0")/_/husky.sh"` shim.
 
 # FND-03: physical-direction Tailwind utility check.
@@ -30,6 +32,10 @@ if ! npm run lint:tailwind-v4 --silent; then
   echo "  text-[--zc-cream]  -> text-[var(--zc-cream)]"
   exit 1
 fi
+
+# ESLint full sweep
+echo "Running lint (ESLint)..."
+npm run --silent lint || exit 1
 
 # TypeScript build check
 echo "Running typecheck..."
