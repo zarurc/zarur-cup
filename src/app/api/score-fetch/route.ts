@@ -85,7 +85,6 @@ export async function POST(request: Request) {
         const fixtureId = await resolveFixture(svc, m);
         if (!fixtureId) {
           mappingFailures++;
-          // eslint-disable-next-line no-console
           console.warn('score-fetch: no fixture resolved', {
             utcDate: m.utcDate,
             home: m.homeTeam.tla,
@@ -110,7 +109,6 @@ export async function POST(request: Request) {
           .eq('id', fixtureId)
           .single();
         if (selErr) {
-          // eslint-disable-next-line no-console
           console.error('score-fetch select error', selErr);
           continue;
         }
@@ -136,7 +134,6 @@ export async function POST(request: Request) {
           .select('user_id, home_score, away_score')
           .eq('fixture_id', fixtureId);
         if (predErr) {
-          // eslint-disable-next-line no-console
           console.error('score-fetch predictions read error', predErr);
           continue;
         }
@@ -164,7 +161,6 @@ export async function POST(request: Request) {
           rows,
         });
         if (!sweepRes.ok) {
-          // eslint-disable-next-line no-console
           console.error('score-fetch sweep error', sweepRes.error);
           continue;
         }
@@ -180,7 +176,6 @@ export async function POST(request: Request) {
           })
           .eq('id', fixtureId);
         if (upErr) {
-          // eslint-disable-next-line no-console
           console.error('score-fetch update error', upErr);
           continue;
         }
@@ -188,14 +183,12 @@ export async function POST(request: Request) {
         writes++;
       }
 
-      // eslint-disable-next-line no-console
       console.log('score-fetch ok', {
         processed: matches.length,
         writes,
         mappingFailures,
       });
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('score-fetch failed', err);
     }
   });

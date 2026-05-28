@@ -98,7 +98,6 @@ export async function fetchWcMatches(opts: {
 
     // Stored-XSS defense: reject row if team name fails the safe-name regex.
     if (!SAFE_NAME_REGEX.test(homeTeam.name) || !SAFE_NAME_REGEX.test(awayTeam.name)) {
-      // eslint-disable-next-line no-console
       console.warn('score-fetch: rejected match with unsafe team name', {
         home: homeTeam.name,
         away: awayTeam.name,

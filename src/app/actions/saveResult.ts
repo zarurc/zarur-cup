@@ -145,7 +145,6 @@ export async function saveResult(input: unknown): Promise<SaveResultResponse> {
             .select('slot_code');
 
           if (slotUpdErr) {
-            // eslint-disable-next-line no-console
             console.warn(
               'saveResult: bracket slot update failed (non-fatal)',
               slotUpdErr,
@@ -160,7 +159,6 @@ export async function saveResult(input: unknown): Promise<SaveResultResponse> {
               .update({ resolved_team_id: winnerId })
               .eq('slot_code', 'CHAMPION');
             if (champUpdErr) {
-              // eslint-disable-next-line no-console
               console.warn(
                 'saveResult: CHAMPION cascade failed (non-fatal)',
                 champUpdErr,
@@ -171,7 +169,6 @@ export async function saveResult(input: unknown): Promise<SaveResultResponse> {
       }
     }
   } catch (bracketErr) {
-    // eslint-disable-next-line no-console
     console.warn('saveResult: bracket writeback failed (non-fatal)', bracketErr);
   }
 
