@@ -30,7 +30,7 @@ export const propAuthoringSchema = z.object({
     .trim()
     .min(3, 'prompt_short')
     .max(200, 'prompt_long'),
-  answer_type: z.enum(['single_team', 'single_player', 'text']),
+  answer_type: z.enum(['single_team', 'single_player', 'text', 'yes_no']),
   points_value: z.coerce
     .number()
     .int()

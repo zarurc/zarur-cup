@@ -20,7 +20,11 @@
 // match Supabase's generated `Database['public']['Tables']['prop_questions']
 // ['Row']['answer_type']` (regenerated in Plan 02-01) and the existing seed.
 
-export type PropAnswerType = 'single_team' | 'single_player' | 'text';
+export type PropAnswerType =
+  | 'single_team'
+  | 'single_player'
+  | 'text'
+  | 'yes_no';
 export type PropScore = { points: number; kind: 'correct' | 'miss' };
 
 /**

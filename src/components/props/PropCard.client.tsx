@@ -18,7 +18,7 @@ export type PropQuestion = {
   id: string;
   // UNDERSCORED enum matches the live DB CHECK constraint
   // (0001_init.sql:138). Schema-aligned with Plan 02-02.
-  answer_type: 'single_team' | 'single_player' | 'text';
+  answer_type: 'single_team' | 'single_player' | 'text' | 'yes_no';
   points_value: number;
   prompt_en: string;
   prompt_he: string;

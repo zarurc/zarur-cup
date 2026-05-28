@@ -32,7 +32,7 @@ type ExistingProp = {
   id: string;
   prompt_en: string;
   prompt_he: string;
-  answer_type: 'single_team' | 'single_player' | 'text';
+  answer_type: 'single_team' | 'single_player' | 'text' | 'yes_no';
   points_value: number;
 };
 
@@ -81,6 +81,7 @@ export function PropAuthoringForm({ existing }: { existing?: ExistingProp }) {
           <option value="single_team">Pick a team</option>
           <option value="single_player">Pick a player</option>
           <option value="text">Free text</option>
+          <option value="yes_no">Yes / No</option>
         </select>
       </label>
       <label className={labelCls}>
