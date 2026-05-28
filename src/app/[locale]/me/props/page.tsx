@@ -154,6 +154,8 @@ export default async function MePropsPage({ params }: Props) {
               notAnsweredLabel: t('notAnsweredLabel'),
               awaitingGradeLabel: t('awaitingGradeLabel'),
               ptsMaxSuffix: t('ptsMaxSuffix'),
+              yes: t('yes'),
+              no: t('no'),
             }}
           />
         );

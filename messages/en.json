@@ -155,7 +155,9 @@
     "lockedNotePrivate": "Props are locked. Only you can see your picks.",
     "notAnsweredLabel": "— (not answered)",
     "awaitingGradeLabel": "Awaiting admin grading",
-    "ptsMaxSuffix": "pts max"
+    "ptsMaxSuffix": "pts max",
+    "yes": "Yes",
+    "no": "No"
   },
   "countdown": {
     "next": "Next:",

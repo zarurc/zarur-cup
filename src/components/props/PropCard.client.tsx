@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { savePropAnswer } from '@/app/actions/savePropAnswer';
 import { SavedIndicator } from '@/components/ui/SavedIndicator.client';
 import { FlagDropdown } from './FlagDropdown.client';
+import { YesNoToggle } from './YesNoToggle.client';
 import type { Team } from '@/lib/teams/flags';
 
 const DEBOUNCE_MS = 600;
@@ -55,6 +56,20 @@ export function PropCard({ locale, question, initialAnswer, teams }: Props) {
           questionId={question.id}
           locale={locale}
           teams={teams}
+          initialAnswer={initialAnswer}
+        />
+      </article>
+    );
+  }
+
+  if (question.answer_type === 'yes_no') {
+    return (
+      <article className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-4 pbe-4 mbs-4">
+        <h3 className="text-base font-bold text-[var(--zc-primary)] mbe-3">
+          {prompt}
+        </h3>
+        <YesNoToggle
+          questionId={question.id}
           initialAnswer={initialAnswer}
         />
       </article>

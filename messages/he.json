@@ -155,7 +155,9 @@
     "lockedNotePrivate": "השאלות נעולות. רק אתם רואים את הבחירות שלכם.",
     "notAnsweredLabel": "— (לא נענה)",
     "awaitingGradeLabel": "ממתין לציון מנהל",
-    "ptsMaxSuffix": "נקודות מקסימום"
+    "ptsMaxSuffix": "נקודות מקסימום",
+    "yes": "כן",
+    "no": "לא"
   },
   "countdown": {
     "next": "הקרוב:",

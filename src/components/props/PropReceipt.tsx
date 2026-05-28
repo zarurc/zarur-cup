@@ -36,6 +36,8 @@ type ReceiptLabels = {
   notAnsweredLabel: string;
   awaitingGradeLabel: string;
   ptsMaxSuffix: string;
+  yes: string;
+  no: string;
 };
 
 export function PropReceipt({
@@ -60,6 +62,11 @@ export function PropReceipt({
     if (question.answer_type === 'single_team') {
       const tm = teams.find((t) => t.id === raw);
       if (tm) return locale === 'he' ? tm.name_he : tm.name_en;
+      return raw;
+    }
+    if (question.answer_type === 'yes_no') {
+      if (raw === 'yes') return labels.yes;
+      if (raw === 'no') return labels.no;
       return raw;
     }
     return raw;
