@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
+import { setRequestLocale } from 'next-intl/server';
 import { requireAdmin } from '@/lib/auth/session';
 import { IntegrityWidget } from '@/components/admin/IntegrityWidget';
 import { AdminNavTabs } from '@/components/admin/AdminNavTabs.client';
@@ -24,6 +25,13 @@ export default async function AdminProtectedLayout({
   children: React.ReactNode;
 }) {
   await requireAdmin();
+  // D-05: admin surface is EN-only regardless of the user's cookie/profile
+  // locale. setRequestLocale('en') overrides next-intl's default
+  // cookie-driven resolution for every server component in this subtree —
+  // IntegrityWidget, /admin/*/page.tsx, etc. — so getTranslations() lands
+  // on EN strings. Without this, a HE-cookie admin (e.g. Zeke/חזי) sees
+  // admin pages rendered against the messages/he.json admin namespace.
+  setRequestLocale('en');
   return (
     <>
       <header className="flex items-center justify-between ps-4 pe-4 bs-14 border-b border-[var(--zc-border)] bg-[var(--zc-card)]">
