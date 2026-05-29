@@ -48,6 +48,33 @@ export default async function TournamentTreePage({ searchParams }: PageProps) {
     .select('id, code, name_en')
     .order('code', { ascending: true });
 
+  // W2-T1: group placeholders by tournament stage so the long flat list
+  // becomes a scannable hierarchy. Bracket placeholder tokens follow a
+  // stable naming convention (WINNER_GROUP_*, R32_M*_W, etc.) — we route
+  // each token to a stage bucket by prefix and render one section per
+  // non-empty bucket in tournament order.
+  type Stage = {
+    key: 'groups' | 'r32' | 'r16' | 'qf' | 'sf';
+    label: string;
+    tokens: string[];
+  };
+  const stages: Stage[] = [
+    { key: 'groups', label: 'Group stage', tokens: [] },
+    { key: 'r32', label: 'Round of 32', tokens: [] },
+    { key: 'r16', label: 'Round of 16', tokens: [] },
+    { key: 'qf', label: 'Quarterfinals', tokens: [] },
+    { key: 'sf', label: 'Semifinals', tokens: [] },
+  ];
+  const stageByKey = new Map(stages.map((s) => [s.key, s]));
+  for (const p of placeholders) {
+    let key: Stage['key'] = 'groups';
+    if (p.startsWith('R32_')) key = 'r32';
+    else if (p.startsWith('R16_')) key = 'r16';
+    else if (p.startsWith('QF_')) key = 'qf';
+    else if (p.startsWith('SF_')) key = 'sf';
+    stageByKey.get(key)!.tokens.push(p);
+  }
+
   return (
     <main className="pi-4 pbs-4 pbe-24">
       {toast && (
@@ -57,19 +84,39 @@ export default async function TournamentTreePage({ searchParams }: PageProps) {
           message={toast.message}
         />
       )}
-      <h1 className="text-xl font-bold mbs-2 mbe-4">{t('heading')}</h1>
+      <div className="flex items-baseline justify-between gap-3 mbs-2 mbe-4">
+        <h1 className="text-xl font-bold">{t('heading')}</h1>
+        <span
+          dir="ltr"
+          className="text-sm font-bold tabular-nums text-[var(--zc-muted-foreground)]"
+        >
+          {placeholders.length} unresolved
+        </span>
+      </div>
       {placeholders.length === 0 ? (
         <p className="text-base text-[var(--zc-muted-foreground)]">
           {t('noPlaceholders')}
         </p>
       ) : (
-        <ul>
-          {placeholders.map((p) => (
-            <li key={p} className="border-b border-[var(--zc-border)]">
-              <PlaceholderResolver placeholder={p} teams={teams ?? []} />
-            </li>
-          ))}
-        </ul>
+        stages
+          .filter((s) => s.tokens.length > 0)
+          .map((s) => (
+            <section key={s.key} className="mbs-5">
+              <h2 className="text-sm font-bold text-[var(--zc-muted-foreground)] uppercase tracking-wide mbe-2 flex items-center gap-2">
+                <span>{s.label}</span>
+                <span dir="ltr" className="tabular-nums">
+                  · {s.tokens.length}
+                </span>
+              </h2>
+              <ul>
+                {s.tokens.map((p) => (
+                  <li key={p} className="border-b border-[var(--zc-border)]">
+                    <PlaceholderResolver placeholder={p} teams={teams ?? []} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
       )}
     </main>
   );
