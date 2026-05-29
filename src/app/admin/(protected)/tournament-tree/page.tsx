@@ -1,6 +1,8 @@
 import { adminReadClient } from '@/lib/auth/adminReadClient';
 import { getTranslations } from 'next-intl/server';
 import { PlaceholderResolver } from '@/components/admin/PlaceholderResolver.client';
+import { AdminToast } from '@/components/admin/AdminToast.client';
+import { resolveAdminToast } from '@/lib/admin/toast';
 
 /**
  * /admin/tournament-tree — placeholder resolver page (ADM-03 + D-11).
@@ -20,9 +22,14 @@ import { PlaceholderResolver } from '@/components/admin/PlaceholderResolver.clie
  * Reads use adminReadClient (Pitfall 10) — service-role so the distinct
  * placeholder collection reflects the live DB regardless of RLS.
  */
-export default async function TournamentTreePage() {
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function TournamentTreePage({ searchParams }: PageProps) {
   const t = await getTranslations('admin.tree');
   const svc = await adminReadClient();
+  const toast = resolveAdminToast(await searchParams);
 
   // 1. Collect distinct unresolved placeholders.
   const { data: fxs } = await svc
@@ -43,6 +50,13 @@ export default async function TournamentTreePage() {
 
   return (
     <main className="pi-4 pbs-4 pbe-24">
+      {toast && (
+        <AdminToast
+          key={`${toast.tone}:${toast.message}`}
+          tone={toast.tone}
+          message={toast.message}
+        />
+      )}
       <h1 className="text-xl font-bold mbs-2 mbe-4">{t('heading')}</h1>
       {placeholders.length === 0 ? (
         <p className="text-base text-[var(--zc-muted-foreground)]">

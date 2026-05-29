@@ -1,6 +1,8 @@
 import { adminReadClient } from '@/lib/auth/adminReadClient';
 import { getTranslations } from 'next-intl/server';
 import { RosterMergeForm } from '@/components/admin/RosterMergeForm.client';
+import { AdminToast } from '@/components/admin/AdminToast.client';
+import { resolveAdminToast } from '@/lib/admin/toast';
 
 /**
  * /admin/roster — family roster + merge tool (ADM-05 + D-14).
@@ -21,9 +23,14 @@ import { RosterMergeForm } from '@/components/admin/RosterMergeForm.client';
  *
  * NO requireAdmin() call here — parent layout enforces.
  */
-export default async function AdminRosterPage() {
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AdminRosterPage({ searchParams }: PageProps) {
   const t = await getTranslations('admin.roster');
   const svc = await adminReadClient();
+  const toast = resolveAdminToast(await searchParams);
 
   // Full roster, ordered by joined_at so admin sees the family
   // in their original arrival order.
@@ -52,6 +59,13 @@ export default async function AdminRosterPage() {
 
   return (
     <main className="pi-4 pbs-4 pbe-24">
+      {toast && (
+        <AdminToast
+          key={`${toast.tone}:${toast.message}`}
+          tone={toast.tone}
+          message={toast.message}
+        />
+      )}
       <h1 className="text-xl font-bold mbs-2 mbe-4">{t('heading')}</h1>
       <ul>
         {profileList.map((p) => (

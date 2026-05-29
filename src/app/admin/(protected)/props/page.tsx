@@ -2,6 +2,8 @@ import { adminReadClient } from '@/lib/auth/adminReadClient';
 import { getTranslations } from 'next-intl/server';
 import { PropAuthoringForm } from '@/components/admin/PropAuthoringForm.client';
 import { PropGradeForm } from '@/components/admin/PropGradeForm.client';
+import { AdminToast } from '@/components/admin/AdminToast.client';
+import { resolveAdminToast } from '@/lib/admin/toast';
 
 /**
  * /admin/props — prop authoring + grading page (ADM-04 + PRP-04 + D-13).
@@ -21,9 +23,14 @@ import { PropGradeForm } from '@/components/admin/PropGradeForm.client';
  * the schema the action expects on submit. (createOrUpdateProp.ts does
  * the reverse mapping when writing.)
  */
-export default async function AdminPropsPage() {
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AdminPropsPage({ searchParams }: PageProps) {
   const t = await getTranslations('admin.props');
   const svc = await adminReadClient();
+  const toast = resolveAdminToast(await searchParams);
 
   const { data: questions } = await svc
     .from('prop_questions')
@@ -43,6 +50,13 @@ export default async function AdminPropsPage() {
 
   return (
     <main className="pi-4 pbs-4 pbe-24">
+      {toast && (
+        <AdminToast
+          key={`${toast.tone}:${toast.message}`}
+          tone={toast.tone}
+          message={toast.message}
+        />
+      )}
       <h1 className="text-xl font-bold mbs-2 mbe-4">{t('authorHeading')}</h1>
       <PropAuthoringForm />
 
