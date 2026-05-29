@@ -78,8 +78,14 @@ export async function POST(request: Request) {
 
       for (const m of matches) {
         if (m.status !== 'FINISHED') continue;
-        const h = m.score.fullTime.home;
-        const a = m.score.fullTime.away;
+        // D-12 revised 2026-05-28: scoring uses the final on-field score.
+        // Prefer the post-ET cumulative goals when present (KO matches that
+        // went to extra time); otherwise the 90' fullTime is itself final.
+        // Penalty-shootout goals are NEVER added — pens decide bracket
+        // advancement, not the scored result.
+        const et = m.score.extraTime;
+        const h = et !== null ? et.home : m.score.fullTime.home;
+        const a = et !== null ? et.away : m.score.fullTime.away;
         if (h === null || a === null) continue;
 
         const fixtureId = await resolveFixture(svc, m);

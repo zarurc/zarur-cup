@@ -43,7 +43,16 @@ export type ExternalMatch = {
   status: ExternalMatchStatus;
   homeTeam: { id: number; name: string; tla: string };
   awayTeam: { id: number; name: string; tla: string };
-  score: { fullTime: { home: number | null; away: number | null } };
+  // `fullTime` = score at end of regulation (90'); `extraTime` = post-ET
+  // cumulative goals (present only when ET was played). We prefer
+  // `extraTime` when surfaced because scoring is now keyed on the
+  // final on-field score, not the 90' score (D-12 revised 2026-05-28).
+  // Penalties are intentionally NOT surfaced — shootout goals are not
+  // counted as match goals for scoring purposes.
+  score: {
+    fullTime: { home: number | null; away: number | null };
+    extraTime: { home: number | null; away: number | null } | null;
+  };
 };
 
 export async function fetchWcMatches(opts: {
@@ -106,9 +115,15 @@ export async function fetchWcMatches(opts: {
     }
 
     const score = obj.score as
-      | { fullTime?: { home?: number | null; away?: number | null } }
+      | {
+          fullTime?: { home?: number | null; away?: number | null };
+          extraTime?: { home?: number | null; away?: number | null } | null;
+        }
       | undefined;
     const ft = score?.fullTime;
+    const et = score?.extraTime;
+    const etHasBothScores =
+      !!et && typeof et.home === 'number' && typeof et.away === 'number';
 
     sanitized.push({
       utcDate: typeof obj.utcDate === 'string' ? obj.utcDate : '',
@@ -128,6 +143,9 @@ export async function fetchWcMatches(opts: {
           home: typeof ft?.home === 'number' ? ft.home : null,
           away: typeof ft?.away === 'number' ? ft.away : null,
         },
+        extraTime: etHasBothScores
+          ? { home: et!.home as number, away: et!.away as number }
+          : null,
       },
     });
   }

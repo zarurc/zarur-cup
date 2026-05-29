@@ -64,7 +64,7 @@
     "champion": "Champion",
     "winnerLabel": "Winner",
     "championTbdLabel": "TBD",
-    "tieAtNinetyLabel": "Tied at 90' (ET pending)",
+    "tieAtNinetyLabel": "Tied after extra time — decided on penalties",
     "emptyHeading": "Bracket not yet seeded",
     "emptyBody": "Once knockouts are scheduled, the tree will appear here."
   },
@@ -291,7 +291,7 @@
   "rules": {
     "heading": "Rules",
     "scoringHeading": "Match scoring",
-    "scoringIntro": "Each match prediction is scored against the 90-minute result — extra time and penalties do not change your points.",
+    "scoringIntro": "Each match prediction is scored against the final on-field result, including extra time. Penalty-shootout goals don't count.",
     "scoringExactPts": "4 pts",
     "scoringExactBody": "Exact score (e.g. you predicted 2-1 and the match ended 2-1).",
     "scoringDiffPts": "3 pts",
@@ -300,7 +300,7 @@
     "scoringWinnerBody": "Correct winner or correct draw (e.g. you predicted 1-0 for a 2-1 match, or you predicted 1-1 for a 2-2 match).",
     "scoringMissPts": "0 pts",
     "scoringMissBody": "Wrong outcome.",
-    "scoringFootnote": "Knockout matches: only the 90-minute score counts.",
+    "scoringFootnote": "Knockout matches: extra-time goals count toward the result; penalty shootouts do not.",
     "propsHeading": "Pre-tournament questions",
     "propsBody": "Before the opening kickoff you answer 5 tournament-level questions — winner, runner-up, third place, Golden Boot (top scorer), and Golden Ball (best player). Each has its own point value (4 to 10).",
     "propsTotal": "32 points total across all 5 questions.",

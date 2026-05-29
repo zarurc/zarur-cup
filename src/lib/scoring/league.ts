@@ -8,7 +8,14 @@
 //
 // SCR-01: 4 (exact) / 3 (correct non-zero goal-diff) / 2 (correct winner
 //          or 0-diff non-exact) / 0
-// SCR-02: only the 90-min columns matter; ET/penalty columns are ignored
+// SCR-02 (revised 2026-05-28): scoring is keyed on the FINAL on-field
+//          score — group stage 90' is final by definition, and for KO
+//          matches the `result_home_90min` / `result_away_90min` columns
+//          hold the post-ET total (admin enters the final on-field score;
+//          the score-fetch cron prefers `score.extraTime` when present).
+//          Penalty-shootout goals are never counted — pens decide bracket
+//          advancement only. Column names retain the `_90min` suffix for
+//          schema-stability; rename is a post-tournament cleanup.
 // SCR-05: integer-only — inputs are smallint, output `points: number` is
 //          integer-shaped (never floats)
 

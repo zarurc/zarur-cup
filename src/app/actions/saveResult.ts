@@ -32,12 +32,13 @@ import {
  *      own predictions through RLS and break integrity.
  *
  *   4. UPDATE `fixtures.result_home_90min` + `.result_away_90min` ONLY.
- *      Per Phase 2 D-12 the new `_full` columns ship in migration 0009
- *      but stay NULL for the entire phase — Phase 3 ET admin UI is the
- *      one that populates them. Group-stage fixtures NEVER set `_full`.
- *      `updated_at` is omitted (Phase 1 schema does not define a trigger
- *      that bumps it on UPDATE — if a later migration adds one it fires
- *      automatically; if not, the column may not even exist).
+ *      D-12 was revised 2026-05-28: these columns now hold the FINAL
+ *      on-field score (group stage = 90'; KO = post-ET cumulative when
+ *      ET was played; penalty-shootout goals never counted). Admin
+ *      enters that one pair in the single inline stepper. The legacy
+ *      `_full` columns added in migration 0009 stay NULL forever and
+ *      are post-tournament cleanup. `updated_at` is omitted (Phase 1
+ *      schema does not define a trigger that bumps it on UPDATE).
  *
  *   5. SELECT all predictions for this fixture (service-role bypasses
  *      RLS). The shape is the minimum needed by `scoreMatch` —
@@ -102,15 +103,17 @@ export async function saveResult(input: unknown): Promise<SaveResultResponse> {
 
   // 1b. Bracket slot resolution (BRK-VIEW-03 + BRK-VIEW-04, Plan 02-11).
   //
-  // For non-group fixtures with a clear 90-min winner, write the winning
-  // team_id to bracket_slots.resolved_team_id WHERE fixture_id = this
-  // fixture. This is the live-fill mechanism for /[locale]/bracket — the
-  // RSC reads resolved_team via the relational join and renders the team
+  // For non-group fixtures with a clear on-field winner (non-tied final
+  // result — group stage 90' or KO post-ET), write the winning team_id
+  // to bracket_slots.resolved_team_id WHERE fixture_id = this fixture.
+  // This is the live-fill mechanism for /[locale]/bracket — the RSC
+  // reads resolved_team via the relational join and renders the team
   // name once this row is populated.
   //
-  // Tied-at-90 KO matches leave resolved_team_id NULL (D-12 ET handling
-  // is Phase 3). Tied group-stage matches are ignored — group stage is
-  // never written to bracket_slots.
+  // KO matches that ended tied after ET went to penalties — admin
+  // resolves the bracket slot manually via /admin/tournament-tree.
+  // Tied group-stage matches are ignored — group stage is never written
+  // to bracket_slots.
   //
   // If the Final (slot_code = 'F') is being decided, also propagate the
   // winner to the CHAMPION slot in the same transaction (BRK-VIEW-04).
