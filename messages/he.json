@@ -219,7 +219,9 @@
     "rulesLinkHeading": "חוקים",
     "rulesLinkBody": "איך הניקוד והנעילה עובדים",
     "howToPlayLinkHeading": "איך משחקים",
-    "howToPlayLinkBody": "סיור של 60 שניות"
+    "howToPlayLinkBody": "סיור של 60 שניות",
+    "adminLinkHeading": "ניהול",
+    "adminLinkBody": "הזנת תוצאות, הכרעת שאלות, ניהול הרוסטר"
   },
   "notFound": {
     "heading": "הדף לא נמצא",

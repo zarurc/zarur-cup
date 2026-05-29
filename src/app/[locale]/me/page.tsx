@@ -3,6 +3,8 @@ import { requireMember } from '@/lib/auth/session';
 import { signOutCurrent } from '@/app/actions/signout';
 import { createClient } from '@/lib/supabase/server';
 import { Link } from '@/lib/i18n/routing';
+import NextLink from 'next/link';
+import type { Route } from 'next';
 import { PropsUnansweredBanner } from '@/components/props/PropsUnansweredBanner';
 import { getUnansweredPropsBannerData } from '@/lib/props/unansweredBanner';
 
@@ -152,6 +154,28 @@ export default async function MePage({ params }: Props) {
           </span>
         </span>
       </Link>
+
+      {member.is_admin && (
+        <NextLink
+          href={'/admin' as Route}
+          className="flex items-center justify-between gap-3 mbs-3 pbs-3 pbe-3 ps-3 pe-3 border border-[var(--zc-border)] rounded-xl hover:bg-[var(--zc-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)]"
+        >
+          <span className="flex flex-col">
+            <span className="text-base font-bold text-[var(--zc-primary)]">
+              {t('adminLinkHeading')}
+            </span>
+            <span className="text-sm text-[var(--zc-muted-foreground)]">
+              {t('adminLinkBody')}
+            </span>
+          </span>
+          <span
+            className="text-xs font-bold pi-2 pbs-1 pbe-1 rounded-full bg-[var(--zc-accent)] text-[var(--zc-accent-foreground)]"
+            aria-hidden
+          >
+            Admin
+          </span>
+        </NextLink>
+      )}
 
       <form action={signOutCurrent} className="mbs-6">
         <button

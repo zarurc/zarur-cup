@@ -279,7 +279,9 @@
     "rulesLinkHeading": "Rules",
     "rulesLinkBody": "How points and locking work",
     "howToPlayLinkHeading": "How to play",
-    "howToPlayLinkBody": "A 60-second walkthrough"
+    "howToPlayLinkBody": "A 60-second walkthrough",
+    "adminLinkHeading": "Admin",
+    "adminLinkBody": "Enter results, grade props, manage the roster"
   },
   "notFound": {
     "heading": "Page not found",
