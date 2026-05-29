@@ -15,9 +15,8 @@
   },
   "tabs": {
     "matches": "Matches",
-    "bracket": "Bracket",
     "leaderboard": "Leaderboard",
-    "me": "Me"
+    "me": "More"
   },
   "home": {
     "placeholder": "Zarur Cup",
@@ -265,7 +264,13 @@
     "propsStatusEditable": "Editable",
     "propsStatusLocked": "Locked",
     "propsStatusEditableAria": "Props are editable until first kickoff",
-    "propsStatusLockedAria": "Props are locked"
+    "propsStatusLockedAria": "Props are locked",
+    "bracketLinkHeading": "Knockout bracket",
+    "bracketLinkBody": "See the tree once group stage ends",
+    "rulesLinkHeading": "Rules",
+    "rulesLinkBody": "How points and locking work",
+    "howToPlayLinkHeading": "How to play",
+    "howToPlayLinkBody": "A 60-second walkthrough"
   },
   "notFound": {
     "heading": "Page not found",

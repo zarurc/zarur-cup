@@ -15,9 +15,8 @@
   },
   "tabs": {
     "matches": "משחקים",
-    "bracket": "בראקט",
     "leaderboard": "לוח",
-    "me": "אני"
+    "me": "עוד"
   },
   "home": {
     "placeholder": "ליגת זערור",
@@ -209,7 +208,13 @@
     "propsStatusEditable": "ניתן לעריכה",
     "propsStatusLocked": "נעול",
     "propsStatusEditableAria": "השאלות ניתנות לעריכה עד הבעיטה הראשונה",
-    "propsStatusLockedAria": "השאלות נעולות"
+    "propsStatusLockedAria": "השאלות נעולות",
+    "bracketLinkHeading": "בראקט הנוקאאוט",
+    "bracketLinkBody": "צפו בעץ אחרי שלב הבתים",
+    "rulesLinkHeading": "חוקים",
+    "rulesLinkBody": "איך הניקוד והנעילה עובדים",
+    "howToPlayLinkHeading": "איך משחקים",
+    "howToPlayLinkBody": "סיור של 60 שניות"
   },
   "notFound": {
     "heading": "הדף לא נמצא",

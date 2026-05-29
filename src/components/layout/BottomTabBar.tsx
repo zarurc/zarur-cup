@@ -4,17 +4,20 @@ import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/lib/i18n/routing';
 
 type Tab = {
-  key: 'matches' | 'bracket' | 'leaderboard' | 'me';
-  href: '/matches' | '/bracket' | '/leaderboard' | '/me';
+  key: 'matches' | 'leaderboard' | 'me';
+  href: '/matches' | '/leaderboard' | '/me';
 };
 
 // DOM order is always Matches -> Me. <html dir> flips the visual order: on
-// /he/ the user sees Me -> Leaderboard -> Bracket -> Matches reading
-// right-to-left. UI-SPEC §3 + §"Token-Theming for RTL" - the reversed flex
-// row utility is intentionally never used; the inline axis is direction-aware.
+// /he/ the user sees Me -> Leaderboard -> Matches reading right-to-left.
+// UI-SPEC §3 + §"Token-Theming for RTL" - the reversed flex row utility is
+// intentionally never used; the inline axis is direction-aware.
+//
+// Bracket moved out of the primary tab bar 2026-05-28: it's read-only and
+// mostly empty during the 2-week group stage. Now lives in /me as a list
+// link alongside Rules and How to play (hub-style More page).
 const TABS: Tab[] = [
   { key: 'matches', href: '/matches' },
-  { key: 'bracket', href: '/bracket' },
   { key: 'leaderboard', href: '/leaderboard' },
   { key: 'me', href: '/me' },
 ];

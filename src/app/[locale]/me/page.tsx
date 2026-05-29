@@ -95,6 +95,48 @@ export default async function MePage({ params }: Props) {
         </span>
       </Link>
 
+      <Link
+        href="/bracket"
+        className="flex items-center justify-between gap-3 mbs-3 pbs-3 pbe-3 ps-3 pe-3 border border-[var(--zc-border)] rounded-xl hover:bg-[var(--zc-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)]"
+      >
+        <span className="flex flex-col">
+          <span className="text-base font-bold text-[var(--zc-primary)]">
+            {t('bracketLinkHeading')}
+          </span>
+          <span className="text-sm text-[var(--zc-muted-foreground)]">
+            {t('bracketLinkBody')}
+          </span>
+        </span>
+      </Link>
+
+      <Link
+        href="/rules"
+        className="flex items-center justify-between gap-3 mbs-3 pbs-3 pbe-3 ps-3 pe-3 border border-[var(--zc-border)] rounded-xl hover:bg-[var(--zc-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)]"
+      >
+        <span className="flex flex-col">
+          <span className="text-base font-bold text-[var(--zc-primary)]">
+            {t('rulesLinkHeading')}
+          </span>
+          <span className="text-sm text-[var(--zc-muted-foreground)]">
+            {t('rulesLinkBody')}
+          </span>
+        </span>
+      </Link>
+
+      <Link
+        href="/how-to-play"
+        className="flex items-center justify-between gap-3 mbs-3 pbs-3 pbe-3 ps-3 pe-3 border border-[var(--zc-border)] rounded-xl hover:bg-[var(--zc-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)]"
+      >
+        <span className="flex flex-col">
+          <span className="text-base font-bold text-[var(--zc-primary)]">
+            {t('howToPlayLinkHeading')}
+          </span>
+          <span className="text-sm text-[var(--zc-muted-foreground)]">
+            {t('howToPlayLinkBody')}
+          </span>
+        </span>
+      </Link>
+
       <form action={signOutCurrent} className="mbs-6">
         <button
           type="submit"
