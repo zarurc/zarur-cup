@@ -28,9 +28,9 @@ export default async function AdminPropsPage() {
   const { data: questions } = await svc
     .from('prop_questions')
     .select(
-      'id, prompt_en, prompt_he, answer_type, points, correct_answer, correct_answer_aliases',
+      'id, prompt_en, prompt_he, answer_type, points, correct_answer, correct_answer_aliases, display_order',
     )
-    .order('code', { ascending: true });
+    .order('display_order', { ascending: true });
 
   return (
     <main className="pi-4 pbs-4 pbe-24">
@@ -62,7 +62,8 @@ export default async function AdminPropsPage() {
                 answer_type: q.answer_type as
                   | 'single_team'
                   | 'single_player'
-                  | 'text',
+                  | 'text'
+                  | 'yes_no',
                 points_value: q.points,
               }}
             />
