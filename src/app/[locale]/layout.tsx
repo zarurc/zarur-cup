@@ -5,6 +5,7 @@ import { Heebo, Inter } from 'next/font/google';
 import { routing } from '@/lib/i18n/routing';
 import { Header } from '@/components/layout/Header';
 import { BottomTabBar } from '@/components/layout/BottomTabBar';
+import { TimeZoneSync } from '@/components/layout/TimeZoneSync.client';
 import '../globals.css';
 
 const heebo = Heebo({
@@ -61,6 +62,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         className={`${bodyFont} min-bs-dvh bg-[var(--zc-surface)] text-[var(--zc-surface-foreground)]`}
       >
         <NextIntlClientProvider messages={messages} locale={locale}>
+          <TimeZoneSync />
           <Header />
           <main
             className="pbs-14"

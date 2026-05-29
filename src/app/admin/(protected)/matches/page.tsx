@@ -1,5 +1,6 @@
 import { adminReadClient } from '@/lib/auth/adminReadClient';
 import { groupByLocalDate } from '@/lib/matches/groupByLocalDate';
+import { resolveViewerTimeZone } from '@/lib/matches/resolveViewerTimeZone';
 import { DateGroupHeader } from '@/components/matches/DateGroupHeader';
 import { MatchRowLocked } from '@/components/matches/MatchRowLocked';
 import { MatchRowResulted } from '@/components/matches/MatchRowResulted';
@@ -184,7 +185,8 @@ export default async function AdminMatchesPage({ searchParams }: Props) {
     return true;
   });
 
-  const groups = groupByLocalDate(filtered, 'en');
+  const viewerTz = await resolveViewerTimeZone('en');
+  const groups = groupByLocalDate(filtered, 'en', viewerTz);
 
   return (
     <main className="pi-4 pbs-4 pbe-24">

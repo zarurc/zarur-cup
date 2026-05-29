@@ -10,6 +10,10 @@
  * Uses `Intl.DateTimeFormat` per CLAUDE.md (no date library). The localized
  * separator (", " in en-US, ", " in he-IL after weekday) is replaced with
  * " · " per CONTEXT.md D-01 copy contract.
+ *
+ * `tz`: viewer's IANA time zone (e.g., "Asia/Jerusalem"). Resolve via
+ * `resolveViewerTimeZone(locale)` to layer cookie → locale fallback →
+ * Vercel server (UTC). Omit only if you genuinely want the server's TZ.
  */
 export function groupByLocalDate<F extends { kickoff_at: string }>(
   fixtures: F[],

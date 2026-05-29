@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { requireMember } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { groupByLocalDate } from '@/lib/matches/groupByLocalDate';
+import { resolveViewerTimeZone } from '@/lib/matches/resolveViewerTimeZone';
 import {
   CountdownBanner,
   type UpcomingFixture,
@@ -180,7 +181,10 @@ export default async function MatchesPage({ params }: Props) {
 
   // groupByLocalDate is generic over the row shape — only `kickoff_at` is
   // required, so the normalized list (with embeds) flows through cleanly.
-  const groups = groupByLocalDate(normalized, safeLocale);
+  // resolveViewerTimeZone layers cookie → locale-based default so each
+  // viewer sees the matchday headers anchored to their own clock.
+  const viewerTz = await resolveViewerTimeZone(safeLocale);
+  const groups = groupByLocalDate(normalized, safeLocale, viewerTz);
 
   // Conditional page top-padding (UI-SPEC §6 "Page offset"):
   // - banner mounted   → mbs-10 (additional 40px below layout's pbs-14 → 96px viewport total)
