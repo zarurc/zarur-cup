@@ -3,7 +3,8 @@
     "loading": "Loading...",
     "errorGeneric": "⚠ Something went wrong. Try again in a moment.",
     "required": "⚠ Required.",
-    "backToApp": "← Back to app"
+    "backToApp": "← Back to app",
+    "backToMore": "← Back to More"
   },
   "wordmark": {
     "primary": "Zarur Cup",

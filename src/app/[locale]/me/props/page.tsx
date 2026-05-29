@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { EmptyStateCard } from '@/components/layout/EmptyStateCard';
 import { PropCard, type PropQuestion } from '@/components/props/PropCard.client';
 import { PropReceipt } from '@/components/props/PropReceipt';
+import { BackToMoreLink } from '@/components/layout/BackToMoreLink';
 import type { Team } from '@/lib/teams/flags';
 
 type Props = { params: Promise<{ locale: string }> };
@@ -38,6 +39,7 @@ export default async function MePropsPage({ params }: Props) {
   if (!tournament) {
     return (
       <div className="mi-auto max-is-md mbs-12 pi-4">
+        <BackToMoreLink />
         <EmptyStateCard heading={t('empty.heading')} body={t('empty.body')} />
       </div>
     );
@@ -56,6 +58,7 @@ export default async function MePropsPage({ params }: Props) {
   if (!questions || questions.length === 0) {
     return (
       <div className="mi-auto max-is-md mbs-12 pi-4">
+        <BackToMoreLink />
         <EmptyStateCard heading={t('empty.heading')} body={t('empty.body')} />
       </div>
     );
@@ -106,6 +109,7 @@ export default async function MePropsPage({ params }: Props) {
 
   return (
     <div className="mi-auto max-is-md mbs-12 pi-4 pbe-24">
+      <BackToMoreLink />
       <h1 className="text-xl font-bold text-[var(--zc-primary)] mbe-2">
         {t('headingPrivate')}
       </h1>

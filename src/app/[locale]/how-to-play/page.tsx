@@ -1,4 +1,5 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server';
+import { BackToMoreLink } from '@/components/layout/BackToMoreLink';
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -23,6 +24,7 @@ export default async function HowToPlayPage({ params }: Props) {
 
   return (
     <article className="mi-auto max-is-md mbs-8 ps-4 pe-4 pbe-24">
+      <BackToMoreLink />
       <h1 className="text-2xl font-bold text-[var(--zc-primary)] mbe-2">
         {t('heading')}
       </h1>

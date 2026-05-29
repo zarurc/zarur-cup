@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { requireMember } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { EmptyStateCard } from '@/components/layout/EmptyStateCard';
+import { BackToMoreLink } from '@/components/layout/BackToMoreLink';
 import {
   BracketTree,
 } from '@/components/bracket/BracketTree';
@@ -52,7 +53,10 @@ export default async function BracketPage({ params }: Props) {
 
   if (!slotsRaw || slotsRaw.length === 0) {
     return (
-      <EmptyStateCard heading={t('emptyHeading')} body={t('emptyBody')} />
+      <div className="mi-auto max-is-2xl pi-4">
+        <BackToMoreLink />
+        <EmptyStateCard heading={t('emptyHeading')} body={t('emptyBody')} />
+      </div>
     );
   }
 
@@ -75,22 +79,27 @@ export default async function BracketPage({ params }: Props) {
   };
 
   return (
-    <BracketTree
-      slots={slots}
-      locale={safeLocale}
-      labels={{
-        round32: t('round32'),
-        round16: t('round16'),
-        quarter: t('quarter'),
-        semi: t('semi'),
-        final: t('final'),
-        third: t('third'),
-        champion: t('champion'),
-        winnerLabel: t('winnerLabel'),
-        championTbdLabel: t('championTbdLabel'),
-        tieAtNinetyLabel: t('tieAtNinetyLabel'),
-        placeholderPrefix,
-      }}
-    />
+    <>
+      <div className="mi-auto max-is-2xl pi-4 pbs-2">
+        <BackToMoreLink />
+      </div>
+      <BracketTree
+        slots={slots}
+        locale={safeLocale}
+        labels={{
+          round32: t('round32'),
+          round16: t('round16'),
+          quarter: t('quarter'),
+          semi: t('semi'),
+          final: t('final'),
+          third: t('third'),
+          champion: t('champion'),
+          winnerLabel: t('winnerLabel'),
+          championTbdLabel: t('championTbdLabel'),
+          tieAtNinetyLabel: t('tieAtNinetyLabel'),
+          placeholderPrefix,
+        }}
+      />
+    </>
   );
 }

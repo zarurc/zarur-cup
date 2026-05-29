@@ -3,7 +3,8 @@
     "loading": "טוען...",
     "errorGeneric": "⚠ משהו השתבש. נסו שוב בעוד רגע.",
     "required": "⚠ שדה חובה.",
-    "backToApp": "← חזרה לאפליקציה"
+    "backToApp": "← חזרה לאפליקציה",
+    "backToMore": "← חזרה לעוד"
   },
   "wordmark": {
     "primary": "ליגת זערור",
