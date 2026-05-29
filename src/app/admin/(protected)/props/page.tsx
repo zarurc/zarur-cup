@@ -60,9 +60,7 @@ export default async function AdminPropsPage({ searchParams }: PageProps) {
       <h1 className="text-xl font-bold mbs-2 mbe-4">{t('authorHeading')}</h1>
       <PropAuthoringForm />
 
-      <h2 className="text-base font-bold mbs-6 mbe-3">
-        {t('authorHeading')} — existing
-      </h2>
+      <h2 className="text-base font-bold mbs-6 mbe-3">Existing questions</h2>
       {(questions ?? []).map((q) => (
         <section
           key={q.id}
@@ -90,9 +88,15 @@ export default async function AdminPropsPage({ searchParams }: PageProps) {
             <span dir="rtl">{q.prompt_he}</span> · {q.answer_type} ·{' '}
             <span dir="ltr">{q.points}</span> pts
           </p>
-          <details className="mbs-2">
-            <summary className="text-sm text-[var(--zc-primary)] cursor-pointer underline">
+          <details className="mbs-3 group">
+            <summary className="list-none inline-flex items-center gap-1 pi-3 pbs-1 pbe-1 text-sm font-bold text-[var(--zc-primary)] border border-[var(--zc-border)] rounded-full cursor-pointer hover:bg-[var(--zc-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)]">
               Edit prop
+              <span
+                aria-hidden
+                className="text-[var(--zc-muted-foreground)] transition-transform duration-150 group-open:rotate-180"
+              >
+                ▾
+              </span>
             </summary>
             <PropAuthoringForm
               existing={{
@@ -108,9 +112,15 @@ export default async function AdminPropsPage({ searchParams }: PageProps) {
               }}
             />
           </details>
-          <details className="mbs-2">
-            <summary className="text-sm text-[var(--zc-primary)] cursor-pointer underline">
+          <details className="mbs-2 mis-2 group">
+            <summary className="list-none inline-flex items-center gap-1 pi-3 pbs-1 pbe-1 text-sm font-bold text-[var(--zc-primary)] border border-[var(--zc-border)] rounded-full cursor-pointer hover:bg-[var(--zc-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)]">
               {t('gradeHeading')}
+              <span
+                aria-hidden
+                className="text-[var(--zc-muted-foreground)] transition-transform duration-150 group-open:rotate-180"
+              >
+                ▾
+              </span>
             </summary>
             <PropGradeForm
               questionId={q.id}
