@@ -136,7 +136,7 @@ test('resolveFixture maps all seeded group-stage fixtures by TLA + kickoff tuple
       status: 'FINISHED',
       homeTeam: { id: 1, name: 'X', tla: home.code },
       awayTeam: { id: 2, name: 'Y', tla: away.code },
-      score: { fullTime: { home: 1, away: 0 }, extraTime: null },
+      score: { fullTime: { home: 1, away: 0 }, extraTime: null, penalties: null },
     };
     const result = await resolveFixture(svc, ext);
     assert.equal(result, f.id, `fixture ${f.id} (${home.code} vs ${away.code}) did not resolve`);
@@ -163,7 +163,7 @@ test('resolveFixture returns null when TLA codes do not match a seeded team', as
     status: 'FINISHED',
     homeTeam: { id: 1, name: 'X', tla: 'XXX' }, // unseeded
     awayTeam: { id: 2, name: 'Y', tla: 'BRA' },
-    score: { fullTime: { home: 1, away: 0 }, extraTime: null },
+    score: { fullTime: { home: 1, away: 0 }, extraTime: null, penalties: null },
   };
   const result = await resolveFixture(svc, ext);
   assert.equal(result, null);
@@ -186,7 +186,7 @@ test('resolveFixture returns null when kickoff is outside +/- 5min window', asyn
     status: 'FINISHED',
     homeTeam: { id: 1, name: 'X', tla: 'MEX' },
     awayTeam: { id: 2, name: 'Y', tla: 'BRA' },
-    score: { fullTime: { home: 1, away: 0 }, extraTime: null },
+    score: { fullTime: { home: 1, away: 0 }, extraTime: null, penalties: null },
   };
   const result = await resolveFixture(svc, ext);
   assert.equal(result, null);

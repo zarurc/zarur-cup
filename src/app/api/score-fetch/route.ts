@@ -78,15 +78,19 @@ export async function POST(request: Request) {
 
       for (const m of matches) {
         if (m.status !== 'FINISHED') continue;
-        // D-12 revised 2026-05-28: scoring uses the final on-field score.
-        // Prefer the post-ET cumulative goals when present (KO matches that
-        // went to extra time); otherwise the 90' fullTime is itself final.
-        // Penalty-shootout goals are NEVER added — pens decide bracket
-        // advancement, not the scored result.
+        // D-12 revised 2026-05-28b: scored result = the cumulative final
+        // including any penalty shootout. Layered fallback:
+        //   (extraTime ?? fullTime) + (penalties ?? 0)
+        // ET goals count; pen-shootout goals also count (user-driven —
+        // "final score is final score"). A 1-1 ET + 5-4 pens match
+        // resolves to 6-5 here; a 2-1 ET match resolves to 2-1.
         const et = m.score.extraTime;
-        const h = et !== null ? et.home : m.score.fullTime.home;
-        const a = et !== null ? et.away : m.score.fullTime.away;
-        if (h === null || a === null) continue;
+        const pk = m.score.penalties;
+        const baseH = et !== null ? et.home : m.score.fullTime.home;
+        const baseA = et !== null ? et.away : m.score.fullTime.away;
+        if (baseH === null || baseA === null) continue;
+        const h = pk !== null ? baseH + pk.home! : baseH;
+        const a = pk !== null ? baseA + pk.away! : baseA;
 
         const fixtureId = await resolveFixture(svc, m);
         if (!fixtureId) {

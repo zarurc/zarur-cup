@@ -32,13 +32,14 @@ import {
  *      own predictions through RLS and break integrity.
  *
  *   4. UPDATE `fixtures.result_home_90min` + `.result_away_90min` ONLY.
- *      D-12 was revised 2026-05-28: these columns now hold the FINAL
- *      on-field score (group stage = 90'; KO = post-ET cumulative when
- *      ET was played; penalty-shootout goals never counted). Admin
- *      enters that one pair in the single inline stepper. The legacy
- *      `_full` columns added in migration 0009 stay NULL forever and
- *      are post-tournament cleanup. `updated_at` is omitted (Phase 1
- *      schema does not define a trigger that bumps it on UPDATE).
+ *      D-12 was revised 2026-05-28b: these columns now hold the FINAL
+ *      CUMULATIVE score — group stage = 90'; KO with ET = post-ET
+ *      cumulative; KO with pens = (ET goals + pen-shootout goals). The
+ *      shootout is treated as goals: e.g., 1-1 ET → 5-4 pens = 6-5.
+ *      Admin enters that one pair in the single inline stepper. Legacy
+ *      `_full` columns from migration 0009 stay NULL forever and are
+ *      post-tournament cleanup. `updated_at` is omitted (Phase 1 schema
+ *      does not define a trigger that bumps it on UPDATE).
  *
  *   5. SELECT all predictions for this fixture (service-role bypasses
  *      RLS). The shape is the minimum needed by `scoreMatch` —
@@ -103,17 +104,12 @@ export async function saveResult(input: unknown): Promise<SaveResultResponse> {
 
   // 1b. Bracket slot resolution (BRK-VIEW-03 + BRK-VIEW-04, Plan 02-11).
   //
-  // For non-group fixtures with a clear on-field winner (non-tied final
-  // result — group stage 90' or KO post-ET), write the winning team_id
-  // to bracket_slots.resolved_team_id WHERE fixture_id = this fixture.
-  // This is the live-fill mechanism for /[locale]/bracket — the RSC
-  // reads resolved_team via the relational join and renders the team
-  // name once this row is populated.
-  //
-  // KO matches that ended tied after ET went to penalties — admin
-  // resolves the bracket slot manually via /admin/tournament-tree.
-  // Tied group-stage matches are ignored — group stage is never written
-  // to bracket_slots.
+  // For non-group fixtures with a non-tied final result, write the
+  // winning team_id to bracket_slots.resolved_team_id. Because the
+  // result now includes pen-shootout goals as well as ET goals, pen
+  // shootouts always yield a non-tied result — the bracket auto-fills
+  // for every KO match that admin has scored. Tied group-stage matches
+  // are ignored — group stage is never written to bracket_slots.
   //
   // If the Final (slot_code = 'F') is being decided, also propagate the
   // winner to the CHAMPION slot in the same transaction (BRK-VIEW-04).

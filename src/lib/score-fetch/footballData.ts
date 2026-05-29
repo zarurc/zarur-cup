@@ -44,14 +44,16 @@ export type ExternalMatch = {
   homeTeam: { id: number; name: string; tla: string };
   awayTeam: { id: number; name: string; tla: string };
   // `fullTime` = score at end of regulation (90'); `extraTime` = post-ET
-  // cumulative goals (present only when ET was played). We prefer
-  // `extraTime` when surfaced because scoring is now keyed on the
-  // final on-field score, not the 90' score (D-12 revised 2026-05-28).
-  // Penalties are intentionally NOT surfaced — shootout goals are not
-  // counted as match goals for scoring purposes.
+  // cumulative goals (present only when ET was played); `penalties` =
+  // penalty-shootout score (present only when match went to pens).
+  // D-12 revised 2026-05-28b: the scored result is the cumulative
+  // FINAL — `(extraTime ?? fullTime) + (penalties ?? 0)`. Pen-shootout
+  // goals count just like ET goals (user-driven: "final score is final
+  // score").
   score: {
     fullTime: { home: number | null; away: number | null };
     extraTime: { home: number | null; away: number | null } | null;
+    penalties: { home: number | null; away: number | null } | null;
   };
 };
 
@@ -118,12 +120,16 @@ export async function fetchWcMatches(opts: {
       | {
           fullTime?: { home?: number | null; away?: number | null };
           extraTime?: { home?: number | null; away?: number | null } | null;
+          penalties?: { home?: number | null; away?: number | null } | null;
         }
       | undefined;
     const ft = score?.fullTime;
     const et = score?.extraTime;
+    const pk = score?.penalties;
     const etHasBothScores =
       !!et && typeof et.home === 'number' && typeof et.away === 'number';
+    const pkHasBothScores =
+      !!pk && typeof pk.home === 'number' && typeof pk.away === 'number';
 
     sanitized.push({
       utcDate: typeof obj.utcDate === 'string' ? obj.utcDate : '',
@@ -145,6 +151,9 @@ export async function fetchWcMatches(opts: {
         },
         extraTime: etHasBothScores
           ? { home: et!.home as number, away: et!.away as number }
+          : null,
+        penalties: pkHasBothScores
+          ? { home: pk!.home as number, away: pk!.away as number }
           : null,
       },
     });
