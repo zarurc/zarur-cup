@@ -68,39 +68,59 @@ export default async function AdminRosterPage({ searchParams }: PageProps) {
       )}
       <h1 className="text-xl font-bold mbs-2 mbe-4">{t('heading')}</h1>
       <ul>
-        {profileList.map((p) => (
-          <li
-            key={p.user_id}
-            className="flex items-center justify-between gap-3 pbs-3 pbe-3 border-b border-[var(--zc-border)]"
-          >
-            <div className="flex-1 min-is-0">
-              <p className="text-base font-bold truncate">
-                {p.display_name}
-                {p.is_admin ? ' · admin' : ''}
-              </p>
-              <p className="text-sm text-[var(--zc-muted-foreground)]">
-                joined {new Date(p.joined_at).toISOString().slice(0, 10)} ·{' '}
-                {p.locale}
-              </p>
-            </div>
-            <span
-              className="text-2xl font-bold tabular-nums"
-              dir="ltr"
-              aria-label={t('totalPointsLabel')}
+        {profileList.map((p) => {
+          const joinedFormatted = new Intl.DateTimeFormat('en-US', {
+            dateStyle: 'medium',
+          }).format(new Date(p.joined_at));
+          return (
+            <li
+              key={p.user_id}
+              className="flex items-center justify-between gap-3 pbs-3 pbe-3 border-b border-[var(--zc-border)]"
             >
-              {totalsByUser.get(p.user_id) ?? 0}
-            </span>
-            {!p.is_admin && (
-              <RosterMergeForm
-                source={{
-                  user_id: p.user_id,
-                  display_name: p.display_name,
-                }}
-                candidates={candidates}
-              />
-            )}
-          </li>
-        ))}
+              <div className="flex-1 min-is-0">
+                <p className="text-base font-bold truncate">
+                  {p.display_name}
+                  {p.is_admin ? ' · admin' : ''}
+                </p>
+                <p className="text-sm text-[var(--zc-muted-foreground)]">
+                  joined {joinedFormatted} · {p.locale}
+                </p>
+              </div>
+              <span
+                className="text-2xl font-bold tabular-nums"
+                dir="ltr"
+                aria-label={t('totalPointsLabel')}
+              >
+                {totalsByUser.get(p.user_id) ?? 0}
+              </span>
+              {!p.is_admin && (
+                <details className="relative">
+                  <summary
+                    aria-label={`Actions for ${p.display_name}`}
+                    className="list-none bs-10 is-10 inline-flex items-center justify-center rounded-xl border border-[var(--zc-border)] text-base text-[var(--zc-muted-foreground)] cursor-pointer hover:bg-[var(--zc-muted)] hover:text-[var(--zc-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)]"
+                  >
+                    ⋯
+                  </summary>
+                  <div
+                    role="menu"
+                    className="absolute inset-bs-12 inset-ie-0 z-40 is-72 bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl shadow-lg pi-3 pbs-3 pbe-3"
+                  >
+                    <p className="text-xs text-[var(--zc-muted-foreground)] mbe-2">
+                      Destructive — moves picks then deletes the source profile.
+                    </p>
+                    <RosterMergeForm
+                      source={{
+                        user_id: p.user_id,
+                        display_name: p.display_name,
+                      }}
+                      candidates={candidates}
+                    />
+                  </div>
+                </details>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </main>
   );
