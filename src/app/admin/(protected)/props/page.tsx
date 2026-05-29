@@ -32,6 +32,15 @@ export default async function AdminPropsPage() {
     )
     .order('display_order', { ascending: true });
 
+  // Teams roster — fed to PropGradeForm so single_team grading is a
+  // dropdown of real teams instead of a raw-UUID typing exercise. Sorted
+  // by code so the picker is alphabetical / scannable.
+  const { data: teams } = await svc
+    .from('teams')
+    .select('id, code, name_en')
+    .order('code', { ascending: true });
+  const teamList = teams ?? [];
+
   return (
     <main className="pi-4 pbs-4 pbe-24">
       <h1 className="text-xl font-bold mbs-2 mbe-4">{t('authorHeading')}</h1>
@@ -91,8 +100,16 @@ export default async function AdminPropsPage() {
             </summary>
             <PropGradeForm
               questionId={q.id}
+              answerType={
+                q.answer_type as
+                  | 'single_team'
+                  | 'single_player'
+                  | 'text'
+                  | 'yes_no'
+              }
               initialCorrect={q.correct_answer}
               initialAliases={q.correct_answer_aliases ?? []}
+              teams={teamList}
             />
           </details>
         </section>
