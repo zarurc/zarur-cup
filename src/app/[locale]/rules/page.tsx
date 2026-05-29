@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { BackToMoreLink } from '@/components/layout/BackToMoreLink';
+import { createClient } from '@/lib/supabase/server';
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -14,6 +15,15 @@ export default async function RulesPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('rules');
+
+  const supabase = await createClient();
+  const { data: tournament } = await supabase
+    .from('tournament')
+    .select('buyin_amount_usd, prize_split_pct')
+    .eq('code', 'WC2026')
+    .maybeSingle();
+  const buyinAmount = tournament?.buyin_amount_usd ?? 0;
+  const splitPct = tournament?.prize_split_pct ?? [];
 
   return (
     <article className="mi-auto max-is-md mbs-8 ps-4 pe-4 pbe-24">
@@ -94,6 +104,27 @@ export default async function RulesPage({ params }: Props) {
           {t('tiebreakBody')}
         </p>
       </section>
+
+      {buyinAmount > 0 && splitPct.length >= 3 && (
+        <section className="mbs-6 pbs-6 border-t border-[var(--zc-border)]">
+          <h2 className="text-lg font-bold text-[var(--zc-primary)] mbe-2">
+            {t('buyinHeading')}
+          </h2>
+          <p className="text-base text-[var(--zc-primary)] mbe-2">
+            {t('buyinAmount', { amount: buyinAmount })}
+          </p>
+          <p className="text-base text-[var(--zc-primary)] mbe-2">
+            {t('buyinPayment')}
+          </p>
+          <p className="text-base text-[var(--zc-primary)]">
+            {t('buyinSplit', {
+              first: splitPct[0],
+              second: splitPct[1],
+              third: splitPct[2],
+            })}
+          </p>
+        </section>
+      )}
     </article>
   );
 }

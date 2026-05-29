@@ -40,12 +40,14 @@ export default async function MePage({ params }: Props) {
   // WR-01 fix (2026-05-27): pin to code='WC2026'.
   const { data: tournament } = await supabase
     .from('tournament')
-    .select('starts_at')
+    .select('starts_at, buyin_amount_usd')
     .eq('code', 'WC2026')
     .maybeSingle();
   const propsLocked = tournament
     ? new Date(tournament.starts_at).getTime() <= Date.now()
     : false;
+  const buyinAmount = tournament?.buyin_amount_usd ?? 0;
+  const tBuyin = await getTranslations('buyin');
 
   const joinedAtLocal = new Intl.DateTimeFormat(
     locale === 'he' ? 'he-IL' : 'en-US',
@@ -88,6 +90,31 @@ export default async function MePage({ params }: Props) {
           {total}
         </span>
       </p>
+
+      {buyinAmount > 0 && (
+        <div className="mbs-4 pbs-3 border-t border-[var(--zc-border)]">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-base text-[var(--zc-muted-foreground)]">
+              {tBuyin(member.buyin_paid_at ? 'paidLabel' : 'pendingLabel', { amount: buyinAmount })}
+            </span>
+            <span
+              className={
+                member.buyin_paid_at
+                  ? 'text-xs font-bold pi-2 pbs-1 pbe-1 rounded-full bg-[var(--zc-accent)] text-[var(--zc-primary-foreground)]'
+                  : 'text-xs font-bold pi-2 pbs-1 pbe-1 rounded-full bg-[var(--zc-destructive)] text-white'
+              }
+              aria-hidden
+            >
+              {member.buyin_paid_at ? '✓' : '⚠'}
+            </span>
+          </div>
+          {!member.buyin_paid_at && (
+            <p className="text-sm text-[var(--zc-muted-foreground)] mbs-2">
+              {tBuyin('instructions', { amount: buyinAmount })}
+            </p>
+          )}
+        </div>
+      )}
 
       <Link
         href="/me/props"

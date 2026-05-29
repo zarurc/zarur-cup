@@ -312,7 +312,11 @@
     "bracketHeading": "Knockout bracket",
     "bracketBody": "The bracket is read-only — it fills in automatically as the admin enters knockout results. No bracket picks are scored this year.",
     "tiebreakHeading": "Tiebreakers",
-    "tiebreakBody": "If two players have the same total: (1) more exact scores wins; (2) then more correct pre-tournament answers; (3) then alphabetical by display name."
+    "tiebreakBody": "If two players have the same total: (1) more exact scores wins; (2) then more correct pre-tournament answers; (3) then alphabetical by display name.",
+    "buyinHeading": "Buy-in and prize",
+    "buyinAmount": "${amount} per person.",
+    "buyinPayment": "Send the buy-in to the admin via Bit / Venmo / cash before the opening kickoff. Admin marks you paid on the roster.",
+    "buyinSplit": "Prize split: 1st place gets {first}% of the pot, 2nd gets {second}%, 3rd gets {third}%."
   },
   "howToPlay": {
     "heading": "How to play",
@@ -331,14 +335,24 @@
   },
   "welcome": {
     "heading": "Welcome, {name}!",
-    "intro": "You're in the family pool. No money, no stakes — just bragging rights through July 19.",
+    "intro": "You're in the family pool. ${buyin} buy-in, winner takes 60%, runner-up 30%, third 10%.",
     "step1Title": "Predict every match",
     "step1Body": "Open Matches and enter a score for each fixture before kickoff. Predictions save automatically and lock at the whistle.",
     "step2Title": "Answer 5 pre-tournament questions",
     "step2Body": "Winner, runner-up, third place, Golden Boot, Golden Ball. They all lock together at the June 11 opening kickoff.",
-    "step3Title": "Watch the leaderboard",
-    "step3Body": "Every result the admin enters updates the standings. Tap a row to see anyone's breakdown.",
+    "step3Title": "Pay the buy-in",
+    "step3Body": "Send ${buyin} to the admin via Bit / Venmo / cash before the opening kickoff. They'll mark you paid on the roster.",
+    "step4Title": "Watch the leaderboard",
+    "step4Body": "Every result the admin enters updates the standings. Tap a row to see anyone's breakdown.",
     "ctaStart": "Start playing",
     "howToPlayLink": "Full 60-second walkthrough →"
+  },
+  "buyin": {
+    "paidLabel": "Paid · ${amount}",
+    "pendingLabel": "Pending · ${amount}",
+    "instructions": "Send ${amount} to the admin via Bit / Venmo / cash before the opening kickoff.",
+    "potLabel": "Pot",
+    "splitLabel": "Prize split",
+    "splitValue": "1st {first}% · 2nd {second}% · 3rd {third}%"
   }
 }

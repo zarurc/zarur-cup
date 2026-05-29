@@ -51,6 +51,8 @@ export function resolveAdminToast(
   if (pick('renamed')) return { tone: 'success', message: 'Renamed' };
   if (pick('promoted')) return { tone: 'success', message: 'Promoted to admin' };
   if (pick('demoted')) return { tone: 'success', message: 'Removed admin' };
+  if (pick('paid')) return { tone: 'success', message: 'Marked paid' };
+  if (pick('unpaid')) return { tone: 'success', message: 'Marked unpaid' };
 
   const resolved = pick('resolved');
   if (resolved) {

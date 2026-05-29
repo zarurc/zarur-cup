@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import type { Route } from 'next';
 import { getCurrentMember } from '@/lib/auth/session';
+import { createClient } from '@/lib/supabase/server';
 import { Link } from '@/lib/i18n/routing';
 import { markWelcomeSeen } from '@/app/actions/markWelcomeSeen';
 
@@ -36,11 +37,25 @@ export default async function WelcomePage({ params }: Props) {
 
   const t = await getTranslations('welcome');
 
+  const supabase = await createClient();
+  const { data: tournament } = await supabase
+    .from('tournament')
+    .select('buyin_amount_usd')
+    .eq('code', 'WC2026')
+    .maybeSingle();
+  const buyinAmount = tournament?.buyin_amount_usd ?? 0;
+
   const steps: { title: string; body: string }[] = [
     { title: t('step1Title'), body: t('step1Body') },
     { title: t('step2Title'), body: t('step2Body') },
-    { title: t('step3Title'), body: t('step3Body') },
   ];
+  if (buyinAmount > 0) {
+    steps.push({
+      title: t('step3Title'),
+      body: t('step3Body', { buyin: buyinAmount }),
+    });
+  }
+  steps.push({ title: t('step4Title'), body: t('step4Body') });
 
   return (
     <article className="mi-auto max-is-md mbs-8 ps-4 pe-4 pbe-24">
@@ -48,7 +63,7 @@ export default async function WelcomePage({ params }: Props) {
         {t('heading', { name: member.display_name })}
       </h1>
       <p className="text-base text-[var(--zc-muted-foreground)] mbe-6">
-        {t('intro')}
+        {t('intro', { buyin: buyinAmount })}
       </p>
 
       <ol className="space-y-4 mbe-8">

@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { RosterMergeForm } from '@/components/admin/RosterMergeForm.client';
 import { RosterNameEdit } from '@/components/admin/RosterNameEdit.client';
 import { RosterAdminToggleForm } from '@/components/admin/RosterAdminToggleForm.client';
+import { RosterBuyinToggleForm } from '@/components/admin/RosterBuyinToggleForm.client';
 import { AdminToast } from '@/components/admin/AdminToast.client';
 import { resolveAdminToast } from '@/lib/admin/toast';
 
@@ -40,8 +41,15 @@ export default async function AdminRosterPage({ searchParams }: PageProps) {
 
   const { data: profiles } = await svc
     .from('profiles')
-    .select('user_id, display_name, joined_at, locale, is_admin')
+    .select('user_id, display_name, joined_at, locale, is_admin, buyin_paid_at')
     .order('joined_at', { ascending: true });
+
+  const { data: tournament } = await svc
+    .from('tournament')
+    .select('buyin_amount_usd')
+    .eq('code', 'WC2026')
+    .maybeSingle();
+  const buyinAmount = tournament?.buyin_amount_usd ?? 0;
 
   const { data: lb } = await svc.from('v_leaderboard').select('user_id, total');
   const totalsByUser = new Map<string, number>(
@@ -68,6 +76,23 @@ export default async function AdminRosterPage({ searchParams }: PageProps) {
         />
       )}
       <h1 className="text-xl font-bold mbs-2 mbe-4">{t('heading')}</h1>
+      {buyinAmount > 0 && (() => {
+        const paidCount = profileList.filter((p) => p.buyin_paid_at).length;
+        const pendingCount = profileList.length - paidCount;
+        const potUsd = paidCount * buyinAmount;
+        return (
+          <div className="mbe-4 ps-4 pe-4 pbs-3 pbe-3 rounded-xl border border-[var(--zc-border)] bg-[var(--zc-card)] flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs text-[var(--zc-muted-foreground)]">
+                Buy-in ${buyinAmount} / user
+              </p>
+              <p className="text-base font-bold">
+                Pot: ${potUsd} · {paidCount} paid · {pendingCount} pending
+              </p>
+            </div>
+          </div>
+        );
+      })()}
       <ul>
         {profileList.map((p) => {
           const joinedFormatted = new Intl.DateTimeFormat('en-US', {
@@ -87,6 +112,20 @@ export default async function AdminRosterPage({ searchParams }: PageProps) {
                 />
                 <p className="text-sm text-[var(--zc-muted-foreground)]">
                   joined {joinedFormatted} · {p.locale}
+                  {buyinAmount > 0 && (
+                    <>
+                      {' · '}
+                      <span
+                        className={
+                          p.buyin_paid_at
+                            ? 'text-[var(--zc-primary)] font-bold'
+                            : 'text-[var(--zc-destructive)] font-bold'
+                        }
+                      >
+                        {p.buyin_paid_at ? `paid $${buyinAmount}` : `unpaid $${buyinAmount}`}
+                      </span>
+                    </>
+                  )}
                 </p>
               </div>
               <span
@@ -107,7 +146,18 @@ export default async function AdminRosterPage({ searchParams }: PageProps) {
                   role="menu"
                   className="absolute inset-bs-12 inset-ie-0 z-40 is-72 bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl shadow-lg pi-3 pbs-3 pbe-3 space-y-3"
                 >
-                  <div>
+                  {buyinAmount > 0 && (
+                    <div>
+                      <p className="text-xs text-[var(--zc-muted-foreground)] mbe-2">
+                        Flip when you receive the ${buyinAmount} buy-in via Bit / Venmo / cash.
+                      </p>
+                      <RosterBuyinToggleForm
+                        targetUserId={p.user_id}
+                        isPaid={Boolean(p.buyin_paid_at)}
+                      />
+                    </div>
+                  )}
+                  <div className={buyinAmount > 0 ? 'border-t border-[var(--zc-border)] pbs-3' : ''}>
                     <p className="text-xs text-[var(--zc-muted-foreground)] mbe-2">
                       {p.is_admin
                         ? 'Admins have access to /admin. Demote with care — last admin is blocked server-side.'

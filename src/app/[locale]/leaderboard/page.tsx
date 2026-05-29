@@ -30,6 +30,7 @@ export default async function LeaderboardPage({ params }: Props) {
   const safeLocale = locale === 'he' ? 'he' : 'en';
   await requireMember(safeLocale);
   const t = await getTranslations('leaderboard');
+  const tBuyin = await getTranslations('buyin');
 
   const supabase = await createClient();
   const { data } = await supabase
@@ -38,10 +39,60 @@ export default async function LeaderboardPage({ params }: Props) {
       'user_id, display_name, total, league_total, props_total, bracket_total, exact_count, correct_count',
     );
 
+  // Buy-in ledger summary header (pot + prize split). Pot = paid-count *
+  // buyin. profiles.buyin_paid_at is readable to all authenticated via
+  // profiles_read_all.
+  const { data: tournament } = await supabase
+    .from('tournament')
+    .select('buyin_amount_usd, prize_split_pct')
+    .eq('code', 'WC2026')
+    .maybeSingle();
+  const buyinAmount = tournament?.buyin_amount_usd ?? 0;
+  const splitPct = tournament?.prize_split_pct ?? [];
+
+  let potUsd = 0;
+  if (buyinAmount > 0) {
+    const { count: paidCount } = await supabase
+      .from('profiles')
+      .select('user_id', { count: 'exact', head: true })
+      .not('buyin_paid_at', 'is', null);
+    potUsd = (paidCount ?? 0) * buyinAmount;
+  }
+
+  const buyinHeader =
+    buyinAmount > 0 && splitPct.length >= 3 ? (
+      <div className="pi-4 pbs-3 pbe-3 mbe-3 mi-auto max-is-md rounded-2xl border border-[var(--zc-border)] bg-[var(--zc-card)] flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs text-[var(--zc-muted-foreground)]">
+            {tBuyin('potLabel')}
+          </p>
+          <p
+            className="text-2xl font-bold text-[var(--zc-primary)] tabular-nums"
+            dir="ltr"
+          >
+            ${potUsd}
+          </p>
+        </div>
+        <div className="text-end">
+          <p className="text-xs text-[var(--zc-muted-foreground)]">
+            {tBuyin('splitLabel')}
+          </p>
+          <p className="text-sm font-bold text-[var(--zc-primary)]" dir="ltr">
+            {tBuyin('splitValue', {
+              first: splitPct[0],
+              second: splitPct[1],
+              third: splitPct[2],
+            })}
+          </p>
+        </div>
+      </div>
+    ) : null;
+
   if (!data || data.length === 0) {
     return (
       <main className="mbs-14 pi-4 pbe-24">
         <h1 className="sr-only">{t('heading')}</h1>
+        {buyinHeader}
         <EmptyStateCard heading={t('empty.heading')} body={t('empty.body')} />
       </main>
     );
@@ -82,6 +133,7 @@ export default async function LeaderboardPage({ params }: Props) {
   return (
     <main className="mbs-14 pi-4 pbe-24">
       <h1 className="sr-only">{t('heading')}</h1>
+      {buyinHeader}
       <LeaderboardList rows={rows} />
     </main>
   );

@@ -274,6 +274,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          buyin_paid_at: string | null
           display_name: string
           display_name_normalized: string | null
           is_admin: boolean
@@ -283,6 +284,7 @@ export type Database = {
           welcome_seen_at: string | null
         }
         Insert: {
+          buyin_paid_at?: string | null
           display_name: string
           display_name_normalized?: string | null
           is_admin?: boolean
@@ -292,6 +294,7 @@ export type Database = {
           welcome_seen_at?: string | null
         }
         Update: {
+          buyin_paid_at?: string | null
           display_name?: string
           display_name_normalized?: string | null
           is_admin?: boolean
@@ -457,30 +460,36 @@ export type Database = {
       }
       tournament: {
         Row: {
+          buyin_amount_usd: number
           code: string
           created_at: string
           ends_at: string
           id: string
           name_en: string
           name_he: string
+          prize_split_pct: number[]
           starts_at: string
         }
         Insert: {
+          buyin_amount_usd?: number
           code: string
           created_at?: string
           ends_at: string
           id?: string
           name_en: string
           name_he: string
+          prize_split_pct?: number[]
           starts_at: string
         }
         Update: {
+          buyin_amount_usd?: number
           code?: string
           created_at?: string
           ends_at?: string
           id?: string
           name_en?: string
           name_he?: string
+          prize_split_pct?: number[]
           starts_at?: string
         }
         Relationships: []
