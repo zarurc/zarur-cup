@@ -267,5 +267,65 @@
     "step5Title": "השתמשו ב'עוד' לכל השאר",
     "step5Body": "הפרופיל שלכם, הבראקט, החוקים והמדריך הזה — כולם בטאב 'עוד'. גם היציאה שם.",
     "outro": "שאלות? מתווכחים עליהן בארוחת הערב."
+  },
+  "admin": {
+    "modeToggle": {
+      "view": "תצוגה",
+      "entry": "הזנת תוצאות"
+    },
+    "saveResult": {
+      "idle": "שמור תוצאה",
+      "saving": "שומר…",
+      "saved": "נשמר ✓",
+      "failed": "לא נשמר — בדקו את חיווי השלמות למטה"
+    },
+    "home": {
+      "heading": "ניהול",
+      "navMatches": "משחקים ותוצאות",
+      "navTree": "עץ הטורניר",
+      "navProps": "שאלות",
+      "navRoster": "רוסטר"
+    },
+    "tree": {
+      "heading": "פתרון מקומות שמורים",
+      "rowSelectLabel": "פתור לקבוצה",
+      "saveButton": "שמור מקום שמור",
+      "noPlaceholders": "כל המקומות פתורים.",
+      "savedNotice": "נפתרו {n, plural, =1 {משחק אחד} other {# משחקים}}"
+    },
+    "props": {
+      "authorHeading": "כתיבת שאלות",
+      "gradeHeading": "הכרעת שאלות",
+      "promptEn": "שאלה (אנגלית)",
+      "promptHe": "שאלה (עברית)",
+      "answerType": "סוג תשובה",
+      "answerTypeSingleTeam": "בחירת קבוצה",
+      "answerTypeSinglePlayer": "בחירת שחקן",
+      "answerTypeText": "טקסט חופשי",
+      "pointsValue": "נקודות",
+      "createButton": "צור שאלה",
+      "updateButton": "שמור שינויים",
+      "correctAnswer": "תשובה נכונה",
+      "aliasesHelper": "סט כינויים (שורה לכל אחד): קנוני + וריאנטים להתאמה גמישה",
+      "gradeButton": "שמור הכרעה",
+      "gradedNotice": "ההכרעה הוחלה — הטבלה עודכנה"
+    },
+    "roster": {
+      "heading": "רוסטר המשפחה",
+      "merge": "מיזוג אל…",
+      "mergeConfirm": "מיזוג {source} → {target}? זה מעביר את כל הניחושים ומוחק את {source}. לא ניתן לבטל.",
+      "totalPointsLabel": "סך הכול"
+    },
+    "integrity": {
+      "syncLabel": "סנכרון מסד הנתונים",
+      "syncOk": "תקין ✓",
+      "syncFail": "✗ ({n, plural, =1 {שורה אחת} other {# שורות}} אחרי שריקת פתיחה)",
+      "totalPreds": "סך כל הניחושים",
+      "unscored": "משחקים שהסתיימו ולא נוקדו",
+      "chipLabel": "סטטוס שלמות ({n, plural, =0 {תקין} =1 {הפרה אחת} other {# הפרות}})",
+      "chipOk": "שלמות",
+      "chipFail": "{n, plural, =1 {הפרה אחת} other {# הפרות}}",
+      "panelLabel": "פירוט שלמות"
+    }
   }
 }
