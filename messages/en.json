@@ -169,6 +169,9 @@
     "expandAria": "Show prediction controls",
     "collapseAria": "Hide prediction controls"
   },
+  "propsBanner": {
+    "unansweredCta": "{n} of {total} props unanswered — lock your picks before kickoff →"
+  },
   "match": {
     "kickoffSrLabel": "Kicks off",
     "lockedAria": "Locked at kickoff",

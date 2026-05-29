@@ -11,6 +11,8 @@ import { MatchRow } from '@/components/matches/MatchRow.client';
 import { MatchRowLocked } from '@/components/matches/MatchRowLocked';
 import { MatchRowResulted } from '@/components/matches/MatchRowResulted';
 import { EmptyStateCard } from '@/components/layout/EmptyStateCard';
+import { PropsUnansweredBanner } from '@/components/props/PropsUnansweredBanner';
+import { getUnansweredPropsBannerData } from '@/lib/props/unansweredBanner';
 import type { PtsKind } from '@/components/ui/PtsBadge';
 
 type Props = { params: Promise<{ locale: string }> };
@@ -185,6 +187,11 @@ export default async function MatchesPage({ params }: Props) {
   // - banner unmounted → mbs-0  (layout's pbs-14 alone → 56px viewport total)
   const pageTopOffset = upcoming.length > 0 ? 'mbs-10' : 'mbs-0';
 
+  const propsBannerData = await getUnansweredPropsBannerData(
+    supabase,
+    member.user_id,
+  );
+
   return (
     <>
       {upcoming.length > 0 && <CountdownBanner upcoming={upcoming} />}
@@ -192,6 +199,14 @@ export default async function MatchesPage({ params }: Props) {
         <h1 className="sr-only">
           {safeLocale === 'he' ? 'משחקים' : 'Matches'}
         </h1>
+        {propsBannerData && (
+          <div className="mbs-3">
+            <PropsUnansweredBanner
+              unansweredCount={propsBannerData.unansweredCount}
+              totalCount={propsBannerData.totalCount}
+            />
+          </div>
+        )}
         {groups.map(([dateLabel, fxs]) => (
           <section key={dateLabel}>
             <DateGroupHeader label={dateLabel} />

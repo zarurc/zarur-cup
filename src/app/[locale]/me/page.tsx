@@ -3,6 +3,8 @@ import { requireMember } from '@/lib/auth/session';
 import { signOutCurrent } from '@/app/actions/signout';
 import { createClient } from '@/lib/supabase/server';
 import { Link } from '@/lib/i18n/routing';
+import { PropsUnansweredBanner } from '@/components/props/PropsUnansweredBanner';
+import { getUnansweredPropsBannerData } from '@/lib/props/unansweredBanner';
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -48,8 +50,22 @@ export default async function MePage({ params }: Props) {
     { dateStyle: 'long' },
   ).format(new Date(member.joined_at));
 
+  const propsBannerData = await getUnansweredPropsBannerData(
+    supabase,
+    member.user_id,
+  );
+
   return (
-    <section className="mi-auto max-is-md mbs-12 ps-6 pe-6 pbs-8 pbe-8 bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl">
+    <div className="mi-auto max-is-md mbs-12 pi-4">
+      {propsBannerData && (
+        <div className="mbe-4">
+          <PropsUnansweredBanner
+            unansweredCount={propsBannerData.unansweredCount}
+            totalCount={propsBannerData.totalCount}
+          />
+        </div>
+      )}
+      <section className="ps-6 pe-6 pbs-8 pbe-8 bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl">
       <h2 className="text-xl font-bold text-[var(--zc-primary)]">
         {member.display_name}
       </h2>
@@ -146,6 +162,7 @@ export default async function MePage({ params }: Props) {
           {t('logout')}
         </button>
       </form>
-    </section>
+      </section>
+    </div>
   );
 }

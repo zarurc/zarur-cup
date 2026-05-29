@@ -169,6 +169,9 @@
     "expandAria": "הצג כלי ניחוש",
     "collapseAria": "הסתר כלי ניחוש"
   },
+  "propsBanner": {
+    "unansweredCta": "{n} מתוך {total} שאלות לא נענו — סגרו לפני שריקת הפתיחה ←"
+  },
   "match": {
     "kickoffSrLabel": "שריקת פתיחה",
     "lockedAria": "נעול בשריקת הפתיחה",
