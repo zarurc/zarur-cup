@@ -5,6 +5,8 @@ import { MatchRowLocked } from '@/components/matches/MatchRowLocked';
 import { MatchRowResulted } from '@/components/matches/MatchRowResulted';
 import { AdminModeToggle } from '@/components/admin/AdminModeToggle.client';
 import { AdminResultInputs } from '@/components/admin/AdminResultInputs.client';
+import { AdminMatchesFilter } from '@/components/admin/AdminMatchesFilter.client';
+import { AdminPreKickoffEntryRow } from '@/components/admin/AdminPreKickoffEntryRow.client';
 import { codeToFlag } from '@/lib/teams/codeToFlag';
 import type { PtsKind } from '@/components/ui/PtsBadge';
 
@@ -34,7 +36,9 @@ import type { PtsKind } from '@/components/ui/PtsBadge';
  * stay NULL until Phase 3 adds ET admin UI).
  */
 
-type Props = { searchParams: Promise<{ mode?: string }> };
+type Props = {
+  searchParams: Promise<{ mode?: string; filter?: string }>;
+};
 
 type TeamEmbed = {
   id: string;
@@ -66,6 +70,12 @@ type NormalizedFixture = {
 export default async function AdminMatchesPage({ searchParams }: Props) {
   const sp = await searchParams;
   const mode: 'view' | 'entry' = sp.mode === 'entry' ? 'entry' : 'view';
+  const filter: 'all' | 'past' | 'unscored' =
+    sp.filter === 'past'
+      ? 'past'
+      : sp.filter === 'unscored'
+        ? 'unscored'
+        : 'all';
 
   // requireAdmin() already enforced by /admin/(protected)/layout.tsx.
   // adminReadClient() composes the gate + a service-role client so the
@@ -162,13 +172,31 @@ export default async function AdminMatchesPage({ searchParams }: Props) {
   const roster = allProfiles ?? [];
 
   const now = Date.now();
-  const groups = groupByLocalDate(normalized, 'en');
+
+  // Apply the URL filter BEFORE grouping so empty date groups don't
+  // render as headers with no rows.
+  const filtered = normalized.filter((f) => {
+    const kickoffMs = new Date(f.kickoff_at).getTime();
+    const isPast = kickoffMs <= now;
+    const isUnscored = f.result_home_90min === null;
+    if (filter === 'past') return isPast;
+    if (filter === 'unscored') return isPast && isUnscored;
+    return true;
+  });
+
+  const groups = groupByLocalDate(filtered, 'en');
 
   return (
     <main className="pi-4 pbs-4 pbe-24">
-      <div className="mbe-4">
+      <div className="mbe-4 flex items-center gap-3 flex-wrap">
         <AdminModeToggle />
+        <AdminMatchesFilter />
       </div>
+      {groups.length === 0 && (
+        <p className="text-sm text-[var(--zc-muted-foreground)] mbs-4">
+          No matches match this filter.
+        </p>
+      )}
       {groups.map(([dateLabel, fxs]) => (
         <section key={dateLabel}>
           <DateGroupHeader label={dateLabel} />
@@ -191,7 +219,26 @@ export default async function AdminMatchesPage({ searchParams }: Props) {
             };
 
             // Entry Mode: inputs on EVERY row (D-10 — overwrite-to-correct).
+            // W2-M1: pre-kickoff rows render collapsed with an "Add result"
+            // button to reduce visual clutter on the long pre-tournament
+            // schedule; clicking expands AdminResultInputs in-place.
             if (mode === 'entry') {
+              if (!isLocked) {
+                return (
+                  <AdminPreKickoffEntryRow
+                    key={f.id}
+                    homeTeam={homeTeam}
+                    awayTeam={awayTeam}
+                    kickoffAt={f.kickoff_at}
+                  >
+                    <AdminResultInputs
+                      fixtureId={f.id}
+                      initialHome={f.result_home_90min}
+                      initialAway={f.result_away_90min}
+                    />
+                  </AdminPreKickoffEntryRow>
+                );
+              }
               return (
                 <div
                   key={f.id}
