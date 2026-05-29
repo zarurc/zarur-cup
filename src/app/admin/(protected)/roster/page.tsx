@@ -1,25 +1,29 @@
 import { adminReadClient } from '@/lib/auth/adminReadClient';
+import { getCurrentMember } from '@/lib/auth/session';
 import { getTranslations } from 'next-intl/server';
 import { RosterMergeForm } from '@/components/admin/RosterMergeForm.client';
+import { RosterNameEdit } from '@/components/admin/RosterNameEdit.client';
+import { RosterAdminToggleForm } from '@/components/admin/RosterAdminToggleForm.client';
 import { AdminToast } from '@/components/admin/AdminToast.client';
 import { resolveAdminToast } from '@/lib/admin/toast';
 
 /**
- * /admin/roster — family roster + merge tool (ADM-05 + D-14).
+ * /admin/roster — family roster + admin tools (ADM-05 + D-14 + R3 + R4).
  *
  * Reads every profile via adminReadClient (Pitfall 10 — service-role
  * sees all rows; the anon-RLS path would only return the admin's own
- * row, which would defeat the purpose of a roster page).
+ * row, defeating the purpose of a roster page).
  *
- * Joins v_leaderboard (Plan 02-01 + 0011 service_role grant) to display
- * the total points alongside each row — this is the same view the
- * leaderboard page uses, so the admin sees the canonical totals.
- *
- * Non-admin rows get a RosterMergeForm (destructive — admin → admin
- * merges blocked by omitting the form on admin rows, which is also
- * defensive because deleting the only admin would brick admin access).
- * The Server Action additionally rejects source === target via Zod
- * .refine (T-02-06-03).
+ * Each row offers:
+ *   - Inline rename via the ✎ pencil button next to the name (R3 —
+ *     RosterNameEdit + updateProfileName Server Action).
+ *   - An overflow ⋯ menu containing:
+ *       • Merge form (non-admin rows only — admin → admin merges are
+ *         blocked by omission as a defense against bricking admin
+ *         access; the Server Action additionally refines).
+ *       • Promote/Demote button (R4 — RosterAdminToggleForm +
+ *         toggleProfileAdmin). Always rendered, even on admin rows,
+ *         because R4 is the only place to demote an admin in-app.
  *
  * NO requireAdmin() call here — parent layout enforces.
  */
@@ -31,17 +35,14 @@ export default async function AdminRosterPage({ searchParams }: PageProps) {
   const t = await getTranslations('admin.roster');
   const svc = await adminReadClient();
   const toast = resolveAdminToast(await searchParams);
+  const currentMember = await getCurrentMember();
+  const currentUserId = currentMember?.user_id ?? null;
 
-  // Full roster, ordered by joined_at so admin sees the family
-  // in their original arrival order.
   const { data: profiles } = await svc
     .from('profiles')
     .select('user_id, display_name, joined_at, locale, is_admin')
     .order('joined_at', { ascending: true });
 
-  // Totals from v_leaderboard. Plan 02-01 + migration 0011 grants
-  // SELECT to service_role on this view, so the read succeeds under
-  // service-role auth. Map user_id → total for O(1) lookup per row.
   const { data: lb } = await svc.from('v_leaderboard').select('user_id, total');
   const totalsByUser = new Map<string, number>(
     (lb ?? [])
@@ -72,16 +73,18 @@ export default async function AdminRosterPage({ searchParams }: PageProps) {
           const joinedFormatted = new Intl.DateTimeFormat('en-US', {
             dateStyle: 'medium',
           }).format(new Date(p.joined_at));
+          const isSelf = currentUserId === p.user_id;
           return (
             <li
               key={p.user_id}
               className="flex items-center justify-between gap-3 pbs-3 pbe-3 border-b border-[var(--zc-border)]"
             >
               <div className="flex-1 min-is-0">
-                <p className="text-base font-bold truncate">
-                  {p.display_name}
-                  {p.is_admin ? ' · admin' : ''}
-                </p>
+                <RosterNameEdit
+                  userId={p.user_id}
+                  displayName={p.display_name}
+                  isAdmin={p.is_admin}
+                />
                 <p className="text-sm text-[var(--zc-muted-foreground)]">
                   joined {joinedFormatted} · {p.locale}
                 </p>
@@ -93,31 +96,46 @@ export default async function AdminRosterPage({ searchParams }: PageProps) {
               >
                 {totalsByUser.get(p.user_id) ?? 0}
               </span>
-              {!p.is_admin && (
-                <details className="relative">
-                  <summary
-                    aria-label={`Actions for ${p.display_name}`}
-                    className="list-none bs-10 is-10 inline-flex items-center justify-center rounded-xl border border-[var(--zc-border)] text-base text-[var(--zc-muted-foreground)] cursor-pointer hover:bg-[var(--zc-muted)] hover:text-[var(--zc-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)]"
-                  >
-                    ⋯
-                  </summary>
-                  <div
-                    role="menu"
-                    className="absolute inset-bs-12 inset-ie-0 z-40 is-72 bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl shadow-lg pi-3 pbs-3 pbe-3"
-                  >
+              <details className="relative">
+                <summary
+                  aria-label={`Actions for ${p.display_name}`}
+                  className="list-none bs-10 is-10 inline-flex items-center justify-center rounded-xl border border-[var(--zc-border)] text-base text-[var(--zc-muted-foreground)] cursor-pointer hover:bg-[var(--zc-muted)] hover:text-[var(--zc-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)]"
+                >
+                  ⋯
+                </summary>
+                <div
+                  role="menu"
+                  className="absolute inset-bs-12 inset-ie-0 z-40 is-72 bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl shadow-lg pi-3 pbs-3 pbe-3 space-y-3"
+                >
+                  <div>
                     <p className="text-xs text-[var(--zc-muted-foreground)] mbe-2">
-                      Destructive — moves picks then deletes the source profile.
+                      {p.is_admin
+                        ? 'Admins have access to /admin. Demote with care — last admin is blocked server-side.'
+                        : 'Promote to grant /admin access.'}
                     </p>
-                    <RosterMergeForm
-                      source={{
-                        user_id: p.user_id,
-                        display_name: p.display_name,
-                      }}
-                      candidates={candidates}
+                    <RosterAdminToggleForm
+                      targetUserId={p.user_id}
+                      targetDisplayName={p.display_name}
+                      isAdmin={p.is_admin}
+                      isSelf={isSelf}
                     />
                   </div>
-                </details>
-              )}
+                  {!p.is_admin && (
+                    <div className="border-t border-[var(--zc-border)] pbs-3">
+                      <p className="text-xs text-[var(--zc-muted-foreground)] mbe-2">
+                        Destructive — moves picks then deletes the source profile.
+                      </p>
+                      <RosterMergeForm
+                        source={{
+                          user_id: p.user_id,
+                          display_name: p.display_name,
+                        }}
+                        candidates={candidates}
+                      />
+                    </div>
+                  )}
+                </div>
+              </details>
             </li>
           );
         })}

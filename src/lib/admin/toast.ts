@@ -11,7 +11,12 @@
  *   - graded=<question_id>   → "Grade saved"     (success)
  *   - resolved=<placeholder> → "Resolved {p}"    (success)
  *   - merged=1               → "Merge complete"  (success)
+ *   - renamed=1              → "Renamed"         (success — R3)
+ *   - promoted=1             → "Promoted"        (success — R4)
+ *   - demoted=1              → "Demoted"         (success — R4)
  *   - error=<message>        → "Error: {message}" (error)
+ *      • error=name_taken  → "Name already taken"
+ *      • error=last_admin  → "Can't remove the last admin"
  *
  * Unknown keys fall through to null so a stray query param doesn't
  * render a misleading banner.
@@ -30,11 +35,22 @@ export function resolveAdminToast(
   };
 
   const err = pick('error');
-  if (err) return { tone: 'error', message: `Error: ${err}` };
+  if (err) {
+    const friendly =
+      err === 'name_taken'
+        ? "Name already taken"
+        : err === 'last_admin'
+          ? "Can't remove the last admin"
+          : err;
+    return { tone: 'error', message: `Error: ${friendly}` };
+  }
 
   if (pick('saved')) return { tone: 'success', message: 'Saved' };
   if (pick('graded')) return { tone: 'success', message: 'Grade saved' };
   if (pick('merged')) return { tone: 'success', message: 'Merge complete' };
+  if (pick('renamed')) return { tone: 'success', message: 'Renamed' };
+  if (pick('promoted')) return { tone: 'success', message: 'Promoted to admin' };
+  if (pick('demoted')) return { tone: 'success', message: 'Removed admin' };
 
   const resolved = pick('resolved');
   if (resolved) {
