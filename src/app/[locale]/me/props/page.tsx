@@ -48,10 +48,10 @@ export default async function MePropsPage({ params }: Props) {
   const { data: questions } = await supabase
     .from('prop_questions')
     .select(
-      'id, answer_type, points, prompt_en, prompt_he, correct_answer, correct_answer_aliases',
+      'id, answer_type, points, prompt_en, prompt_he, correct_answer, correct_answer_aliases, display_order',
     )
     .eq('tournament_id', tournament.id)
-    .order('id', { ascending: true });
+    .order('display_order', { ascending: true });
 
   if (!questions || questions.length === 0) {
     return (

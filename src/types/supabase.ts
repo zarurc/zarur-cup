@@ -341,6 +341,7 @@ export type Database = {
           correct_answer: string | null
           correct_answer_aliases: string[]
           created_at: string
+          display_order: number
           id: string
           points: number
           prompt_en: string
@@ -354,6 +355,7 @@ export type Database = {
           correct_answer?: string | null
           correct_answer_aliases?: string[]
           created_at?: string
+          display_order?: number
           id?: string
           points?: number
           prompt_en: string
@@ -367,6 +369,7 @@ export type Database = {
           correct_answer?: string | null
           correct_answer_aliases?: string[]
           created_at?: string
+          display_order?: number
           id?: string
           points?: number
           prompt_en?: string
