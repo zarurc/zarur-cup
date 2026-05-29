@@ -241,7 +241,11 @@
       "syncOk": "OK ✓",
       "syncFail": "✗ ({n, plural, =1 {1 row} other {# rows}} past kickoff)",
       "totalPreds": "Total Predictions",
-      "unscored": "Unscored Completed Matches"
+      "unscored": "Unscored Completed Matches",
+      "chipLabel": "Integrity status ({n, plural, =0 {OK} =1 {1 breach} other {# breaches}})",
+      "chipOk": "Integrity",
+      "chipFail": "{n, plural, =1 {1 breach} other {# breaches}}",
+      "panelLabel": "Integrity detail"
     }
   },
   "leaderboard": {

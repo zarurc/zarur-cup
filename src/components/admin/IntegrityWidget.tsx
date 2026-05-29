@@ -2,128 +2,192 @@ import { adminReadClient } from '@/lib/auth/adminReadClient';
 import { getTranslations } from 'next-intl/server';
 
 /**
- * Always-visible admin integrity strip (ADM-06 + LGE-06 + D-15).
+ * Admin integrity chip + drilldown popover (W2-C4 redesign of LGE-06 +
+ * ADM-06 + D-15). Replaces the previous fixed-bottom black-bar layout.
  *
- * Mounted by /admin/(protected)/layout.tsx after `{children}` so the
- * widget renders on every admin page load. Server component — no
- * polling, no client JS, no cron. The query runs at SSR time on every
- * pageload; for our 15-user pool the row counts are tiny.
+ * Visual model:
+ *   - Chip in the header header that color-codes overall health:
+ *       green dot (●)  → no lock breaches detected
+ *       red dot + N    → N predictions submitted after kickoff (a real
+ *                        alarm — RLS should have prevented these)
+ *   - Native <details> toggles a popover panel showing all three
+ *     metrics + breach detail with HUMAN-READABLE labels (display_name
+ *     instead of user UUID, "HOME vs AWAY" instead of fixture UUID).
  *
- * Three inline metrics:
+ * Why details + zero-JS popover: status indicators don't need
+ * interactive complexity, and <details> is accessible by default
+ * (toggles on Enter/Space, focus-trappable). Click-outside-to-close is
+ * the only missing affordance vs. a true modal — acceptable tradeoff.
  *
- *   1. Database Sync (LGE-06): the headline integrity check. RLS prohibits
- *      a player from INSERTing a prediction with submitted_at > kickoff_at
- *      (Phase 1 0002_rls.sql lock policies). This widget audits the DB
- *      directly via service-role — if ANY row exists where the
- *      prediction's submitted_at is after the fixture's kickoff_at, the
- *      lock was breached somehow. Default state is "OK ✓" (green); breach
- *      state is "✗ (N rows past kickoff)" (destructive red) with an
- *      expand-on-click <details> drilldown.
- *
- *   2. Total Predictions: gross health metric.
- *
- *   3. Unscored Completed Matches: fixtures whose kickoff_at is in the
- *      past but result_home_90min is still NULL. Tells admin which
- *      results still need to be entered.
- *
- * Implementation note for the LGE-06 query: PostgREST cannot compare two
- * columns from joined tables directly in a single filter expression.
- * Workaround: pull every prediction with its embedded fixture's
- * kickoff_at, then filter in JS. For Phase 2 scale (~1.6k predictions
- * max for 15 users × 104 fixtures) this is trivial — well under any
- * reasonable bandwidth budget. The plan's <threat_model> T-02-06-09
- * explicitly accepts this for Phase 2; if row count exceeds 5k we'd
- * migrate to a server-side `count_lock_breaches()` SQL function.
- *
- * Pitfall 10 (T-02-05-03): adminReadClient is service-role so we see ALL
- * rows. Using createClient() (anon JWT) would hit RLS and see only the
- * admin's own rows — which would silently always report zero breaches.
- *
- * RTL hygiene: the widget is unlocalized (admin is EN-only per D-05) but
- * we still wrap numbers in `dir="ltr"` so the digits render LTR if the
- * admin's profile.locale is 'he' and they somehow opened the admin tree
- * in an RTL-rendering browser context.
+ * Implementation notes:
+ *   - Same LGE-06 lock-breach audit query as before (predictions JOIN
+ *     fixtures, compare submitted_at vs kickoff_at in JS — see Plan
+ *     02-06 <threat_model> T-02-06-09 for the rationale).
+ *   - service-role client (adminReadClient) so the query sees ALL rows
+ *     (Pitfall 10).
+ *   - Profile + team-embed resolution runs only when there ARE breaches
+ *     — happy path costs nothing extra.
  */
+type BreachRowRaw = {
+  user_id: string;
+  fixture_id: string;
+  submitted_at: string;
+  fixtures:
+    | {
+        kickoff_at: string;
+        home_team: { code: string } | { code: string }[] | null;
+        away_team: { code: string } | { code: string }[] | null;
+      }
+    | Array<{
+        kickoff_at: string;
+        home_team: { code: string } | { code: string }[] | null;
+        away_team: { code: string } | { code: string }[] | null;
+      }>
+    | null;
+};
+
 export async function IntegrityWidget() {
   const t = await getTranslations('admin.integrity');
   const svc = await adminReadClient();
 
-  // Total predictions: head-only count for efficiency.
-  const totalP = await svc
+  // Head-only counts for the cheap metrics.
+  const totalP = svc
     .from('predictions')
     .select('*', { count: 'exact', head: true });
-
-  // Unscored matches: kickoff in the past, result still null.
-  const unscoredP = await svc
+  const unscoredP = svc
     .from('fixtures')
     .select('*', { count: 'exact', head: true })
     .lte('kickoff_at', new Date().toISOString())
     .is('result_home_90min', null);
 
-  // Lock breach audit: pull every prediction with the fixture's kickoff,
-  // compare in JS. See comment block at top for the workaround rationale.
-  const { data: rawBreaches } = await svc
+  // Breach audit. We need home/away team codes embedded so we can
+  // render "BRA vs ARG" instead of fixture UUID. Profiles fetch one
+  // round-trip later, only if breaches exist.
+  const breachesP = svc
     .from('predictions')
-    .select('user_id, fixture_id, submitted_at, fixtures(kickoff_at)');
-  type BreachRow = {
+    .select(
+      `
+      user_id, fixture_id, submitted_at,
+      fixtures(
+        kickoff_at,
+        home_team:teams!fixtures_home_team_id_fkey(code),
+        away_team:teams!fixtures_away_team_id_fkey(code)
+      )
+    `,
+    );
+
+  const [totalRes, unscoredRes, breachesRes] = await Promise.all([
+    totalP,
+    unscoredP,
+    breachesP,
+  ]);
+
+  const rawRows = (breachesRes.data as BreachRowRaw[] | null) ?? [];
+  type ResolvedBreach = {
     user_id: string;
     fixture_id: string;
     submitted_at: string;
-    fixtures:
-      | { kickoff_at: string }
-      | Array<{ kickoff_at: string }>
-      | null;
+    home_code: string;
+    away_code: string;
   };
-  const breaches = ((rawBreaches as BreachRow[] | null) ?? []).filter((p) => {
-    // PostgREST single-FK embed widening normalization (Plan 02-03
-    // Pattern 32) — fixtures may serialize as object or 1-element array.
-    const fx = Array.isArray(p.fixtures) ? p.fixtures[0] : p.fixtures;
-    const k = fx?.kickoff_at;
-    return (
-      typeof k === 'string' &&
-      new Date(p.submitted_at).getTime() > new Date(k).getTime()
-    );
-  });
+  const breaches: ResolvedBreach[] = rawRows
+    .map((p) => {
+      const fx = Array.isArray(p.fixtures) ? p.fixtures[0] : p.fixtures;
+      if (!fx) return null;
+      const k = fx.kickoff_at;
+      if (
+        typeof k !== 'string' ||
+        new Date(p.submitted_at).getTime() <= new Date(k).getTime()
+      ) {
+        return null;
+      }
+      const home = Array.isArray(fx.home_team) ? fx.home_team[0] : fx.home_team;
+      const away = Array.isArray(fx.away_team) ? fx.away_team[0] : fx.away_team;
+      return {
+        user_id: p.user_id,
+        fixture_id: p.fixture_id,
+        submitted_at: p.submitted_at,
+        home_code: home?.code ?? '?',
+        away_code: away?.code ?? '?',
+      };
+    })
+    .filter((r): r is ResolvedBreach => r !== null);
+
+  // Resolve user_id → display_name only when there's something to show.
+  const nameByUser = new Map<string, string>();
+  if (breaches.length > 0) {
+    const ids = Array.from(new Set(breaches.map((b) => b.user_id)));
+    const { data: profs } = await svc
+      .from('profiles')
+      .select('user_id, display_name')
+      .in('user_id', ids);
+    for (const p of profs ?? []) nameByUser.set(p.user_id, p.display_name);
+  }
+
   const breachCount = breaches.length;
+  const ok = breachCount === 0;
+
+  const chipCls = ok
+    ? 'bg-[var(--zc-integrity-ok)] text-white'
+    : 'bg-[var(--zc-destructive)] text-white';
 
   return (
-    <aside
-      className="fixed inset-be-0 inset-i-0 z-30 bs-10 bg-[var(--zc-primary)] text-[var(--zc-primary-foreground)] pi-4 flex items-center justify-between gap-4 text-sm tabular-nums"
-      aria-label="Integrity"
-    >
-      <span>
-        <span className="font-bold">{t('syncLabel')}: </span>
-        {breachCount === 0 ? (
-          <span className="text-[var(--zc-integrity-ok)] font-bold">
-            {t('syncOk')}
+    <details className="relative">
+      <summary
+        aria-label={t('chipLabel', { n: breachCount })}
+        className={`list-none inline-flex items-center gap-1 pi-3 pbs-1 pbe-1 rounded-full text-xs font-bold cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] ${chipCls}`}
+      >
+        <span aria-hidden>{ok ? '●' : '⚠'}</span>
+        <span>{ok ? t('chipOk') : t('chipFail', { n: breachCount })}</span>
+      </summary>
+      <div
+        role="dialog"
+        aria-label={t('panelLabel')}
+        className="absolute inset-be-auto inset-bs-12 inset-ie-0 z-40 bs-auto is-72 max-bs-96 overflow-y-auto bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl shadow-lg pi-4 pbs-3 pbe-3 text-sm text-[var(--zc-primary)]"
+      >
+        <p className="flex justify-between gap-2">
+          <span className="font-bold">{t('syncLabel')}</span>
+          <span
+            className={ok ? 'text-[var(--zc-integrity-ok)]' : 'text-[var(--zc-destructive)]'}
+          >
+            {ok ? t('syncOk') : t('syncFail', { n: breachCount })}
           </span>
-        ) : (
-          <details className="inline">
-            <summary className="text-[var(--zc-destructive)] font-bold underline cursor-pointer">
-              {t('syncFail', { n: breachCount })}
-            </summary>
-            <ul className="absolute inset-be-10 inset-i-4 bg-[var(--zc-card)] text-[var(--zc-primary)] p-3 rounded-xl shadow-lg max-bs-80 overflow-y-auto z-31">
-              {breaches.map((b) => (
-                <li
-                  key={`${b.user_id}-${b.fixture_id}`}
-                  className="text-xs tabular-nums"
-                >
-                  user={b.user_id} fixture={b.fixture_id} submitted=
-                  {b.submitted_at}
-                </li>
-              ))}
-            </ul>
-          </details>
+        </p>
+        <p className="flex justify-between gap-2 mbs-1">
+          <span className="font-bold">{t('totalPreds')}</span>
+          <span dir="ltr" className="tabular-nums">
+            {totalRes.count ?? 0}
+          </span>
+        </p>
+        <p className="flex justify-between gap-2 mbs-1">
+          <span className="font-bold">{t('unscored')}</span>
+          <span dir="ltr" className="tabular-nums">
+            {unscoredRes.count ?? 0}
+          </span>
+        </p>
+        {breaches.length > 0 && (
+          <ul className="mbs-3 pbs-3 border-t border-[var(--zc-border)]">
+            {breaches.map((b) => (
+              <li
+                key={`${b.user_id}-${b.fixture_id}`}
+                className="text-xs mbs-1"
+              >
+                <span className="font-bold">
+                  {nameByUser.get(b.user_id) ?? b.user_id.slice(0, 8)}
+                </span>
+                {' · '}
+                <span dir="ltr">
+                  {b.home_code} vs {b.away_code}
+                </span>
+                {' · '}
+                <span className="text-[var(--zc-muted-foreground)]">
+                  {new Date(b.submitted_at).toISOString().slice(11, 19)}Z
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
-      </span>
-      <span>
-        <span className="font-bold">{t('totalPreds')}: </span>
-        <span dir="ltr">{totalP.count ?? 0}</span>
-      </span>
-      <span>
-        <span className="font-bold">{t('unscored')}: </span>
-        <span dir="ltr">{unscoredP.count ?? 0}</span>
-      </span>
-    </aside>
+      </div>
+    </details>
   );
 }

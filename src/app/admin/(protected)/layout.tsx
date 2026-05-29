@@ -33,16 +33,18 @@ export default async function AdminProtectedLayout({
         >
           Admin
         </Link>
-        <Link
-          href={'/' as Route}
-          className="text-sm text-[var(--zc-primary)] underline"
-        >
-          ← Back to app
-        </Link>
+        <div className="flex items-center gap-3">
+          <IntegrityWidget />
+          <Link
+            href={'/' as Route}
+            className="text-sm text-[var(--zc-primary)] underline"
+          >
+            ← Back to app
+          </Link>
+        </div>
       </header>
       <AdminNavTabs />
       <main>{children}</main>
-      <IntegrityWidget />
     </>
   );
 }
