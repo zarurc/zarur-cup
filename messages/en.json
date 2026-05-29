@@ -173,7 +173,9 @@
   "match": {
     "kickoffSrLabel": "Kicks off",
     "lockedAria": "Locked at kickoff",
-    "actual": "FT · Actual"
+    "actual": "FT · Actual",
+    "showPicks": "Show all {count} picks",
+    "hidePicks": "Hide picks"
   },
   "pts": {
     "exact": "exact",

@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { PtsBadge, type PtsKind } from '@/components/ui/PtsBadge';
 import { codeToFlag } from '@/lib/teams/codeToFlag';
+import { ResultedPicksDisclosure } from './ResultedPicksDisclosure.client';
 
 /**
  * Post-result reveal row per UI-SPEC §4 + SCR-07 + VIS-05.
@@ -12,6 +13,11 @@ import { codeToFlag } from '@/lib/teams/codeToFlag';
  * Picks are sorted by points DESC then locale-aware display_name ASC via
  * Intl.Collator (sensitivity: 'base' so Hebrew niqqud / Latin case fold
  * predictably). Non-predictors render as em-dash + +0.
+ *
+ * Default-collapsed (Polish #3): the picks list is wrapped in a client-side
+ * disclosure. Header row (teams + actual score) is always visible; the
+ * 15-row pick table is hidden until the user taps "Show all N picks". This
+ * prevents the 64-match × 15-player wall-of-text problem by tournament end.
  */
 type Team = { code: string; name_en: string; name_he: string };
 type PlayerPick = {
@@ -87,7 +93,7 @@ export async function MatchRowResulted({
           {t('actual')}
         </span>
       </div>
-      <div className="mbs-3 -mi-4">
+      <ResultedPicksDisclosure count={sorted.length}>
         {sorted.map((p) => (
           <div
             key={p.user_id}
@@ -105,7 +111,7 @@ export async function MatchRowResulted({
             <PtsBadge points={p.points} kind={p.kind ?? 'miss'} />
           </div>
         ))}
-      </div>
+      </ResultedPicksDisclosure>
     </div>
   );
 }

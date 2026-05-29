@@ -173,7 +173,9 @@
   "match": {
     "kickoffSrLabel": "שריקת פתיחה",
     "lockedAria": "נעול בשריקת הפתיחה",
-    "actual": "סיום · תוצאה"
+    "actual": "סיום · תוצאה",
+    "showPicks": "הצג את כל {count} הניחושים",
+    "hidePicks": "הסתר ניחושים"
   },
   "pts": {
     "exact": "מדויק",
