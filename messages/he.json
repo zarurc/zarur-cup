@@ -165,9 +165,7 @@
   "prediction": {
     "saved": "נשמר",
     "saveFailed": "הניחוש לא נשמר — הקישו לנסות שוב",
-    "lockedSaveFailed": "המשחק ננעל בשריקת הפתיחה. הניחוש לא נשמר.",
-    "expandAria": "הצג כלי ניחוש",
-    "collapseAria": "הסתר כלי ניחוש"
+    "lockedSaveFailed": "המשחק ננעל בשריקת הפתיחה. הניחוש לא נשמר."
   },
   "propsBanner": {
     "unansweredCta": "{n} מתוך {total} שאלות לא נענו — סגרו לפני שריקת הפתיחה ←"
