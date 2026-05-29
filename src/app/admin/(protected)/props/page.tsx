@@ -45,7 +45,24 @@ export default async function AdminPropsPage() {
           key={q.id}
           className="mbs-4 pbs-4 pbe-4 border-b border-[var(--zc-border)]"
         >
-          <h3 className="text-base font-bold">{q.prompt_en}</h3>
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-base font-bold flex-1">{q.prompt_en}</h3>
+            {q.correct_answer !== null ? (
+              <span
+                className="shrink-0 text-xs font-bold pi-2 pbs-1 pbe-1 rounded-full bg-[var(--zc-integrity-ok)] text-white tabular-nums"
+                aria-label="Graded"
+              >
+                ✓ Graded
+              </span>
+            ) : (
+              <span
+                className="shrink-0 text-xs font-bold pi-2 pbs-1 pbe-1 rounded-full bg-[var(--zc-muted)] text-[var(--zc-muted-foreground)]"
+                aria-label="Ungraded"
+              >
+                Ungraded
+              </span>
+            )}
+          </div>
           <p className="text-sm text-[var(--zc-muted-foreground)] mbs-1">
             <span dir="rtl">{q.prompt_he}</span> · {q.answer_type} ·{' '}
             <span dir="ltr">{q.points}</span> pts
