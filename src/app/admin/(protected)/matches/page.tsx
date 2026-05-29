@@ -5,6 +5,7 @@ import { MatchRowLocked } from '@/components/matches/MatchRowLocked';
 import { MatchRowResulted } from '@/components/matches/MatchRowResulted';
 import { AdminModeToggle } from '@/components/admin/AdminModeToggle.client';
 import { AdminResultInputs } from '@/components/admin/AdminResultInputs.client';
+import { codeToFlag } from '@/lib/teams/codeToFlag';
 import type { PtsKind } from '@/components/ui/PtsBadge';
 
 /**
@@ -198,7 +199,7 @@ export default async function AdminMatchesPage({ searchParams }: Props) {
                 >
                   <div className="flex items-center gap-2 min-is-0 flex-1">
                     <span className="text-xl" aria-hidden>
-                      🏴
+                      {codeToFlag(homeTeam.code)}
                     </span>
                     <span className="text-base truncate">{homeTeam.name_en}</span>
                   </div>
@@ -212,7 +213,7 @@ export default async function AdminMatchesPage({ searchParams }: Props) {
                       {awayTeam.name_en}
                     </span>
                     <span className="text-xl" aria-hidden>
-                      🏴
+                      {codeToFlag(awayTeam.code)}
                     </span>
                   </div>
                 </div>
