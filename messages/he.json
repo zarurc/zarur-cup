@@ -190,16 +190,16 @@
     "loading": { "heading": "המשחקים נטענים", "body": "רק רגע ואנחנו טוענים את הלוח." }
   },
   "leaderboard": {
-    "heading": "טבלה",
+    "heading": "טבלת הדירוג",
     "rankLabel": "דירוג",
     "totalLabel": "סך הכל",
-    "league": "ליגה: {n}",
-    "bracketPlaceholder": "נוקאאוט: 0 — נפתח 27 ביוני",
-    "props": "שאלות: {n}",
+    "league": "ניקוד משחקים: {n}",
+    "bracketPlaceholder": "ניקוד נוקאאוט: 0 — נפתח 27 ביוני",
+    "props": "ניקוד שאלות: {n}",
     "expandAriaOpen": "הצג פירוט",
     "expandAriaClose": "הסתר פירוט",
     "empty": {
-      "heading": "הטבלה נפתחת עם התוצאה הראשונה",
+      "heading": "הטבלה תיפתח עם התוצאה הראשונה",
       "body": "הדירוג יופיע ברגע שהמנהל יזין תוצאה."
     }
   },
