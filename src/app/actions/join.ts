@@ -77,11 +77,14 @@ export async function joinPool(
   }
   const { invite_code, display_name } = parsed.data;
 
-  // 2. Invite-code gate (D-01: exact string equality, case-sensitive, trimmed
-  //    by Zod). D-12: NO cutoff / no admin approval - anyone with the code
-  //    can join at any time. This check runs BEFORE any auth or DB work so
-  //    a wrong code never reveals whether a display_name exists.
-  if (invite_code !== process.env.INVITE_CODE) {
+  // 2. Invite-code gate (D-01 revised 2026-05-28c: case-INSENSITIVE
+  //    equality after Zod's trim — accepts "zarur2026" / "Zarur2026" /
+  //    "ZARUR2026" alike). D-12: NO cutoff / no admin approval — anyone
+  //    with the code can join at any time. This check runs BEFORE any
+  //    auth or DB work so a wrong code never reveals whether a
+  //    display_name exists.
+  const expectedCode = process.env.INVITE_CODE ?? '';
+  if (invite_code.toLowerCase() !== expectedCode.toLowerCase()) {
     return { error: 'invalid_code' };
   }
 

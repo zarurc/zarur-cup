@@ -322,11 +322,23 @@
     "step2Title": "Predict each match before kickoff",
     "step2Body": "Tap a match on the Matches tab and enter the score. It saves automatically. Once kickoff hits, your pick locks and everyone can see it.",
     "step3Title": "Answer the pre-tournament questions",
-    "step3Body": "Open More → Pre-tournament props and answer all 10. They all lock together at the opening kickoff (June 11).",
+    "step3Body": "Open More → Pre-tournament props and answer all 5 (winner, runner-up, third place, Golden Boot, Golden Ball). They all lock together at the opening kickoff (June 11).",
     "step4Title": "Watch the leaderboard",
     "step4Body": "Points appear automatically once the admin enters each result. Tap a row to see that person's score breakdown.",
     "step5Title": "Use More for everything else",
     "step5Body": "Your profile, the bracket, the rules, and this walkthrough all live under the More tab. Logout is there too.",
     "outro": "Questions? Argue about them at dinner."
+  },
+  "welcome": {
+    "heading": "Welcome, {name}!",
+    "intro": "You're in the family pool. No money, no stakes — just bragging rights through July 19.",
+    "step1Title": "Predict every match",
+    "step1Body": "Open Matches and enter a score for each fixture before kickoff. Predictions save automatically and lock at the whistle.",
+    "step2Title": "Answer 5 pre-tournament questions",
+    "step2Body": "Winner, runner-up, third place, Golden Boot, Golden Ball. They all lock together at the June 11 opening kickoff.",
+    "step3Title": "Watch the leaderboard",
+    "step3Body": "Every result the admin enters updates the standings. Tap a row to see anyone's breakdown.",
+    "ctaStart": "Start playing",
+    "howToPlayLink": "Full 60-second walkthrough →"
   }
 }

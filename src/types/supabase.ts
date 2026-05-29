@@ -280,6 +280,7 @@ export type Database = {
           joined_at: string
           locale: string
           user_id: string
+          welcome_seen_at: string | null
         }
         Insert: {
           display_name: string
@@ -288,6 +289,7 @@ export type Database = {
           joined_at?: string
           locale?: string
           user_id: string
+          welcome_seen_at?: string | null
         }
         Update: {
           display_name?: string
@@ -296,6 +298,7 @@ export type Database = {
           joined_at?: string
           locale?: string
           user_id?: string
+          welcome_seen_at?: string | null
         }
         Relationships: []
       }
