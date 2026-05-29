@@ -44,19 +44,28 @@ function formatRemaining(rawMs: number): string {
 export function CountdownBanner({ upcoming }: { upcoming: UpcomingFixture[] }) {
   const t = useTranslations('countdown');
   const [idx, setIdx] = useState(0);
-  const [now, setNow] = useState(() => Date.now());
+  // `now` starts at 0 (a stable sentinel) so SSR and client first-render
+  // produce identical HTML. `mounted` flips true post-hydration; only then
+  // do we read Date.now() and start the per-second tick. This is the
+  // documented React 19 hydration-safe pattern for "current time" displays.
+  const [mounted, setMounted] = useState(false);
+  const [now, setNow] = useState(0);
 
   useEffect(() => {
+    setMounted(true);
+    setNow(Date.now());
     const i = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(i);
   }, []);
 
   // Roll the cursor forward past any fixtures whose kickoff already passed
   // (covers initial render with stale data + the per-tick rollover case).
-  // We compute the rolled cursor as a derived value and effect-update idx
-  // — using setState during render is unsafe in React 19 concurrent mode.
+  // Gated on `mounted` so SSR/first-paint always uses cursor=0; otherwise a
+  // server "now" different from the client's would skip a different number
+  // of past fixtures and mismatch the chosen `current`.
   let cursor = idx;
   while (
+    mounted &&
     cursor < upcoming.length &&
     new Date(upcoming[cursor].kickoff_at).getTime() <= now
   ) {
@@ -73,8 +82,8 @@ export function CountdownBanner({ upcoming }: { upcoming: UpcomingFixture[] }) {
   const current = upcoming[cursor];
   if (!current) return null; // tournament ended OR no upcoming
 
-  const remaining = new Date(current.kickoff_at).getTime() - now;
-  const isEscalation = remaining <= ESCALATION_THRESHOLD_MS;
+  const remaining = mounted ? new Date(current.kickoff_at).getTime() - now : 0;
+  const isEscalation = mounted && remaining <= ESCALATION_THRESHOLD_MS;
 
   return (
     <div className="fixed inset-bs-14 inset-i-0 z-30 bs-10 bg-[var(--zc-card)] border-b border-[var(--zc-border)] pi-4 flex items-center justify-between gap-3">
@@ -85,7 +94,7 @@ export function CountdownBanner({ upcoming }: { upcoming: UpcomingFixture[] }) {
         dir="ltr"
         className={`text-base font-bold tabular-nums shrink-0 ${isEscalation ? 'text-[var(--zc-accent)]' : 'text-[var(--zc-primary)]'}`}
       >
-        {t('kicksOffIn')} {formatRemaining(remaining)}
+        {t('kicksOffIn')} {mounted ? formatRemaining(remaining) : '—'}
       </span>
     </div>
   );
