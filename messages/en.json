@@ -165,7 +165,9 @@
   "prediction": {
     "saved": "Saved",
     "saveFailed": "Couldn't save — tap to retry",
-    "lockedSaveFailed": "Match locked at kickoff. Your pick wasn't saved."
+    "lockedSaveFailed": "Match locked at kickoff. Your pick wasn't saved.",
+    "expandAria": "Show prediction controls",
+    "collapseAria": "Hide prediction controls"
   },
   "match": {
     "kickoffSrLabel": "Kicks off",

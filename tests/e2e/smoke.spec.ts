@@ -64,6 +64,10 @@ test('full prediction → lock → result → leaderboard flow', async ({
     const preLockRow = userPage.getByTestId(`match-row-${preLockId}`);
     await expect(preLockRow).toBeVisible({ timeout: 10_000 });
 
+    // Editable rows are default-collapsed (Polish #3). Expand to reveal the
+    // stepper before interacting with it.
+    await userPage.getByTestId(`match-row-toggle-${preLockId}`).click();
+
     // Click +1 home twice, +1 away once → score 2:1.
     await userPage.getByTestId(`stepper-home-plus-${preLockId}`).click();
     await userPage.getByTestId(`stepper-home-plus-${preLockId}`).click();

@@ -165,7 +165,9 @@
   "prediction": {
     "saved": "נשמר",
     "saveFailed": "הניחוש לא נשמר — הקישו לנסות שוב",
-    "lockedSaveFailed": "המשחק ננעל בשריקת הפתיחה. הניחוש לא נשמר."
+    "lockedSaveFailed": "המשחק ננעל בשריקת הפתיחה. הניחוש לא נשמר.",
+    "expandAria": "הצג כלי ניחוש",
+    "collapseAria": "הסתר כלי ניחוש"
   },
   "match": {
     "kickoffSrLabel": "שריקת פתיחה",

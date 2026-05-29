@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { MatchRowStepper } from './MatchRowStepper.client';
 import { codeToFlag } from '@/lib/teams/codeToFlag';
 
@@ -7,16 +9,14 @@ type Team = { code: string; name_en: string; name_he: string };
 
 /**
  * Editable-row variant per UI-SPEC §2. Renders when fixture.kickoff_at >
- * now() AND no result is in. The MatchRowStepper inside owns the
- * 600ms-debounced save + revert-on-error UX.
+ * now() AND no result is in.
  *
- * Client component because the stepper needs interactivity (the row chrome
- * around it could technically be server-rendered, but co-locating it with
- * the stepper keeps the variant boundary clean — Locked + Resulted are the
- * server-renderable variants).
- *
- * Team names use the active-locale field (name_en / name_he). Kickoff time
- * renders LTR even in HE so digits don't visually reverse.
+ * Default-collapsed: the team chrome doubles as a toggle button (chevron at
+ * the end). When collapsed, the bottom slot shows a read-only score capsule
+ * (own pick if present, em-dashes otherwise) so users can see their current
+ * prediction without expanding. When expanded, the stepper takes the bottom
+ * slot. The stepper is `hidden`-toggled rather than conditionally mounted so
+ * mid-edit state (pending debounced save) survives a collapse round-trip.
  */
 export function MatchRow({
   locale,
@@ -35,20 +35,29 @@ export function MatchRow({
   initialHome: number | null;
   initialAway: number | null;
 }) {
+  const tPrediction = useTranslations('prediction');
+  const [expanded, setExpanded] = useState(false);
+  const hasPick = initialHome !== null && initialAway !== null;
   const intlLocale = locale === 'he' ? 'he-IL' : 'en-US';
-  // Mobile layout: stepper on its own row to fit 360px viewports (Plan 02-08
-  // post-execution review caught the overflow). Time is shown in browser-local
-  // tz without a tz-name label since all viewers share their device clock.
   const time = new Intl.DateTimeFormat(intlLocale, {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(kickoffAt));
+  const controlsId = `match-row-controls-${fixtureId}`;
   return (
     <div
       data-testid={`match-row-${fixtureId}`}
       className="bg-[var(--zc-card)] border border-[var(--zc-border)] rounded-2xl pi-4 pbs-3 pbe-3 mbs-3 flex flex-col gap-3"
     >
-      <div className="flex items-center gap-3">
+      <button
+        type="button"
+        data-testid={`match-row-toggle-${fixtureId}`}
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        aria-controls={controlsId}
+        aria-label={expanded ? tPrediction('collapseAria') : tPrediction('expandAria')}
+        className="flex items-center gap-3 w-full text-start rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--zc-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--zc-card)]"
+      >
         <div className="flex items-center gap-2 min-is-0 flex-1">
           <span className="text-xl shrink-0" aria-hidden>
             {codeToFlag(homeTeam.code)}
@@ -77,13 +86,40 @@ export function MatchRow({
             {codeToFlag(awayTeam.code)}
           </span>
         </div>
-      </div>
-      <div className="flex justify-center">
-        <MatchRowStepper
-          fixtureId={fixtureId}
-          initialHome={initialHome}
-          initialAway={initialAway}
-        />
+        <span
+          aria-hidden
+          className={`shrink-0 text-[var(--zc-muted-foreground)] transition-transform duration-150 ${expanded ? 'rotate-180' : ''}`}
+        >
+          ▾
+        </span>
+      </button>
+      <div id={controlsId} className="flex justify-center">
+        <div hidden={expanded}>
+          {hasPick ? (
+            <span
+              dir="ltr"
+              data-testid={`match-row-capsule-${fixtureId}`}
+              className="bs-8 inline-flex items-center justify-center pi-3 rounded-full bg-[var(--zc-muted)] text-base font-bold text-[var(--zc-primary)] tabular-nums"
+            >
+              {initialHome} : {initialAway}
+            </span>
+          ) : (
+            <span
+              dir="ltr"
+              data-testid={`match-row-capsule-${fixtureId}`}
+              className="bs-8 inline-flex items-center justify-center pi-3 rounded-full bg-transparent border border-dashed border-[var(--zc-border)] text-base text-[var(--zc-muted-foreground)] tabular-nums"
+            >
+              — : —
+            </span>
+          )}
+        </div>
+        <div hidden={!expanded}>
+          <MatchRowStepper
+            fixtureId={fixtureId}
+            initialHome={initialHome}
+            initialAway={initialAway}
+          />
+        </div>
       </div>
     </div>
   );
